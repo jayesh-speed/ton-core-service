@@ -5,6 +5,9 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class Constants {
 
+	public final Integer MAIN_NET_CHAIN_ID = 1;
+	public final Integer TEST_NET_CHAIN_ID = 11;
+	public final Long ONE_BILLION = 1_000_000_000L;
 	public final String ACCOUNT_TYPE = "speed-account-type";
 	public final String ACTIVE = "active";
 	public final String API_CALL = "api_call";
@@ -12,21 +15,21 @@ public class Constants {
 	public final String CACHE_KEY_GENERATOR = "cachingKeyGenerator";
 	public final String CHAIN_ID = "chain-id";
 	public final String ELAPSE_TIME = "elapse_time";
-	public final String INSUFFICIENT_FEE_ERROR = "insufficient funds for gas";
 	public final String EVENT = "event";
 	public final String EXIT_CODE_33 = "exit_code_33";
 	public final String FALSE = "false";
-	public final String PROCESSED_BY_TON = "ton";
-	public final String TON_WITHDRAW_METHOD = "ton";
 	public final String FORWARD_TON_AMOUNT_FOR_DEPLOYMENT = "0.1";
 	public final String FORWARD_TON_AMOUNT_FOR_JETTON_TRANSFER = "0.1";
 	public final String FROM_ADDRESS = "fromAddress";
+	public final String INSUFFICIENT_FEE_ERROR = "insufficient funds for gas";
 	public final String JETTON_ADDRESS = "jetton_address";
 	public final String MAIN_ACCOUNT_ADDRESS = "main_account_address";
 	public final String MAIN_NET = "main_net";
 	public final String MODE = "speed-livemode";
+	public final String PROCESSED_BY_TON = "ton";
 	public final String REQUEST_ID = "speed-request";
 	public final String SPENDER_ADDRESS = "spenderAddress";
+	public final String TON_WITHDRAW_METHOD = "ton";
 	public final String TO_ADDRESS = "toAddress";
 	public final String TO_MANY_EXTERNAL_MASSAGE = "too many external messages to address";
 	public final String UNPACK_ACCOUNT_STATE = "failed to unpack account state";
@@ -36,8 +39,6 @@ public class Constants {
 	public final String WALLET = "wallet";
 	public final int MAIN_NET_POLLING_INTERVAL = 10;
 	public final int TEST_NET_POLLING_INTERVAL = 15;
-	public final Integer MAIN_NET_CHAIN_ID = 1;
-	public final Integer TEST_NET_CHAIN_ID = 11;
 
 	@UtilityClass
 	public class SecretManagerKeys {

@@ -1,7 +1,6 @@
 package com.speed.toncore.ton;
 
 import com.iwebpp.crypto.TweetNaclFast;
-import com.speed.javacommon.enums.CommonLogActions;
 import com.speed.javacommon.exceptions.InternalServerErrorException;
 import com.speed.javacommon.log.LogHolder;
 import com.speed.javacommon.util.CollectionUtil;
@@ -9,8 +8,9 @@ import com.speed.javacommon.util.StringUtil;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
+import com.speed.toncore.jettons.response.TonJettonResponse;
 import com.speed.toncore.pojo.JettonWalletDto;
-import com.speed.toncore.pojo.TonTransactionDto;
+import com.speed.toncore.util.LogKeys;
 import com.speed.toncore.util.LogMessages;
 import com.speed.toncore.util.SecurityManagerUtil;
 import lombok.RequiredArgsConstructor;
@@ -41,8 +41,10 @@ import org.ton.ton4j.utils.Utils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Component
@@ -74,13 +76,18 @@ public class TonCoreService {
 	}
 
 	public BigDecimal fetchTonBalance(String address) {
-		return new BigDecimal(tonCoreServiceHelper.getTonBalance(address)).divide(BigDecimal.valueOf(Math.pow(10, 9)));
+		BigDecimal rawBalance = new BigDecimal(tonCoreServiceHelper.getTonBalance(address));
+		if (rawBalance.compareTo(BigDecimal.ZERO) == 0) {
+			return BigDecimal.ZERO;
+		}
+		return rawBalance.divide(BigDecimal.valueOf(Constants.ONE_BILLION), 9, RoundingMode.HALF_DOWN);
 	}
 
-	public BigDecimal fetchJettonBalance(String jettonAddress, String address, int decimals) {
-		return Optional.ofNullable(tonCoreServiceHelper.getJettonWallet(address, jettonAddress).getJettonWallets())
+	public BigDecimal fetchJettonBalance(String jettonMasterAddress, String ownerAddress, int decimals) {
+		return Optional.ofNullable(tonCoreServiceHelper.getJettonWallet(ownerAddress, jettonMasterAddress).getJettonWallets())
 				.flatMap(wallets -> wallets.stream().findFirst())
-				.map(jettonWallet -> new BigDecimal(jettonWallet.getBalance()).divide(BigDecimal.TEN.pow(decimals)))
+				.filter(jettonWallet -> !Objects.equals(jettonWallet.getBalance(), BigInteger.ZERO))
+				.map(jettonWallet -> new BigDecimal(jettonWallet.getBalance()).divide(BigDecimal.TEN.pow(decimals), 9, RoundingMode.HALF_DOWN))
 				.orElse(BigDecimal.ZERO);
 	}
 
@@ -89,67 +96,59 @@ public class TonCoreService {
 	}
 
 	@Retryable(retryFor = RetryException.class, backoff = @Backoff(delay = 2000), maxAttempts = 5)
-	public String transferJettons(String fromAddress, String toAddress, String jettonAddress, BigDecimal value, String encryptedKey, String identifier,
-			String jettonWalletAddress, int decimals) {
+	public String transferJettons(String fromAddress, String toAddress, TonJettonResponse jetton, BigDecimal value, String encryptedKey,
+			String jettonWalletAddress, String txReference) {
 		try {
 			TonNode tonNode = tonNodePool.getTonNodeByChainId();
-			BigDecimal scaled = value.setScale(decimals);
-			BigInteger amountToTransfer = scaled.multiply(BigDecimal.valueOf(Math.pow(10, decimals))).toBigInteger();
+			BigDecimal scaled = value.setScale(jetton.getDecimals(), RoundingMode.HALF_DOWN);
+			BigInteger amountToTransfer = scaled.multiply(BigDecimal.valueOf(Math.pow(10, jetton.getDecimals()))).toBigInteger();
 			String privateKey = getDecryptedKey(encryptedKey, tonNode.getEncryptionAlgo(), tonNode.getEncryptionKey());
 			if (StringUtil.nullOrEmpty(privateKey)) {
-				LogHolder logHolder = prepareJettonTransferFailLogHolder(fromAddress, toAddress, jettonAddress, value);
+				LogHolder logHolder = prepareJettonTransferFailLogHolder(fromAddress, toAddress, jetton.getJettonMasterAddress(), value);
 				LOG.error(Markers.appendEntries(logHolder.getAttributes()), null);
-				throw new InternalServerErrorException(String.format(Errors.PRIVATE_KEY_NOT_DECRYPTED, tonNode.getChainId()));
+				throw new InternalServerErrorException(Errors.PRIVATE_KEY_NOT_DECRYPTED);
 			}
 			HighloadWalletV3 mainAccount = HighloadWalletV3.builder().walletId(tonNode.getWalletId()).keyPair(getKeyPair(privateKey)).build();
-			Address address = mainAccount.getAddress();
+			Address mainAccountAddress = mainAccount.getAddress();
 			int queryId = generateUniqueQueryId();
-			Cell textMessageBody = MsgUtils.createTextMessageBody(identifier);
+			Cell forwardPayload = MsgUtils.createTextMessageBody(txReference);
 			HighloadV3Config config = HighloadV3Config.builder()
 					.walletId(tonNode.getWalletId())
 					.queryId(queryId)
 					.body(mainAccount.createBulkTransfer(Collections.singletonList(Destination.builder()
 							.address(jettonWalletAddress)
-							.amount(Utils.toNano(Constants.FORWARD_TON_AMOUNT_FOR_JETTON_TRANSFER, 9))
-							.body(JettonWallet.createTransferBody(generateUniqueQueryId(), amountToTransfer, Address.of(toAddress), address, null,
-									BigInteger.ONE, textMessageBody))
+							.amount(Utils.toNano(jetton.getForwardTonAmount(), 9))
+							.body(JettonWallet.createTransferBody(queryId, amountToTransfer, Address.of(toAddress), mainAccountAddress, null,
+									BigInteger.ONE, forwardPayload))
 							.build()), BigInteger.valueOf(queryId)))
 					.sendMode(SendMode.PAY_GAS_SEPARATELY_AND_IGNORE_ERRORS)
 					.build();
-			String message = createJettonTransferBocMessage(address.toRaw(), mainAccount, config);
-			String hash;
+			String bocMessage = createJettonTransferBocMessage(mainAccountAddress, mainAccount, config);
 			try {
-				hash = tonCoreServiceHelper.sendMessageWithReturnHash(message);
-				if (StringUtil.nullOrEmpty(hash)) {
-					LogHolder logHolder = prepareJettonTransferFailLogHolder(fromAddress, toAddress, jettonAddress, value);
-					LOG.error(Markers.appendEntries(logHolder.getAttributes()), null);
-					throw new InternalServerErrorException(String.format(Errors.ERROR_ON_CHAIN_RAW_TX, tonNode.getChainId()));
-				}
-				return hash;
+				return tonCoreServiceHelper.sendMessageWithReturnHash(bocMessage);
 			} catch (RuntimeException e) {
-				LogHolder logHolder = prepareJettonTransferFailLogHolder(fromAddress, toAddress, jettonAddress, value);
+				LogHolder logHolder = prepareJettonTransferFailLogHolder(fromAddress, toAddress, jetton.getJettonMasterAddress(), value);
 				LOG.error(Markers.appendEntries(logHolder.getAttributes()), null, e);
 				if (shouldRetryJettonSend(e.getMessage().toLowerCase())) {
 					throw new RetryException(String.format(Errors.ERROR_ON_CHAIN_RAW_TX, tonNode.getChainId()));
 				}
 				throw new InternalServerErrorException(String.format(Errors.ERROR_ON_CHAIN_RAW_TX, tonNode.getChainId()));
 			}
-		} catch (RetryException ex) {
+		} catch (RetryException | InternalServerErrorException ex) {
 			throw ex;
 		} catch (Exception ex) {
-			LogHolder logHolder = prepareJettonTransferFailLogHolder(fromAddress, toAddress, jettonAddress, value);
+			LogHolder logHolder = prepareJettonTransferFailLogHolder(fromAddress, toAddress, jetton.getJettonMasterAddress(), value);
 			LOG.error(Markers.appendEntries(logHolder.getAttributes()), null, ex);
-			throw new InternalServerErrorException(String.format(Errors.ERROR_JETTON_TRANSFER, jettonAddress, fromAddress, toAddress));
+			throw new InternalServerErrorException(String.format(Errors.ERROR_JETTON_TRANSFER, jetton.getJettonMasterAddress(), fromAddress, toAddress));
 		}
 	}
 
 	private boolean shouldRetryJettonSend(String message) {
-		return message.contains(Constants.EXIT_CODE_33) || message.contains(Constants.TO_MANY_EXTERNAL_MASSAGE) ||
-				message.contains(Constants.UNPACK_ACCOUNT_STATE);
+		return message.contains(Errors.TonIndexer.EXIT_CODE_33) || message.contains(Errors.TonIndexer.TOO_MANY_EXTERNAL_MESSAGE) ||
+				message.contains(Errors.TonIndexer.UNPACK_ACCOUNT_STATE);
 	}
 
-	private String createJettonTransferBocMessage(String mainAccountAddress, HighloadWalletV3 wallet, HighloadV3Config config) {
-		Address ownAddress = Address.of(mainAccountAddress);
+	private String createJettonTransferBocMessage(Address ownAddress, HighloadWalletV3 wallet, HighloadV3Config config) {
 		Cell body = wallet.createTransferMessage(config);
 		TweetNaclFast.Signature.KeyPair keyPair = wallet.getKeyPair();
 		Message externalMessage = Message.builder()
@@ -224,11 +223,11 @@ public class TonCoreService {
 			String message = feeWalletContract.prepareExternalMsg(config).toCell().toBase64();
 			String hash;
 			try {
-				hash = tonCoreServiceHelper.sendMessageWithReturnHash("Hello Fail"+message);
+				hash = tonCoreServiceHelper.sendMessageWithReturnHash(message);
 			} catch (RuntimeException e) {
 				LogHolder logHolder = prepareSweepFailLogHolder(spenderRawAddress, mainAccountAddress, jettonMasterAddress);
 				LOG.error(Markers.appendEntries(logHolder.getAttributes()), null);
-				if (e.getMessage().contains(Constants.UNPACK_ACCOUNT_STATE) || e.getMessage().contains(Constants.EXIT_CODE_33)) {
+				if (e.getMessage().contains(Errors.TonIndexer.UNPACK_ACCOUNT_STATE) || e.getMessage().contains(Errors.TonIndexer.EXIT_CODE_33)) {
 					throw new RetryException(String.format(Errors.ERROR_FUND_TRANSFER_TO_MAIN_ACCOUNT, spenderRawAddress), e);
 				}
 				throw new InternalServerErrorException(String.format(Errors.ERROR_FUND_TRANSFER_TO_MAIN_ACCOUNT, spenderRawAddress), e);
@@ -245,12 +244,12 @@ public class TonCoreService {
 	}
 
 	private WalletV5Config createSweepJettonTransferConfig(boolean isDeployed, WalletV5 spenderWalletContract, Address mainAccountAddress,
-			Address feeAccountAddress, TonNode tonNode, String spenderJettonWalletAddress, BigInteger balance, String identifier) {
+			Address feeAccountAddress, TonNode tonNode, String spenderJettonWalletAddress, BigInteger balance, String txReference) {
 		int spenderSeqNo = 0;
 		if (isDeployed) {
 			spenderSeqNo = tonCoreServiceHelper.getSeqNo(spenderWalletContract.getAddress().toRaw());
 		}
-		Cell textMessageBody = MsgUtils.createTextMessageBody(identifier);
+		Cell forwardPayload = MsgUtils.createTextMessageBody(txReference);
 		return WalletV5Config.builder()
 				.walletId(tonNode.getWalletId())
 				.seqno(spenderSeqNo)
@@ -258,7 +257,8 @@ public class TonCoreService {
 						.bounce(true)
 						.address(spenderJettonWalletAddress)
 						.sendMode(SendMode.CARRY_ALL_REMAINING_BALANCE)
-						.body(JettonWallet.createTransferBody(0, balance, mainAccountAddress, feeAccountAddress, null, BigInteger.ONE, textMessageBody))
+						.body(JettonWallet.createTransferBody(generateUniqueQueryId(), balance, mainAccountAddress, feeAccountAddress, null,
+								BigInteger.ONE, forwardPayload))
 						.build())).toCell())
 				.build();
 	}
@@ -273,30 +273,24 @@ public class TonCoreService {
 
 	private LogHolder prepareJettonTransferFailLogHolder(String fromAddress, String toAddress, String jettonAddress, BigDecimal value) {
 		LogHolder logHolder = new LogHolder();
-		logHolder.setAction(CommonLogActions.API_EXCEPTION);
-		logHolder.put(Constants.FROM_ADDRESS, fromAddress);
-		logHolder.put(Constants.TO_ADDRESS, toAddress);
-		logHolder.put(Constants.JETTON_ADDRESS, jettonAddress);
-		logHolder.put(Constants.CHAIN_ID, ExecutionContextUtil.getContext().getChainId());
-		logHolder.put(Constants.VALUE, value);
+		logHolder.put(LogKeys.FROM_ADDRESS, fromAddress);
+		logHolder.put(LogKeys.TO_ADDRESS, toAddress);
+		logHolder.put(LogKeys.JETTON_ADDRESS, jettonAddress);
+		logHolder.put(LogKeys.CHAIN_ID, ExecutionContextUtil.getContext().getChainId());
+		logHolder.put(LogKeys.VALUE, value);
 		return logHolder;
 	}
 
 	private LogHolder prepareSweepFailLogHolder(String spenderAddress, String mainAccountAddress, String jettonAddress) {
 		LogHolder logHolder = new LogHolder();
-		logHolder.setAction(CommonLogActions.API_EXCEPTION);
-		logHolder.put(Constants.SPENDER_ADDRESS, spenderAddress);
-		logHolder.put(Constants.MAIN_ACCOUNT_ADDRESS, mainAccountAddress);
-		logHolder.put(Constants.JETTON_ADDRESS, jettonAddress);
-		logHolder.put(Constants.CHAIN_ID, ExecutionContextUtil.getContext().getChainId());
+		logHolder.put(LogKeys.SPENDER_ADDRESS, spenderAddress);
+		logHolder.put(LogKeys.MAIN_ACCOUNT_ADDRESS, mainAccountAddress);
+		logHolder.put(LogKeys.JETTON_ADDRESS, jettonAddress);
+		logHolder.put(LogKeys.CHAIN_ID, ExecutionContextUtil.getContext().getChainId());
 		return logHolder;
 	}
 
 	public String sendMessageWithReturnHash(String message) {
 		return tonCoreServiceHelper.sendMessageWithReturnHash(message);
-	}
-
-	public TonTransactionDto getTransactionByMessageHash(String messageHash) {
-		return tonCoreServiceHelper.getTransactionByMessageHash(messageHash);
 	}
 }

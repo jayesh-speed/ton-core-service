@@ -79,8 +79,7 @@ public class WithdrawServiceImpl implements WithdrawService {
 		withdrawRequest.setFromAddress(maxBalanceAcc.getAddress());
 		String txReference = TonUtils.generateTransferTransactionReference();
 		String transactionHash = tonCoreService.transferJettons(withdrawRequest.getFromAddress(), withdrawRequest.getToAddress(),
-				withdrawRequest.getJettonAddress(), value, maxBalanceAcc.getSecretKey(), txReference, maxBalanceAcc.getJettonWalletAddress(),
-				jetton.getDecimals());
+				jetton, value, maxBalanceAcc.getSecretKey(), txReference, maxBalanceAcc.getJettonWalletAddress());
 		onChainTxService.createOnChainDebitTx(transactionHash, withdrawRequest, txReference);
 		return WithdrawResponse.builder()
 				.transactionHash(transactionHash)

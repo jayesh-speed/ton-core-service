@@ -47,7 +47,7 @@ public class Errors {
 	public final String NO_FEE_ACCOUNT = "Fee Account not found for address: %s";
 	public final String NO_MAIN_ACCOUNT = "Main Account not found for address: %s";
 	public final String PARAMETER_MISSING = "%s parameter is missing";
-	public final String PRIVATE_KEY_NOT_DECRYPTED = "Could not get the decrypted private key for main account for chainId: %s";
+	public final String PRIVATE_KEY_NOT_DECRYPTED = "Could not get the decrypted private key";
 	public final String REST_CLIENT_API_ERROR = "Rest client api error";
 	public final String SECRET_NOT_FOUND = "Unable to get the requested secret: %s";
 	public final String SECRET_VALUE_NOT_FOUND = "Unable to get value of given secretId: %s";
@@ -67,6 +67,7 @@ public class Errors {
 		public final String ELAPSE_TIME = "PollTransfers took {} ms";
 		public final String EMPTY_RESPONSE_BODY = "Expected response body but received empty response";
 		public final String FAILED_TO_PARSE_RESPONSE = "Failed to parse response: %s";
+		public final String EXIT_CODE_33 = "exit_code_33";
 		public final String FAILED_TO_PARSE_TRANSFER = "Failed to parse transfer JSON: %s";
 		public final String INTERNAL_SERVER_ERROR = "Internal server error status  %s response  %s";
 		public final String MISSING_TRANSFERS_FIELD = "Response missing 'jetton_transfers'. Skipping...";
@@ -75,5 +76,7 @@ public class Errors {
 		public final String UNEXPECTED_ERROR_ON_FETCH_TRANSFERS = "Unexpected error while fetching transfers for jetton : %s";
 		public final String ERROR_ON_FETCHING_JETTON_TRANSFERS = "Error while fetching jetton transfers for jetton master %s response: %s status: %s";
 		public final String FAILED_TO_GET_SEQ_NO = "Failed to get seq no for address %s";
+		public final String TOO_MANY_EXTERNAL_MESSAGE = "too many external messages to address";
+		public final String UNPACK_ACCOUNT_STATE = "failed to unpack account state";
 	}
 }
