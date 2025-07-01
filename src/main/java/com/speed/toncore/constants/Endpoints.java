@@ -33,7 +33,7 @@ public class Endpoints {
 	public final String INITIATE_SWEEP = "/sweep/initiate";
 
 	@UtilityClass
-	public static class ChainStack {
+	public static class TonIndexer {
 
 		public final String GET_ACCOUNT_STATE = "/api/v2/getAddressState";
 		public final String GET_ESTIMATE_FEES = "/api/v3/estimateFee";
@@ -42,7 +42,6 @@ public class Endpoints {
 		public final String GET_TON_BALANCE = "/api/v2/getAddressBalance";
 		public final String GET_WALLET_INFORMATION = "/api/v3/walletInformation";
 		public final String SEND_MESSAGE_WITH_RETURN_DATA = "/api/v3/message";
-		public final String GET_TRANSACTION_BY_MESSAGE_HASH = "/api/v3/transactionsByMessage";
 		public final String GET_TRACE_BY_TRACE_ID = "/api/v3/traces";
 	}
 }

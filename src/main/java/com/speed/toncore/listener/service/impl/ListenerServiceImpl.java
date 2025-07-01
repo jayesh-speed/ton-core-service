@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class ListenerServiceImpl implements TonListenerService {
 
-	private final static QTonListener qTonListener = QTonListener.tonListener;
+	private static final QTonListener qTonListener = QTonListener.tonListener;
 
 	private final TonListenerRepository tonListenerRepository;
 	private final TonListenerHelper tonListenerHelper;
@@ -102,11 +102,9 @@ public class ListenerServiceImpl implements TonListenerService {
 		jettons.forEach(jetton -> jettonMasters.add(MutablePair.of(jetton, onChainTxService.getLatestLt(jetton))));
 		JettonTransferFilter jettonFilter = JettonTransferFilter.builder()
 				.httpClient(okHttpClient)
-				.pollingInterval(tonNode.isMainNet()
-						? Constants.MAIN_NET_POLLING_INTERVAL
-						: Constants.TEST_NET_POLLING_INTERVAL)
+				.pollingInterval(tonNode.isMainNet() ? Constants.MAIN_NET_POLLING_INTERVAL : Constants.TEST_NET_POLLING_INTERVAL)
 				.jettonMasters(jettonMasters)
-				.apiUrl(tonNode.getListenerBaseUrl() + Endpoints.ChainStack.GET_JETTON_TRANSFERS)
+				.apiUrl(tonNode.getListenerBaseUrl() + Endpoints.TonIndexer.GET_JETTON_TRANSFERS)
 				.apiKey(tonNode.getListenerApiKey())
 				.build();
 		jettonFilter.start().subscribe(transfer -> verifyAndUpdateOnChainTx(transfer, tonNode.getChainId()), error -> {

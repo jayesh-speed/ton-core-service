@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class Errors {
+
 	public final String WITHDRAW_PROCESS_EXIST = "Withdraw process already exists with withdraw id %s and account id %s";
 	public final String BLANK_JETTON_MASTER_ADDRESS = "Jetton master address cannot be blank";
 	public final String BLANK_ADDRESS = "Address cannot be blank";
@@ -66,17 +67,19 @@ public class Errors {
 		public final String DROPPED_TRANSFERS_ERROR = "Dropped transfer due to backpressure: {}";
 		public final String ELAPSE_TIME = "PollTransfers took {} ms";
 		public final String EMPTY_RESPONSE_BODY = "Expected response body but received empty response";
-		public final String FAILED_TO_PARSE_RESPONSE = "Failed to parse response: %s";
+		public final String ERROR_ON_FETCHING_JETTON_TRANSFERS = "Error while fetching jetton transfers for jetton master %s response: %s status: %s";
 		public final String EXIT_CODE_33 = "exit_code_33";
+		public final String FAILED_TO_GET_SEQ_NO = "Failed to get seq no for address %s";
+		public final String FAILED_TO_PARSE_RESPONSE = "Failed to parse response: %s";
 		public final String FAILED_TO_PARSE_TRANSFER = "Failed to parse transfer JSON: %s";
-		public final String INTERNAL_SERVER_ERROR = "Internal server error status  %s response  %s";
 		public final String MISSING_TRANSFERS_FIELD = "Response missing 'jetton_transfers'. Skipping...";
+		public final String NULL_STATUS_CODE = "Response status code is null";
+		public final String TON_INDEXER_INTERNAL_SERVER_ERROR = "Internal server error status  %s response  %s";
+		public final String TOO_MANY_EXTERNAL_MESSAGE = "too many external messages to address";
+		public final String TOO_MANY_REQUEST_ERROR = "Too many request. Retrying...";
 		public final String TO_MANY_REQUEST_ERROR = "To many request. Retrying...";
 		public final String UNEXPECTED_ERROR = "Unexpected error status %s response %s";
 		public final String UNEXPECTED_ERROR_ON_FETCH_TRANSFERS = "Unexpected error while fetching transfers for jetton : %s";
-		public final String ERROR_ON_FETCHING_JETTON_TRANSFERS = "Error while fetching jetton transfers for jetton master %s response: %s status: %s";
-		public final String FAILED_TO_GET_SEQ_NO = "Failed to get seq no for address %s";
-		public final String TOO_MANY_EXTERNAL_MESSAGE = "too many external messages to address";
 		public final String UNPACK_ACCOUNT_STATE = "failed to unpack account state";
 	}
 }
