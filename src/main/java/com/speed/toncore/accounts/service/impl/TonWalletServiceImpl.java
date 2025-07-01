@@ -4,6 +4,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.speed.javacommon.util.CollectionUtil;
 import com.speed.toncore.accounts.request.TonWalletRequest;
+import com.speed.toncore.accounts.response.TonAccountResponse;
 import com.speed.toncore.accounts.service.TonWalletService;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.domain.model.QTonMainAccount;
@@ -17,6 +18,8 @@ import com.speed.toncore.mapper.TonAddressMapper;
 import com.speed.toncore.repository.TonMainAccountRepository;
 import com.speed.toncore.repository.TonUsedWalletAddressRepository;
 import com.speed.toncore.repository.TonWalletAddressRepository;
+import com.speed.toncore.util.TonUtils;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -43,19 +46,20 @@ public class TonWalletServiceImpl implements TonWalletService {
 	private final TonMainAccountRepository tonMainAccountRepository;
 
 	@Override
-	public TonUsedWalletAddress getNewWalletAddress() {
+	public TonAccountResponse getNewWalletAddress() {
 		TonWalletAddress tonWalletAddress = tonWalletServiceHelper.fetchWalletAddress();
 		TonUsedWalletAddress usedWalletAddress = TonAddressMapper.INSTANCE.mapAddressToUsedAddress(tonWalletAddress);
 		usedWalletAddress.setId(null);
-		return tonUsedWalletAddressRepository.save(usedWalletAddress);
+		tonUsedWalletAddressRepository.save(usedWalletAddress);
+		return TonAccountResponse.builder().address(TonUtils.rawToUserFriendlyAddress(usedWalletAddress.getAddress())).build();
 	}
 
 	@Async
 	@Override
 	public void checkAddressAvailabilityAndCreate() {
-		Predicate queryPredicate = new BooleanBuilder(qTonUsedWalletAddress.chainId.eq(ExecutionContextUtil.getContext().getChainId()));
+		Predicate tonUsedWalletPredicate = new BooleanBuilder(qTonUsedWalletAddress.chainId.eq(ExecutionContextUtil.getContext().getChainId()));
 		Predicate tonWalletPredicate = new BooleanBuilder(qTonWalletAddress.chainId.eq(ExecutionContextUtil.getContext().getChainId()));
-		long usedCount = tonUsedWalletAddressRepository.findAndProject(queryPredicate, qTonUsedWalletAddress, qTonUsedWalletAddress.id).size();
+		long usedCount = tonUsedWalletAddressRepository.findAndProject(tonUsedWalletPredicate, qTonUsedWalletAddress, qTonUsedWalletAddress.id).size();
 		long total = tonWalletAddressRepository.findAndProject(tonWalletPredicate, qTonWalletAddress, qTonWalletAddress.id).size() + usedCount;
 		if ((double) usedCount / total > 0.8) {
 			createPoolOfTonWalletAddresses(TonWalletRequest.builder().count(Math.toIntExact(total * 2)).build());
@@ -63,7 +67,9 @@ public class TonWalletServiceImpl implements TonWalletService {
 	}
 
 	@Override
+	@Transactional
 	public void removeUsedTonWalletAddress(String address) {
+		address = TonUtils.toRawAddress(address);
 		BooleanBuilder queryPredicate = new BooleanBuilder(qTonUsedWalletAddress.address.eq(address));
 		TonUsedWalletAddress usedWalletAddress = tonUsedWalletAddressRepository.findAndProjectUnique(queryPredicate, qTonUsedWalletAddress,
 				qTonUsedWalletAddress.address, qTonUsedWalletAddress.publicKey, qTonUsedWalletAddress.secretKey, qTonUsedWalletAddress.walletId,
@@ -93,7 +99,7 @@ public class TonWalletServiceImpl implements TonWalletService {
 				qTonUsedWalletAddress.id, qTonUsedWalletAddress.mainNet, qTonUsedWalletAddress.chainId);
 	}
 
-	public List<TonMainAccount> getMainAccounts() {
+	private List<TonMainAccount> getMainAccounts() {
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
 		Predicate queryPredicate = new BooleanBuilder(qTonMainAccount.chainId.eq(chainId));
 		return tonMainAccountRepository.findAndProject(queryPredicate, qTonMainAccount, qTonMainAccount.id, qTonMainAccount.address,
@@ -106,11 +112,12 @@ public class TonWalletServiceImpl implements TonWalletService {
 		Set<String> receiveAddresses = new HashSet<>();
 		List<TonWalletAddress> tonAddressList = getAllTonAddresses();
 		if (CollectionUtil.nonNullNonEmpty(tonAddressList)) {
-			receiveAddresses.addAll(tonAddressList.stream().map(TonWalletAddress::getAddress).collect(Collectors.toSet()));
+			receiveAddresses.addAll(tonAddressList.stream().map(TonWalletAddress::getAddress).map(String::toUpperCase).collect(Collectors.toSet()));
 		}
 		List<TonUsedWalletAddress> usedTonAddressList = getAllUsedTonAddresses();
 		if (CollectionUtil.nonNullNonEmpty(usedTonAddressList)) {
-			receiveAddresses.addAll(usedTonAddressList.stream().map(TonUsedWalletAddress::getAddress).collect(Collectors.toSet()));
+			receiveAddresses.addAll(
+					usedTonAddressList.stream().map(TonUsedWalletAddress::getAddress).map(String::toUpperCase).collect(Collectors.toSet()));
 		}
 		return receiveAddresses;
 	}
@@ -120,7 +127,7 @@ public class TonWalletServiceImpl implements TonWalletService {
 	public Set<String> fetchSendAddresses(Integer chainId) {
 		List<TonMainAccount> mainAccountList = getMainAccounts();
 		if (CollectionUtil.nonNullNonEmpty(mainAccountList)) {
-			return mainAccountList.stream().map(TonMainAccount::getAddress).collect(Collectors.toSet());
+			return mainAccountList.stream().map(TonMainAccount::getAddress).map(String::toUpperCase).collect(Collectors.toSet());
 		}
 		return Collections.emptySet();
 	}

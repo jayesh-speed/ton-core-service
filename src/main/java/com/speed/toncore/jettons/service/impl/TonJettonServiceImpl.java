@@ -2,8 +2,10 @@ package com.speed.toncore.jettons.service.impl;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
+import com.speed.javacommon.exceptions.BadRequestException;
 import com.speed.javacommon.exceptions.InternalServerErrorException;
 import com.speed.toncore.constants.Constants;
+import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.QTonJetton;
 import com.speed.toncore.domain.model.TonJetton;
 import com.speed.toncore.events.TonJettonAddedEvent;
@@ -26,8 +28,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TonJettonServiceImpl implements TonJettonService {
 
+	private static final QTonJetton qTonJetton = QTonJetton.tonJetton;
 	private final TonJettonRepository tonJettonRepository;
-	private final QTonJetton qTonJetton = QTonJetton.tonJetton;
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Override
@@ -38,7 +40,7 @@ public class TonJettonServiceImpl implements TonJettonService {
 		Predicate queryPredicate = new BooleanBuilder(qTonJetton.jettonMasterAddress.eq(tonJetton.getJettonMasterAddress())).and(
 				qTonJetton.chainId.eq(ExecutionContextUtil.getContext().getChainId()));
 		if (tonJettonRepository.exists(queryPredicate)) {
-			throw new InternalServerErrorException("Jetton with address " + tonJetton.getJettonMasterAddress() + " already exists.");
+			throw new BadRequestException(String.format(Errors.JETTON_ALREADY_EXISTS,tonJetton.getJettonMasterAddress(),tonJetton.getChainId()),null,null);
 		}
 		tonJettonRepository.save(tonJetton);
 		TonJettonAddedEvent tokenAddedEvent = new TonJettonAddedEvent();
@@ -78,9 +80,9 @@ public class TonJettonServiceImpl implements TonJettonService {
 
 	@Override
 	@Cacheable(value = Constants.CacheNames.JETTON_RESPONSE, keyGenerator = Constants.CACHE_KEY_GENERATOR)
-	public TonJettonResponse getTonJettonByAddress(String jettonAddress) {
+	public TonJettonResponse getTonJettonByAddress(String jettonMasterAddress) {
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
-		Predicate predicateQuery = new BooleanBuilder(qTonJetton.chainId.eq(chainId)).and(qTonJetton.jettonMasterAddress.eq(jettonAddress));
+		Predicate predicateQuery = new BooleanBuilder(qTonJetton.chainId.eq(chainId)).and(qTonJetton.jettonMasterAddress.eq(jettonMasterAddress));
 		TonJetton tonJetton = tonJettonRepository.findAndProjectUnique(predicateQuery, qTonJetton, qTonJetton.id, qTonJetton.chainId,
 				qTonJetton.jettonMasterAddress, qTonJetton.jettonName, qTonJetton.jettonSymbol, qTonJetton.mainNet, qTonJetton.decimals,
 				qTonJetton.forwardTonAmount);

@@ -89,7 +89,7 @@ public class TonListenerHelper {
 
 	@Async
 	public void updateOnChainTransaction(JettonTransferDto transfer, String transactionType, Integer chainId) {
-		LOG.info(String.format("TransactionType: %s  TransactionHash: %s ChainId: %s", transactionType, transfer.getTransactionHash(), chainId));
+		LOG.info(String.format(LogMessages.Info.ON_CHAIN_TRANSACTION_INFO, transactionType, transfer.getTransactionHash(), chainId));
 		setContext(chainId);
 		TonJettonResponse jettonResponse = tonJettonService.getTonJettonByAddress(transfer.getJettonMaster());
 		if (transactionType.equals(TonTransactionType.RECEIVE.name())) {
@@ -102,7 +102,7 @@ public class TonListenerHelper {
 
 	@Async
 	public void updateOnChainSweepTransaction(JettonTransferDto transfer, Integer chainId) {
-		LOG.info(String.format("TransactionHash: %s ChainId: %s", transfer.getTransactionHash(), chainId));
+		LOG.info(String.format(LogMessages.Info.ON_CHAIN_SWEEP_TRANSFER_INFO, transfer.getTransactionHash(), chainId));
 		setContext(chainId);
 		sweepService.updateConfirmedSweepOnChainTx(transfer, chainId);
 	}
@@ -117,7 +117,7 @@ public class TonListenerHelper {
 		ExecutionContextUtil context = ExecutionContextUtil.getContext();
 		context.setRequestId(requestId);
 		context.setChainId(chainId);
-		context.setMainNet(chainId == Constants.MAIN_NET_CHAIN_ID);
+		context.setMainNet(Objects.equals(chainId, Constants.MAIN_NET_CHAIN_ID));
 	}
 
 	private void updateReceivedOnChainTx(JettonTransferDto transfer, int decimals) {
@@ -125,7 +125,7 @@ public class TonListenerHelper {
 		// Create Sweep
 		SweepRequest sweepRequest = new SweepRequest();
 		sweepRequest.setFromAddress(transfer.getDestination());
-		sweepRequest.setJettonMaster(transfer.getJettonMaster());
+		sweepRequest.setJettonMasterAddress(transfer.getJettonMaster());
 		sweepService.initiateSweepOnChainTx(sweepRequest);
 	}
 }

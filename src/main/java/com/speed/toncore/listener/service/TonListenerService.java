@@ -18,7 +18,7 @@ public interface TonListenerService {
 
 	void subscribeListener(TonListener listener);
 
-	void stopAndDisposeListener(List<TonListener> listener);
+	void stopAndDisposeListener(TonListener listener);
 
 	List<TonListener> fetchAllListeners();
 

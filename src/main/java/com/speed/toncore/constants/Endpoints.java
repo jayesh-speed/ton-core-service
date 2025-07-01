@@ -15,12 +15,11 @@ public class Endpoints {
 	public final String GET_ALL_JETTONS = "/jetton/all";
 	public final String GET_FEE_ACCOUNTS = "/account/ton-fee/get";
 	public final String GET_JETTON = "/jetton/{address}";
-	public final String GET_JETTON_BALANCE = "/account/ton-wallet-address/balance/{jettonAddress}/{accountAddress}";
+	public final String GET_JETTON_BALANCE = "/account/ton-wallet-address/balance/{jettonMasterAddress}/{ownerAddress}";
 	public final String GET_JETTON_BY_SYMBOL = "/jetton/symbol/{symbol}";
-	public final String GET_MAIN_ACCOUNT = "/account/ton-main/get/{jettonAddress}";
+	public final String GET_MAIN_ACCOUNTS = "/account/ton-main/get/{jettonMasterAddress}";
 	public final String GET_TON_BALANCE = "/account/ton-wallet-address/balance/{address}";
 	public final String GET_TON_WALLET_ADDRESS = "/account/ton-wallet-address/get";
-	public final String MAIN_ACCOUNT_BALANCE = "/account/ton-main/balance/{address}";
 	public final String REMOVE_FEE_ACCOUNT = "/account/ton-fee/remove/{address}";
 	public final String REMOVE_MAIN_ACCOUNT = "/account/ton-main/remove/{address}";
 	public final String REMOVE_TON_JETTON = "/jetton/remove/{address}";
@@ -30,6 +29,8 @@ public class Endpoints {
 	public final String UPDATE_LOGICAL_TIME = "/payment/logical-time/update/{id}/{logicalTime}";
 	public final String UPDATE_TON_LISTENER = "/ton-listener/update/{id}";
 	public final String INITIATE_SWEEP = "/sweep/initiate";
+	public final String SWEEP_TRANSACTION_FEE = "/transaction-fee/sweep";
+	public final String JETTON_TRANSFER_FEE = "/transaction-fee/jetton";
 
 	@UtilityClass
 	public static class TonIndexer {
@@ -39,8 +40,8 @@ public class Endpoints {
 		public final String GET_JETTON_TRANSFERS = "/api/v3/jetton/transfers";
 		public final String GET_JETTON_WALLET = "/api/v3/jetton/wallets";
 		public final String GET_TON_BALANCE = "/api/v2/getAddressBalance";
+		public final String GET_TRACE_BY_TRACE_ID = "/api/v3/traces";
 		public final String GET_WALLET_INFORMATION = "/api/v3/walletInformation";
 		public final String SEND_MESSAGE_WITH_RETURN_DATA = "/api/v3/message";
-		public final String GET_TRACE_BY_TRACE_ID = "/api/v3/traces";
 	}
 }

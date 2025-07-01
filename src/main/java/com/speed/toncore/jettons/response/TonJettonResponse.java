@@ -13,9 +13,6 @@ import java.math.BigDecimal;
 @Setter
 public class TonJettonResponse {
 
-	@JsonProperty(JsonKeys.ID)
-	private String id;
-
 	@JsonProperty(JsonKeys.JETTON_MASTER_ADDRESS)
 	private String jettonMasterAddress;
 
@@ -36,5 +33,5 @@ public class TonJettonResponse {
 	private BigDecimal forwardTonAmount;
 
 	@JsonProperty(JsonKeys.DECIMALS)
-	private int decimals;
+	private Integer decimals;
 }

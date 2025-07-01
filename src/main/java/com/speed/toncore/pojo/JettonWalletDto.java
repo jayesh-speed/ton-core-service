@@ -13,35 +13,35 @@ import java.util.Map;
 @Setter
 public class JettonWalletDto {
 
-	@JsonProperty(JsonKeys.ChainStack.JETTON_WALLETS)
+	@JsonProperty(JsonKeys.TonIndexer.JETTON_WALLETS)
 	private List<JettonWallet> jettonWallets;
 
-	@JsonProperty(JsonKeys.ChainStack.ADDRESS_BOOK)
+	@JsonProperty(JsonKeys.TonIndexer.ADDRESS_BOOK)
 	private Map<String, AddressBookEntry> addressBook;
 
 	@Getter
 	@Setter
 	public static class JettonWallet {
 
-		@JsonProperty(JsonKeys.ChainStack.ADDRESS)
+		@JsonProperty(JsonKeys.TonIndexer.ADDRESS)
 		private String address;
 
-		@JsonProperty(JsonKeys.ChainStack.BALANCE)
+		@JsonProperty(JsonKeys.TonIndexer.BALANCE)
 		private BigInteger balance;
 
-		@JsonProperty(JsonKeys.ChainStack.OWNER)
+		@JsonProperty(JsonKeys.TonIndexer.OWNER)
 		private String owner;
 
-		@JsonProperty(JsonKeys.ChainStack.JETTON)
+		@JsonProperty(JsonKeys.TonIndexer.JETTON)
 		private String jetton;
 
-		@JsonProperty(JsonKeys.ChainStack.LAST_TRANSACTION_LT)
+		@JsonProperty(JsonKeys.TonIndexer.LAST_TRANSACTION_LT)
 		private String lastTransactionLt;
 
-		@JsonProperty(JsonKeys.ChainStack.CODE_HASH)
+		@JsonProperty(JsonKeys.TonIndexer.CODE_HASH)
 		private String codeHash;
 
-		@JsonProperty(JsonKeys.ChainStack.DATA_HASH)
+		@JsonProperty(JsonKeys.TonIndexer.DATA_HASH)
 		private String dataHash;
 	}
 
@@ -49,7 +49,7 @@ public class JettonWalletDto {
 	@Setter
 	public static class AddressBookEntry {
 
-		@JsonProperty(JsonKeys.ChainStack.USER_FRIENDLY)
+		@JsonProperty(JsonKeys.TonIndexer.USER_FRIENDLY)
 		private String userFriendly;
 	}
 }

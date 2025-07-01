@@ -1,11 +1,8 @@
 package com.speed.toncore.listener.controller;
 
-import com.speed.javacommon.exceptions.EntityNotFoundException;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Endpoints;
-import com.speed.toncore.constants.Errors;
 import com.speed.toncore.constants.LogKeys;
-import com.speed.toncore.domain.model.TonListener;
 import com.speed.toncore.enums.TonListenerStatus;
 import com.speed.toncore.listener.service.TonListenerService;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
@@ -42,11 +37,7 @@ public class listenerController {
 	@PutMapping(Endpoints.UPDATE_TON_LISTENER)
 	public ResponseEntity<Void> updateTonListener(@PathVariable String id) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.UPDATE_TON_LISTENER_STATUS);
-		TonListener tonListener = tonListenerService.getListenerById(id);
-		if (Objects.isNull(tonListener)) {
-			throw new EntityNotFoundException(String.format(Errors.LISTENER_NOT_FOUND, id), "");
-		}
-		tonListenerService.updateListenerStatus(tonListener, TonListenerStatus.IDLE.name());
+		tonListenerService.updateListenerStatus(tonListenerService.getListenerById(id), TonListenerStatus.IDLE.name());
 		return ResponseEntity.ok().build();
 	}
 }

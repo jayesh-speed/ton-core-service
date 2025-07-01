@@ -30,9 +30,4 @@ public class AsyncConfiguration implements AsyncConfigurer {
 		executor.initialize();
 		return executor;
 	}
-
-	@Bean(name = "singleThreadExecutor")
-	public ExecutorService singleThreadExecutor() {
-		return Executors.newSingleThreadExecutor();
-	}
 }

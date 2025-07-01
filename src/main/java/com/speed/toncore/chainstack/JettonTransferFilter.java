@@ -30,7 +30,7 @@ import java.util.Objects;
 @Builder
 public class JettonTransferFilter {
 
-	public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private static final int PAGE_LIMIT = 1000;
 	private final OkHttpClient httpClient;
 	private final List<MutablePair<String, Long>> jettonMasters;
@@ -63,16 +63,16 @@ public class JettonTransferFilter {
 
 	private Flux<JettonTransferDto> pollTransfers() {
 		return Flux.defer(() -> {
-			List<JettonTransferDto> allTransfers = new ArrayList<>();
+			List<JettonTransferDto> newTransfers = new ArrayList<>();
 			try {
 				long startTime = System.currentTimeMillis();
 				for (MutablePair<String, Long> jettonPair : jettonMasters) {
 					List<JettonTransferDto> transfers = fetchJettonTransfers(jettonPair);
-					allTransfers.addAll(transfers);
+					newTransfers.addAll(transfers);
 				}
-				LOG.info("Fetched Jetton Transfer {}", allTransfers.size());
+				LOG.info("Fetched Jetton Transfer {}", newTransfers.size());
 				LOG.info(Errors.TonIndexer.ELAPSE_TIME, System.currentTimeMillis() - startTime);
-				return Flux.fromIterable(allTransfers);
+				return Flux.fromIterable(newTransfers);
 			} catch (Exception e) {
 				return Flux.error(e);
 			}
@@ -80,7 +80,7 @@ public class JettonTransferFilter {
 	}
 
 	private List<JettonTransferDto> fetchJettonTransfers(MutablePair<String, Long> jettonPair) {
-		String jettonMaster = jettonPair.getLeft();
+		String jettonMasterAddress = jettonPair.getLeft();
 		long fromLt = jettonPair.getRight();
 		long maxLt = fromLt;
 
@@ -90,7 +90,7 @@ public class JettonTransferFilter {
 
 		while (hasMore) {
 			try {
-				Request request = buildRequest(jettonMaster, fromLt, offset);
+				Request request = buildRequest(jettonMasterAddress, fromLt, offset);
 				try (Response response = httpClient.newCall(request).execute()) {
 					if (response.isSuccessful()) {
 						String responseBody = response.body() != null ? response.body().string() : null;
@@ -99,11 +99,11 @@ public class JettonTransferFilter {
 							break;
 						}
 						JsonNode body = OBJECT_MAPPER.readTree(responseBody);
-						if (!body.has(JsonKeys.ChainStack.JETTON_TRANSFERS)) {
+						if (!body.has(JsonKeys.TonIndexer.JETTON_TRANSFERS)) {
 							LOG.warn(Errors.TonIndexer.MISSING_TRANSFERS_FIELD);
 							break;
 						}
-						JsonNode transfersArray = body.get(JsonKeys.ChainStack.JETTON_TRANSFERS);
+						JsonNode transfersArray = body.get(JsonKeys.TonIndexer.JETTON_TRANSFERS);
 						if (!transfersArray.isArray() || transfersArray.isEmpty()) {
 							break;
 						}
@@ -122,13 +122,13 @@ public class JettonTransferFilter {
 						offset += 1000;
 					} else {
 						throw new InternalServerErrorException(
-								String.format(Errors.TonIndexer.ERROR_ON_FETCHING_JETTON_TRANSFERS, jettonMaster, response.body(), response.code()));
+								String.format(Errors.TonIndexer.ERROR_ON_FETCHING_JETTON_TRANSFERS, jettonMasterAddress, response.body(), response.code()));
 					}
 				}
 			} catch (InternalServerErrorException ex) {
 				throw ex;
 			} catch (Exception e) {
-				throw new InternalServerErrorException(String.format(Errors.TonIndexer.UNEXPECTED_ERROR_ON_FETCH_TRANSFERS, jettonMaster), e);
+				throw new InternalServerErrorException(String.format(Errors.TonIndexer.UNEXPECTED_ERROR_ON_FETCH_TRANSFERS, jettonMasterAddress), e);
 			}
 		}
 		jettonPair.setRight(maxLt);

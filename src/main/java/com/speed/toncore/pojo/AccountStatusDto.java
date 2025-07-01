@@ -9,9 +9,9 @@ import lombok.Setter;
 @Setter
 public class AccountStatusDto {
 
-	@JsonProperty(JsonKeys.ChainStack.OK)
+	@JsonProperty(JsonKeys.TonIndexer.OK)
 	private boolean ok;
 
-	@JsonProperty(JsonKeys.ChainStack.RESULT)
+	@JsonProperty(JsonKeys.TonIndexer.RESULT)
 	private String result;
 }

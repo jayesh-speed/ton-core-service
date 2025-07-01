@@ -9,10 +9,10 @@ import lombok.Setter;
 @Setter
 public class SendTransactionDto {
 
-	@JsonProperty(JsonKeys.ChainStack.MESSAGE_HASH)
+	@JsonProperty(JsonKeys.TonIndexer.MESSAGE_HASH)
 	private String messageHash;
 
-	@JsonProperty(JsonKeys.ChainStack.MESSAGE_HASH_NORM)
+	@JsonProperty(JsonKeys.TonIndexer.MESSAGE_HASH_NORM)
 	private String messageHashNorm;
 
 }

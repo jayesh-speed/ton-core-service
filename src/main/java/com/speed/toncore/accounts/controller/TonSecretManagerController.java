@@ -40,26 +40,26 @@ public class TonSecretManagerController {
 		try {
 			TraceDto traceDto = tonCoreServiceHelper.getTraceByTraceId(text);
 			TraceDto.Trace trace = traceDto.getTraces().getFirst();
-			List<String> txOrder = trace.getTransactions_order();
+			List<String> txOrder = trace.getTransactionsOrder();
 			Map<String, TraceDto.Trace.Transaction> txMap = trace.getTransactions();
 
 			TraceDto.Trace.Transaction tx1 = txMap.get(txOrder.getFirst());
-			String fee1 = tx1.getTotal_fees();
-			String fwdFee1 = tx1.getOut_msgs().getFirst().getFwd_fee();
+			String fee1 = tx1.getTotalFees();
+			String fwdFee1 = tx1.getOutMsgs().getFirst().getFwdFee();
 
 			TraceDto.Trace.Transaction tx2 = txMap.get(txOrder.get(1));
-			String fee2 = tx2.getTotal_fees();
-			TraceDto.Trace.Transaction.Message msg2First = tx2.getOut_msgs().getFirst();
-			String fwdFee2 = msg2First.getFwd_fee();
+			String fee2 = tx2.getTotalFees();
+			TraceDto.Trace.Transaction.Message msg2First = tx2.getOutMsgs().getFirst();
+			String fwdFee2 = msg2First.getFwdFee();
 			String msg2Value = msg2First.getValue();
 
 			TraceDto.Trace.Transaction lastTx = txMap.get(txOrder.getLast());
-			if ("1".equalsIgnoreCase(lastTx.getIn_msg().getValue()) && txOrder.size() > 4) {
+			if ("1".equalsIgnoreCase(lastTx.getInMsg().getValue()) && txOrder.size() > 4) {
 				lastTx = txMap.get(txOrder.get(4));
 			}
 
-			String lastFee = lastTx.getTotal_fees();
-			String lastInValue = lastTx.getIn_msg().getValue();
+			String lastFee = lastTx.getTotalFees();
+			String lastInValue = lastTx.getInMsg().getValue();
 
 			return new BigDecimal(fee1).add(new BigDecimal(fwdFee1))
 					.add(new BigDecimal(fee2))

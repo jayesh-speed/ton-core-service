@@ -7,7 +7,6 @@ import com.querydsl.core.types.Predicate;
 import com.speed.javacommon.exceptions.BadRequestException;
 import com.speed.javacommon.exceptions.InternalServerErrorException;
 import com.speed.javacommon.util.DateTimeUtil;
-import com.speed.javacommon.util.StringUtil;
 import com.speed.toncore.accounts.response.DeployedAccountResponse;
 import com.speed.toncore.accounts.response.TonAccountResponse;
 import com.speed.toncore.accounts.service.TonFeeAccountService;
@@ -22,6 +21,7 @@ import com.speed.toncore.ton.TonNodePool;
 import com.speed.toncore.util.SecurityManagerUtil;
 import com.speed.toncore.util.TonUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.ton.ton4j.smartcontract.wallet.v3.WalletV3R2;
 import org.ton.ton4j.utils.Utils;
@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TonFeeAccountServiceImpl implements TonFeeAccountService {
 
 	private static final QTonFeeAccount qTonFeeAccount = QTonFeeAccount.tonFeeAccount;
@@ -94,9 +95,12 @@ public class TonFeeAccountServiceImpl implements TonFeeAccountService {
 		TweetNaclFast.Signature.KeyPair keyPair = TweetNaclFast.Signature.keyPair_fromSecretKey(Utils.hexToSignedBytes(decryptedPriKey));
 		WalletV3R2 feeAccountWallet = WalletV3R2.builder().walletId(tonNode.getWalletId()).keyPair(keyPair).build();
 		String deploymentTransactionMessage = feeAccountWallet.prepareDeployMsg().toCell().toBase64();
-		String hash = tonCoreService.sendMessageWithReturnHash(deploymentTransactionMessage);
-		if (StringUtil.nullOrEmpty(hash)) {
-			throw new InternalServerErrorException(String.format(Errors.ERROR_DEPLOY_FEE_ACCOUNT, rawAddress));
+		String hash;
+		try {
+			hash = tonCoreService.sendMessageWithReturnHash(deploymentTransactionMessage);
+		} catch (RuntimeException e) {
+			LOG.error(e.getMessage(), e);
+			throw new InternalServerErrorException(String.format(Errors.ERROR_DEPLOY_FEE_ACCOUNT, rawAddress, tonNode.getChainId()));
 		}
 		Long currentTime = DateTimeUtil.currentEpochMilliSecondsUTC();
 		Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(2);
@@ -104,7 +108,7 @@ public class TonFeeAccountServiceImpl implements TonFeeAccountService {
 		fieldWithValue.put(qTonFeeAccount.modified, currentTime);
 		long count = tonFeeAccountRepository.updateFields(queryPredicate, qTonFeeAccount, fieldWithValue);
 		if (count < 1) {
-			throw new BadRequestException(String.format(Errors.NO_FEE_ACCOUNT, rawAddress), null, null);
+			throw new BadRequestException(String.format(Errors.FEE_ACCOUNT_NOT_FOUND, rawAddress, tonNode.getChainId()), null, null);
 		}
 		return DeployedAccountResponse.builder().transactionHash(hash).build();
 	}

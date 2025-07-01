@@ -30,8 +30,7 @@ public interface TonOnChainTxMapper {
 		onChainTx.setChainId(ExecutionContextUtil.getContext().getChainId());
 		onChainTx.setJettonMasterAddress(transferResponse.getJettonMaster());
 		onChainTx.setTransactionHash(transferResponse.getTransactionHash());
-		long currentTimestamp = System.currentTimeMillis();
-		onChainTx.setTimestamp(currentTimestamp);
+		onChainTx.setTimestamp(System.currentTimeMillis());
 		onChainTx.setTransactionDate(DateTimeUtil.convertToLocalDateTime(Date.from(Instant.now())));
 	}
 }

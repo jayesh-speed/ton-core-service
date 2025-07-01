@@ -14,11 +14,11 @@ import lombok.Setter;
 public class WithdrawRequest {
 
 	@JsonProperty(JsonKeys.VALUE)
-	@NotNull(message = JsonKeys.VALUE + ValidationMessages.NOTNULL)
+	@NotNull(message = JsonKeys.VALUE + ValidationMessages.NOT_NULL)
 	private String value;
 
 	@JsonProperty(JsonKeys.TO_ADDRESS)
-	@NotNull(message = JsonKeys.TO_ADDRESS + ValidationMessages.NOTNULL)
+	@NotNull(message = JsonKeys.TO_ADDRESS + ValidationMessages.NOT_NULL)
 	@JsonDeserialize(using = TonRawAddressDeserializer.class)
 	private String toAddress;
 
@@ -26,9 +26,9 @@ public class WithdrawRequest {
 	@JsonDeserialize(using = TonRawAddressDeserializer.class)
 	private String fromAddress;
 
-	@JsonProperty(JsonKeys.JETTON_ADDRESS)
+	@JsonProperty(JsonKeys.JETTON_MASTER_ADDRESS)
 	@JsonDeserialize(using = TonRawAddressDeserializer.class)
-	private String jettonAddress;
+	private String jettonMasterAddress;
 
 	@JsonProperty(JsonKeys.JETTON_SYMBOL)
 	private String jettonSymbol;

@@ -4,6 +4,8 @@ import com.speed.toncore.accounts.response.DeployedAccountResponse;
 import com.speed.toncore.accounts.response.TonAccountResponse;
 import com.speed.toncore.domain.model.TonMainAccount;
 
+import java.util.List;
+
 public interface TonMainAccountService {
 
 	TonAccountResponse createMainAccount(String jettonMasterAddress);
@@ -12,7 +14,7 @@ public interface TonMainAccountService {
 
 	DeployedAccountResponse deployMainAccount(String address);
 
-	TonAccountResponse getMainAccount(String jettonAddress);
+	List<TonAccountResponse> getMainAccounts(String jettonMasterAddress);
 
-	TonMainAccount getMainAccountDetail(String address);
+	List<TonMainAccount> getMainAccountDetail(String address);
 }

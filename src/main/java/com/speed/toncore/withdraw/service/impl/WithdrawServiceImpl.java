@@ -9,12 +9,12 @@ import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.TonMainAccount;
 import com.speed.toncore.jettons.response.TonJettonResponse;
 import com.speed.toncore.jettons.service.TonJettonService;
-import com.speed.toncore.withdraw.request.WithdrawRequest;
-import com.speed.toncore.withdraw.response.WithdrawResponse;
-import com.speed.toncore.withdraw.service.WithdrawService;
 import com.speed.toncore.service.OnChainTxService;
 import com.speed.toncore.ton.TonCoreService;
 import com.speed.toncore.util.TonUtils;
+import com.speed.toncore.withdraw.request.WithdrawRequest;
+import com.speed.toncore.withdraw.response.WithdrawResponse;
+import com.speed.toncore.withdraw.service.WithdrawService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -42,12 +42,12 @@ public class WithdrawServiceImpl implements WithdrawService {
 
 	@Override
 	public WithdrawResponse transferJetton(WithdrawRequest withdrawRequest) {
-		if (StringUtil.nullOrEmpty(withdrawRequest.getJettonAddress()) && StringUtil.nullOrEmpty(withdrawRequest.getJettonSymbol())) {
+		if (StringUtil.nullOrEmpty(withdrawRequest.getJettonMasterAddress()) && StringUtil.nullOrEmpty(withdrawRequest.getJettonSymbol())) {
 			throw new BadRequestException(Errors.JETTON_INFO_MISSING, null, null);
 		}
 		TonJettonResponse jetton;
-		if (StringUtil.nonNullNonEmpty(withdrawRequest.getJettonAddress())) {
-			jetton = tonJettonService.getTonJettonByAddress(withdrawRequest.getJettonAddress());
+		if (StringUtil.nonNullNonEmpty(withdrawRequest.getJettonMasterAddress())) {
+			jetton = tonJettonService.getTonJettonByAddress(withdrawRequest.getJettonMasterAddress());
 			if (Objects.isNull(jetton)) {
 				throw new BadRequestException(Errors.JETTON_ADDRESS_NOT_SUPPORTED, null, null);
 			}
@@ -57,9 +57,9 @@ public class WithdrawServiceImpl implements WithdrawService {
 				throw new BadRequestException(Errors.JETTON_SYMBOL_NOT_SUPPORTED, null, null);
 			}
 		}
-		withdrawRequest.setJettonAddress(jetton.getJettonMasterAddress());
+		withdrawRequest.setJettonMasterAddress(jetton.getJettonMasterAddress());
 		BigDecimal value = new BigDecimal(withdrawRequest.getValue());
-		List<TonMainAccount> mainAccountList = List.of(tonMainAccountService.getMainAccountDetail(jetton.getJettonMasterAddress()));
+		List<TonMainAccount> mainAccountList = tonMainAccountService.getMainAccountDetail(jetton.getJettonMasterAddress());
 		if (CollectionUtil.nullOrEmpty(mainAccountList)) {
 			throw new InternalServerErrorException(Errors.MAIN_ACCOUNT_NOT_FOUND);
 		}
@@ -76,10 +76,14 @@ public class WithdrawServiceImpl implements WithdrawService {
 			throw new InternalServerErrorException(String.format(Errors.INSUFFICIENT_MAIN_ACC_BALANCE, jetton.getJettonSymbol()));
 		}
 		TonMainAccount maxBalanceAcc = maxBalanceAccMap.getKey();
+		BigDecimal tonBalanceOnAccount = tonCoreService.fetchTonBalance(maxBalanceAcc.getAddress());
+		if (tonBalanceOnAccount.compareTo(BigDecimal.ZERO) <= 0) {
+			throw new InternalServerErrorException(String.format(Errors.INSUFFICIENT_FEE_BALANCE, jetton.getJettonSymbol()));
+		}
 		withdrawRequest.setFromAddress(maxBalanceAcc.getAddress());
 		String txReference = TonUtils.generateTransferTransactionReference();
-		String transactionHash = tonCoreService.transferJettons(withdrawRequest.getFromAddress(), withdrawRequest.getToAddress(),
-				jetton, value, maxBalanceAcc.getSecretKey(), txReference, maxBalanceAcc.getJettonWalletAddress());
+		String transactionHash = tonCoreService.transferJettons(withdrawRequest.getFromAddress(), withdrawRequest.getToAddress(), jetton, value,
+				maxBalanceAcc.getSecretKey(), txReference, maxBalanceAcc.getJettonWalletAddress());
 		onChainTxService.createOnChainDebitTx(transactionHash, withdrawRequest, txReference);
 		return WithdrawResponse.builder()
 				.transactionHash(transactionHash)

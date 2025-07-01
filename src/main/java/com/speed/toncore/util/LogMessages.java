@@ -15,7 +15,11 @@ public class LogMessages {
 	@UtilityClass
 	public class Info {
 		public final String WAITING_FOR_BALANCE_UPDATE = "Awaiting jetton balance update for address: %s";
+		public final String WAITING_FOR_TRACE_UPDATE = "Awaiting jetton trace update for traceId: %s";
 		public final String TRANSACTION_HASH = "Transaction hash: %s";
+		public final String ON_CHAIN_TRANSACTION_INFO = "TransactionType: %s  TransactionHash: %s ChainId: %s";
+		public final String ON_CHAIN_SWEEP_TRANSFER_INFO = "TransactionHash: %s ChainId: %s";
+		public final String UPDATING_IDLE_LISTENER = "Updating idle listener for chainId: %s";
 		public final String PAYOUT_LIVE_CONSUMER_COMPLETED = "Payout live mode consumer completed processing.";
 		public final String PAYOUT_LIVE_CONSUMER_INVOKED = "%s payout live mode consumer invoked.";
 		public final String PAYOUT_TEST_CONSUMER_COMPLETED = "Payout test mode consumer completed processing.";

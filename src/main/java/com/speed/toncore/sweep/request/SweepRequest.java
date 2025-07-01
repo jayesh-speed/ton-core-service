@@ -16,7 +16,7 @@ public class SweepRequest {
 	@JsonProperty(JsonKeys.JETTON_MASTER_ADDRESS)
 	@NotBlank(message = Errors.BLANK_JETTON_MASTER_ADDRESS)
 	@JsonDeserialize(using = TonRawAddressDeserializer.class)
-	private String jettonMaster;
+	private String jettonMasterAddress;
 
 	@JsonProperty(JsonKeys.ADDRESS)
 	@NotBlank(message = Errors.BLANK_ADDRESS)

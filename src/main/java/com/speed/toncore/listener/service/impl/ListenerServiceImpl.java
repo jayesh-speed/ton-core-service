@@ -2,6 +2,7 @@ package com.speed.toncore.listener.service.impl;
 
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
+import com.speed.javacommon.exceptions.BadRequestException;
 import com.speed.javacommon.util.DateTimeUtil;
 import com.speed.toncore.accounts.service.TonWalletService;
 import com.speed.toncore.chainstack.JettonTransferFilter;
@@ -21,7 +22,6 @@ import com.speed.toncore.repository.TonListenerRepository;
 import com.speed.toncore.service.OnChainTxService;
 import com.speed.toncore.ton.TonNode;
 import com.speed.toncore.ton.TonNodePool;
-import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -53,11 +53,6 @@ public class ListenerServiceImpl implements TonListenerService {
 	private final TonWalletService tonWalletService;
 	private final OkHttpClient okHttpClient;
 
-	@PreDestroy
-	public void shutdown() {
-		stopAndDisposeListener(new ArrayList<>(tonChainListenerMap.keySet()));
-	}
-
 	@Override
 	public void bootUpTonListeners(boolean initialBootUp) {
 		TonListener idleListener;
@@ -69,37 +64,36 @@ public class ListenerServiceImpl implements TonListenerService {
 		if (Objects.isNull(idleListener)) {
 			return;
 		}
-		stopAndDisposeListener(List.of(idleListener));
+		stopAndDisposeListener(idleListener);
 		subscribeListener(idleListener);
 	}
 
 	@Override
 	public void subscribeListener(TonListener idleListener) {
 		try {
-			List<String> jettons = tonJettonService.getAllJettons().stream().map(TonJettonResponse::getJettonMasterAddress).toList();
+			List<String> jettonMasterAddresses = tonJettonService.getAllJettons().stream().map(TonJettonResponse::getJettonMasterAddress).toList();
 			TonNode tonNode = tonNodePool.getTonNodeByChainId();
-			JettonTransferFilter filter = runAndGetJettonListener(jettons, tonNode, idleListener);
+			JettonTransferFilter filter = runAndGetJettonListener(jettonMasterAddresses, tonNode, idleListener);
 			tonChainListenerMap.put(idleListener, filter);
 		} catch (Exception ex) {
 			LOG.error(Errors.ERROR_SUBSCRIBE_JETTON_LISTENER, ex);
-			stopAndDisposeListener(List.of(idleListener));
+			stopAndDisposeListener(idleListener);
 			tonListenerHelper.updateListenerToIdle(idleListener);
 		}
 	}
 
 	@Override
-	public void stopAndDisposeListener(List<TonListener> idleListeners) {
-		idleListeners.forEach(listener -> {
-			if (Objects.nonNull(tonChainListenerMap.get(listener))) {
-				tonChainListenerMap.get(listener).stop();
-				tonChainListenerMap.remove(listener);
-			}
-		});
+	public void stopAndDisposeListener(TonListener listener) {
+		if (Objects.nonNull(tonChainListenerMap.get(listener))) {
+			tonChainListenerMap.get(listener).stop();
+			tonChainListenerMap.remove(listener);
+		}
 	}
 
-	private JettonTransferFilter runAndGetJettonListener(List<String> jettons, TonNode tonNode, TonListener listener) {
+	private JettonTransferFilter runAndGetJettonListener(List<String> jettonMasterAddresses, TonNode tonNode, TonListener listener) {
 		List<MutablePair<String, Long>> jettonMasters = new ArrayList<>();
-		jettons.forEach(jetton -> jettonMasters.add(MutablePair.of(jetton, onChainTxService.getLatestLt(jetton))));
+		jettonMasterAddresses.forEach(
+				jettonMasterAddress -> jettonMasters.add(MutablePair.of(jettonMasterAddress, onChainTxService.getLatestLt(jettonMasterAddress))));
 		JettonTransferFilter jettonFilter = JettonTransferFilter.builder()
 				.httpClient(okHttpClient)
 				.pollingInterval(tonNode.isMainNet() ? Constants.MAIN_NET_POLLING_INTERVAL : Constants.TEST_NET_POLLING_INTERVAL)
@@ -120,14 +114,14 @@ public class ListenerServiceImpl implements TonListenerService {
 
 	private void verifyAndUpdateOnChainTx(JettonTransferDto transfer, Integer chainId) {
 		Set<String> toAddresses = tonWalletService.fetchReceiveAddresses(chainId);
-		if (toAddresses.contains(transfer.getDestination().toLowerCase())) {
+		if (toAddresses.contains(transfer.getDestination())) {
 			tonListenerHelper.updateOnChainTransaction(transfer, TonTransactionType.RECEIVE.name(), chainId);
 		}
 		Set<String> fromAddresses = tonWalletService.fetchSendAddresses(chainId);
-		if (fromAddresses.contains(transfer.getSource().toLowerCase())) {
+		if (fromAddresses.contains(transfer.getSource())) {
 			tonListenerHelper.updateOnChainTransaction(transfer, TonTransactionType.SEND.name(), chainId);
 		}
-		if (fromAddresses.contains(transfer.getDestination().toLowerCase())) {
+		if (fromAddresses.contains(transfer.getDestination())) {
 			tonListenerHelper.updateOnChainSweepTransaction(transfer, chainId);
 		}
 	}
@@ -164,7 +158,7 @@ public class ListenerServiceImpl implements TonListenerService {
 	@Override
 	public TonListener getListenerById(String id) {
 		Optional<TonListener> tonListener = tonListenerRepository.findById(id);
-		return tonListener.orElse(null);
+		return tonListener.orElseThrow(() -> new BadRequestException(String.format(Errors.LISTENER_NOT_FOUND, id), null, null));
 	}
 
 	@Override

@@ -8,6 +8,7 @@ import com.speed.javacommon.util.DateTimeUtil;
 import com.speed.javacommon.util.StringUtil;
 import com.speed.toncore.accounts.service.TonFeeAccountService;
 import com.speed.toncore.accounts.service.TonWalletService;
+import com.speed.toncore.accounts.service.TransactionFeeService;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.QTonSweepTx;
 import com.speed.toncore.domain.model.QTonUsedWalletAddress;
@@ -19,7 +20,6 @@ import com.speed.toncore.interceptor.ExecutionContextUtil;
 import com.speed.toncore.jettons.response.TonJettonResponse;
 import com.speed.toncore.jettons.service.TonJettonService;
 import com.speed.toncore.pojo.JettonTransferDto;
-import com.speed.toncore.pojo.TraceDto;
 import com.speed.toncore.repository.TonSweepTxRepository;
 import com.speed.toncore.repository.TonUsedWalletAddressRepository;
 import com.speed.toncore.sweep.request.SweepRequest;
@@ -39,7 +39,6 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -58,6 +57,7 @@ public class SweepServiceImpl implements SweepService {
 	private final TonNodePool tonNodePool;
 	private final TonCoreService tonCoreService;
 	private final TonCoreServiceHelper tonCoreServiceHelper;
+	private final TransactionFeeService transactionFeeService;
 
 	@Override
 	public void updateConfirmedSweepOnChainTx(JettonTransferDto transfer, Integer chainId) {
@@ -65,7 +65,7 @@ public class SweepServiceImpl implements SweepService {
 		Predicate queryPredicate = qTonSweepTx.chainId.eq(chainId).and(qTonSweepTx.txReference.eq(txReference));
 		TonSweepTx sweepTx = tonSweepTxRepository.findAndProjectUnique(queryPredicate, qTonSweepTx, qTonSweepTx.id);
 		TonJettonResponse jettonResponse = tonJettonService.getTonJettonByAddress(transfer.getJettonMaster());
-		BigDecimal transactionFee = calculateTotalFees(transfer.getTraceId());
+		BigDecimal transactionFee = transactionFeeService.getSweepTransactionFee(transfer.getTraceId());
 		if (Objects.nonNull(sweepTx)) {
 			Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(9);
 			fieldWithValue.put(qTonSweepTx.transactionHash, transfer.getTransactionHash());
@@ -90,7 +90,7 @@ public class SweepServiceImpl implements SweepService {
 				qTonUsedWalletAddress.chainId.eq(tonNode.getChainId()).and(qTonUsedWalletAddress.address.eq(sweepRequest.getFromAddress())),
 				qTonUsedWalletAddress, qTonUsedWalletAddress.address, qTonUsedWalletAddress.secretKey);
 		String txReference = TonUtils.generateSweepTransactionReference();
-		String hash = tonCoreService.transferJettonToMainAccount(address.getAddress(), address.getSecretKey(), sweepRequest.getJettonMaster(),
+		String hash = tonCoreService.transferJettonToMainAccount(address.getAddress(), address.getSecretKey(), sweepRequest.getJettonMasterAddress(),
 				mainAccountAddress, feeAccount.getSecretKey(), txReference);
 		if (StringUtil.nullOrEmpty(hash)) {
 			return "";
@@ -98,7 +98,7 @@ public class SweepServiceImpl implements SweepService {
 		TonSweepTx tonSweepTx = TonSweepTx.builder()
 				.toAddress(mainAccountAddress)
 				.fromAddress(sweepRequest.getFromAddress())
-				.jettonMasterAddress(sweepRequest.getJettonMaster())
+				.jettonMasterAddress(sweepRequest.getJettonMasterAddress())
 				.transactionHash(hash)
 				.transactionStatus(OnChainTxStatus.PENDING.getValue())
 				.txReference(txReference)
@@ -113,7 +113,7 @@ public class SweepServiceImpl implements SweepService {
 
 	@Override
 	public SweepResponse createSweepOnChainTx(SweepRequest sweepRequest) {
-		TonJettonResponse jetton = tonJettonService.getTonJettonByAddress(sweepRequest.getJettonMaster());
+		TonJettonResponse jetton = tonJettonService.getTonJettonByAddress(sweepRequest.getJettonMasterAddress());
 		if (Objects.isNull(jetton)) {
 			throw new BadRequestException(Errors.JETTON_ADDRESS_NOT_SUPPORTED, null, null);
 		}
@@ -134,38 +134,6 @@ public class SweepServiceImpl implements SweepService {
 		if (updateCount < 0) {
 			LOG.error(String.format(Errors.CONFIRM_ON_CHAIN_TX_UPDATE_FAIL, sweepTx.getToAddress(), sweepTx.getJettonMasterAddress(),
 					sweepTx.getTransactionHash()));
-		}
-	}
-
-	private BigDecimal calculateTotalFees(String traceId) {
-		try {
-			Thread.sleep(10000);
-			TraceDto traceDto = tonCoreServiceHelper.getTraceByTraceId(traceId);
-			TraceDto.Trace trace = traceDto.getTraces().getFirst();
-			List<String> txOrder = trace.getTransactions_order();
-			Map<String, TraceDto.Trace.Transaction> txMap = trace.getTransactions();
-
-			TraceDto.Trace.Transaction firstTx = txMap.get(txOrder.getFirst());
-			String firstTxFee = firstTx.getTotal_fees();
-			TraceDto.Trace.Transaction.Message firstOutMsg = firstTx.getOut_msgs().getFirst();
-			String firstTxFwdFee = firstOutMsg.getFwd_fee();
-			String forwardedTonAmount = firstOutMsg.getValue();
-
-			TraceDto.Trace.Transaction finalTx = txMap.get(txOrder.getLast());
-			if ("1".equalsIgnoreCase(finalTx.getIn_msg().getValue()) && txOrder.size() > 4) {
-				finalTx = txMap.get(txOrder.get(txOrder.size() - 2));
-			}
-
-			String finalTxFee = finalTx.getTotal_fees();
-			String excessTonAmount = finalTx.getIn_msg().getValue();
-
-			return new BigDecimal(firstTxFee).add(new BigDecimal(firstTxFwdFee))
-					.add(new BigDecimal(finalTxFee))
-					.add(new BigDecimal(forwardedTonAmount).subtract(new BigDecimal(excessTonAmount)));
-
-		} catch (Exception e) {
-			LOG.error(String.format(Errors.ERROR_ON_FETCHING_TRACE, traceId), e);
-			return BigDecimal.ZERO;
 		}
 	}
 }

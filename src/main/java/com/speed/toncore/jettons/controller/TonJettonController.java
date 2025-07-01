@@ -6,6 +6,8 @@ import com.speed.toncore.constants.LogKeys;
 import com.speed.toncore.jettons.request.TonJettonRequest;
 import com.speed.toncore.jettons.response.TonJettonResponse;
 import com.speed.toncore.jettons.service.TonJettonService;
+import com.speed.toncore.util.TonUtils;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +17,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.ton.ton4j.address.Address;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class TonJettonController {
 	private final TonJettonService tonJettonService;
 
 	@PostMapping(Endpoints.ADD_TON_JETTON)
-	public ResponseEntity<TonJettonResponse> addNewTonJetton(@RequestBody TonJettonRequest tonJettonRequest) {
+	public ResponseEntity<TonJettonResponse> addNewTonJetton(@RequestBody @Valid TonJettonRequest tonJettonRequest) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.ADD_TON_JETTON);
 		return ResponseEntity.ok(tonJettonService.addNewTonJetton(tonJettonRequest));
 	}
@@ -34,12 +35,12 @@ public class TonJettonController {
 	@DeleteMapping(Endpoints.REMOVE_TON_JETTON)
 	public ResponseEntity<Void> removeTonJetton(@PathVariable String address) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.REMOVE_TON_JETTON);
-		tonJettonService.deleteTonJetton(Address.of(address).toRaw());
+		tonJettonService.deleteTonJetton(TonUtils.toRawAddress(address));
 		return ResponseEntity.ok().build();
 	}
 
 	@GetMapping(Endpoints.GET_ALL_JETTONS)
-	public ResponseEntity<List<TonJettonResponse>> getAllTonJettons() {
+	public ResponseEntity<List<TonJettonResponse>> getAllTonJettisons() {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.GET_ALL_JETTONS);
 		return ResponseEntity.ok(tonJettonService.getAllJettons());
 	}
@@ -53,6 +54,6 @@ public class TonJettonController {
 	@GetMapping(Endpoints.GET_JETTON)
 	public ResponseEntity<TonJettonResponse> getTonJetton(@PathVariable String address) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.GET_JETTON);
-		return ResponseEntity.ok(tonJettonService.getTonJettonByAddress(Address.of(address).toRaw()));
+		return ResponseEntity.ok(tonJettonService.getTonJettonByAddress(TonUtils.toRawAddress(address)));
 	}
 }

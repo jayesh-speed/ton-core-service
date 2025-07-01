@@ -7,11 +7,11 @@ import com.speed.toncore.constants.LogKeys;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
 import com.speed.toncore.listener.service.TonListenerService;
 import com.speed.toncore.util.ConsumerUtil;
+import com.speed.toncore.util.LogMessages;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -28,15 +28,10 @@ public class KafkaConsumer {
 	@KafkaListener(topics = "${speed.topic.scheduler}", groupId = Constants.ConsumerGroupIds.SCHEDULER_GROUP, containerFactory = "kafkaListenerContainerJson", autoStartup = "${speed.topic.scheduler.startup}")
 	public void consumeScheduler(ConsumerRecord<String, String> consumerRecord) {
 		try {
-			JSONObject jsonObject = new JSONObject(consumerRecord.value());
-
-			String event = jsonObject.optString(Constants.EVENT, "");
-			if (event.equalsIgnoreCase(appConfig.getSchedulerEventValue())) {
-				ConsumerUtil.initConsumer(consumerRecord.topic(), consumerRecord.partition(), consumerRecord.offset(),
-						Constants.ConsumerGroupIds.SCHEDULER_GROUP);
-				bootupTestNetListeners();
-				bootupMainNetListeners();
-			}
+			ConsumerUtil.initConsumer(consumerRecord.topic(), consumerRecord.partition(), consumerRecord.offset(),
+					Constants.ConsumerGroupIds.SCHEDULER_GROUP);
+			bootupTestNetListeners();
+			bootupMainNetListeners();
 		} catch (JSONException e) {
 			LOG.error(Errors.ERROR_WHILE_PARSING_MESSAGE, e);
 		} finally {
@@ -47,13 +42,13 @@ public class KafkaConsumer {
 
 	private void bootupMainNetListeners() {
 		initConsumer(true);
-		LOG.info("Updating idle listeners");
+		LOG.info(String.format(LogMessages.Info.UPDATING_IDLE_LISTENER, Constants.MAIN_NET_CHAIN_ID));
 		listenerService.bootUpTonListeners(false);
 	}
 
 	private void bootupTestNetListeners() {
 		initConsumer(false);
-		LOG.info("Updating idle listeners");
+		LOG.info(String.format(LogMessages.Info.UPDATING_IDLE_LISTENER, Constants.TEST_NET_CHAIN_ID));
 		listenerService.bootUpTonListeners(false);
 	}
 

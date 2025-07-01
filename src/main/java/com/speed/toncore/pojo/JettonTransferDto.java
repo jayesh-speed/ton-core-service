@@ -11,48 +11,48 @@ import lombok.Setter;
 @Data
 public class JettonTransferDto {
 
-	@JsonProperty(JsonKeys.ChainStack.QUERY_ID)
+	@JsonProperty(JsonKeys.TonIndexer.QUERY_ID)
 	private String queryId;
 
-	@JsonProperty(JsonKeys.ChainStack.SOURCE)
+	@JsonProperty(JsonKeys.TonIndexer.SOURCE)
 	private String source;
 
-	@JsonProperty(JsonKeys.ChainStack.DESTINATION)
+	@JsonProperty(JsonKeys.TonIndexer.DESTINATION)
 	private String destination;
 
-	@JsonProperty(JsonKeys.ChainStack.AMOUNT)
+	@JsonProperty(JsonKeys.TonIndexer.AMOUNT)
 	private String amount;
 
-	@JsonProperty(JsonKeys.ChainStack.SOURCE_WALLET)
+	@JsonProperty(JsonKeys.TonIndexer.SOURCE_WALLET)
 	private String sourceWallet;
 
-	@JsonProperty(JsonKeys.ChainStack.JETTON_MASTER)
+	@JsonProperty(JsonKeys.TonIndexer.JETTON_MASTER)
 	private String jettonMaster;
 
-	@JsonProperty(JsonKeys.ChainStack.TRANSACTION_HASH)
+	@JsonProperty(JsonKeys.TonIndexer.TRANSACTION_HASH)
 	private String transactionHash;
 
-	@JsonProperty(JsonKeys.ChainStack.RESPONSE_DESTINATION)
+	@JsonProperty(JsonKeys.TonIndexer.RESPONSE_DESTINATION)
 	private String responseDestination;
 
-	@JsonProperty(JsonKeys.ChainStack.CUSTOM_PAYLOAD)
+	@JsonProperty(JsonKeys.TonIndexer.CUSTOM_PAYLOAD)
 	private String customPayload;
 
-	@JsonProperty(JsonKeys.ChainStack.FORWARD_TON_AMOUNT)
+	@JsonProperty(JsonKeys.TonIndexer.FORWARD_TON_AMOUNT)
 	private String forwardTonAmount;
 
-	@JsonProperty(JsonKeys.ChainStack.FORWARD_PAYLOAD)
+	@JsonProperty(JsonKeys.TonIndexer.FORWARD_PAYLOAD)
 	private String forwardPayload;
 
-	@JsonProperty(JsonKeys.ChainStack.TRACE_ID)
+	@JsonProperty(JsonKeys.TonIndexer.TRACE_ID)
 	private String traceId;
 
-	@JsonProperty(JsonKeys.ChainStack.TRANSACTION_LT)
+	@JsonProperty(JsonKeys.TonIndexer.TRANSACTION_LT)
 	private Long transactionLt;
 
-	@JsonProperty(JsonKeys.ChainStack.TRANSACTION_NOW)
+	@JsonProperty(JsonKeys.TonIndexer.TRANSACTION_NOW)
 	private Long transactionNow;
 
-	@JsonProperty(JsonKeys.ChainStack.TRANSACTION_ABORTED)
+	@JsonProperty(JsonKeys.TonIndexer.TRANSACTION_ABORTED)
 	private Boolean transactionAborted;
 }

@@ -5,34 +5,35 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class JsonKeys {
 
-	public final String ACCOUNTS = "accounts";
-	public final String ACCOUNT_TYPE = "account_type";
 	public final String ADDRESS = "address";
-	public final String ADDRESSES = "addresses";
 	public final String BALANCE = "balance";
-	public final String BALANCES = "balances";
 	public final String CHAIN_ID = "chain_id";
 	public final String COUNT = "count";
-	public final String TX_REFERENCE = "tx_reference";
-	public final String CURRENCY = "currency";
 	public final String DECIMALS = "decimals";
 	public final String ERRORS = "errors";
+	public final String TRACE_ID = "trace_id";
+	public final String FORWARD_TON_AMOUNT = "forward_ton_amount";
 	public final String FROM_ADDRESS = "from_address";
-	public final String ID = "id";
+	public final String FWD_FEE = "fwd_fee";
+	public final String TRANSACTION_FEE="transaction_fee";
+	public final String IN_MSG = "in_msg";
 	public final String IS_MAIN_NET = "is_main_net";
-	public final String JETTON_ADDRESS = "jetton_address";
 	public final String JETTON_MASTER_ADDRESS = "jetton_master_address";
 	public final String JETTON_NAME = "jetton_name";
 	public final String JETTON_SYMBOL = "jetton_symbol";
 	public final String LOCAL_BALANCE = "local_balance";
+	public final String OUT_MSGS = "out_msgs";
 	public final String PARAMETERS = "params";
-	public final String FORWARD_TON_AMOUNT = "forward_ton_amount";
-	public final String PUBLIC_KEY = "public_key";
 	public final String SERVER_NAME = "server_name";
 	public final String SERVER_PATH = "server_path";
 	public final String STATUS_CODE = "status_code";
+	public final String TOTAL_FEES = "total_fees";
 	public final String TO_ADDRESS = "to_address";
+	public final String TRACES = "traces";
+	public final String TRANSACTIONS = "transactions";
+	public final String TRANSACTIONS_ORDER = "transactions_order";
 	public final String TRANSACTION_HASH = "transaction_hash";
+	public final String TX_REFERENCE = "tx_reference";
 	public final String TYPE = "type";
 	public final String VALUE = "value";
 
@@ -44,28 +45,23 @@ public class JsonKeys {
 		public final String BODY = "body";
 		public final String EXCLUDE_ZERO_BALANCE = "exclude_zero_balance";
 		public final String IGNORE_CHKSIG = "ignore_chksig";
+		public final String INCLUDE_ACTIONS = "include_actions";
 		public final String INIT_CODE = "init_code";
 		public final String INIT_DATA = "init_data";
 		public final String JETTON_MASTER = "jetton_master";
 		public final String JETTON_MASTER_ADDRESS = "jetton_address";
 		public final String LIMIT = "limit";
-		public final String MAX_LIMIT = "1000";
-		public final String METHOD_NAME = "method";
 		public final String OFFSET = "offset";
 		public final String OWNER_ADDRESS = "owner_address";
 		public final String SORT = "sort";
 		public final String SORT_ASC = "asc";
-		public final String STACK = "stack";
-		public final String MESSAGE_HASH = "msg_hash";
 		public final String START_LT = "start_lt";
-		public final String END_LT = "end_lt";
-		public final String USE_V2 = "use_v2";
 		public final String TRACE_ID = "trace_id";
-		public final String INCLUDE_ACTIONS = "include_actions";
+		public final String USE_V2 = "use_v2";
 	}
 
 	@UtilityClass
-	public static class ChainStack {
+	public static class TonIndexer {
 
 		public final String ADDRESS = "address";
 		public final String ADDRESS_BOOK = "address_book";
@@ -108,13 +104,5 @@ public class JsonKeys {
 		public final String USER_FRIENDLY = "user_friendly";
 		public final String WALLET_ID = "wallet_id";
 		public final String WALLET_TYPE = "wallet_type";
-	}
-
-	@UtilityClass
-	public static class Headers {
-
-		public final String ACCEPT = "accept";
-		public final String AUTHORIZATION = "Authorization";
-		public final String CONTENT_TYPE_JSON = "application/json";
 	}
 }

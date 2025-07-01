@@ -1,5 +1,7 @@
 package com.speed.toncore.pojo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.speed.toncore.constants.JsonKeys;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,26 +13,38 @@ import java.util.Map;
 @Setter
 public class TraceDto {
 
+	@JsonProperty(JsonKeys.TRACES)
 	private List<Trace> traces;
 
 	@Data
 	public static class Trace {
 
-		private List<String> transactions_order;
+		@JsonProperty(JsonKeys.TRANSACTIONS_ORDER)
+		private List<String> transactionsOrder;
+
+		@JsonProperty(JsonKeys.TRANSACTIONS)
 		private Map<String, Transaction> transactions;
 
 		@Data
 		public static class Transaction {
 
-			private String total_fees;
-			private Message in_msg;
-			private List<Message> out_msgs;
+			@JsonProperty(JsonKeys.TOTAL_FEES)
+			private String totalFees;
+
+			@JsonProperty(JsonKeys.IN_MSG)
+			private Message inMsg;
+
+			@JsonProperty(JsonKeys.OUT_MSGS)
+			private List<Message> outMsgs;
 
 			@Data
 			public static class Message {
 
+				@JsonProperty(JsonKeys.VALUE)
 				private String value;
-				private String fwd_fee;
+
+				@JsonProperty(JsonKeys.FWD_FEE)
+				private String fwdFee;
 			}
 		}
 	}

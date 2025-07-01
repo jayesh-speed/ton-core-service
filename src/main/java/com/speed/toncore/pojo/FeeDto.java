@@ -11,26 +11,26 @@ import java.util.List;
 @Getter
 public class FeeDto {
 
-	@JsonProperty(JsonKeys.ChainStack.DESTINATION_FEES)
+	@JsonProperty(JsonKeys.TonIndexer.DESTINATION_FEES)
 	private List<Fee> destinationFees;
 
-	@JsonProperty(JsonKeys.ChainStack.SOURCE_FEES)
+	@JsonProperty(JsonKeys.TonIndexer.SOURCE_FEES)
 	private Fee sourceFees;
 
 	@Setter
 	@Getter
 	public static class Fee {
 
-		@JsonProperty(JsonKeys.ChainStack.FORWARD_FEE)
+		@JsonProperty(JsonKeys.TonIndexer.FORWARD_FEE)
 		private long fwdFee;
 
-		@JsonProperty(JsonKeys.ChainStack.GAS_FEE)
+		@JsonProperty(JsonKeys.TonIndexer.GAS_FEE)
 		private long gasFee;
 
-		@JsonProperty(JsonKeys.ChainStack.IN_FWD_FEE)
+		@JsonProperty(JsonKeys.TonIndexer.IN_FWD_FEE)
 		private long inFwdFee;
 
-		@JsonProperty(JsonKeys.ChainStack.STORAGE_FEE)
+		@JsonProperty(JsonKeys.TonIndexer.STORAGE_FEE)
 		private long storageFee;
 
 	}

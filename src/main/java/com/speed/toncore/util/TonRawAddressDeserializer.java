@@ -22,7 +22,7 @@ public class TonRawAddressDeserializer extends JsonDeserializer<String> {
 		try {
 			return Address.of(address).toRaw().toUpperCase();
 		} catch (Exception e) {
-			LOG.error("Failed to deserialize address: {}", address, e);
+			LOG.error(String.format(Errors.FAILED_TO_DESERIALIZE_ADDRESS, address), e);
 			throw new BadRequestException(String.format(Errors.INVALID_ADDRESS, address), null, null);
 		}
 	}

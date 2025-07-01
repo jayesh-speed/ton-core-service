@@ -15,9 +15,10 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,8 +29,7 @@ public class TonMainAccountController {
 	@PostMapping(Endpoints.CREATE_MAIN_ACCOUNT)
 	public ResponseEntity<TonAccountResponse> createMainAccount(@Valid @RequestBody TonMainAccountRequest tonMainAccountRequest) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.CREATE_MAIN_ACCOUNT);
-		TonAccountResponse mainAccount = tonMainAccountService.createMainAccount(tonMainAccountRequest.getJettonMasterAddress());
-		return ResponseEntity.ok(mainAccount);
+		return ResponseEntity.ok(tonMainAccountService.createMainAccount(tonMainAccountRequest.getJettonMasterAddress()));
 	}
 
 	@DeleteMapping(Endpoints.REMOVE_MAIN_ACCOUNT)
@@ -45,9 +45,9 @@ public class TonMainAccountController {
 		return ResponseEntity.ok(tonMainAccountService.deployMainAccount(address));
 	}
 
-	@GetMapping(Endpoints.GET_MAIN_ACCOUNT)
-	public ResponseEntity<TonAccountResponse> getMainAccount(@PathVariable String jettonAddress) {
+	@GetMapping(Endpoints.GET_MAIN_ACCOUNTS)
+	public ResponseEntity<List<TonAccountResponse>> getMainAccounts(@PathVariable String jettonMasterAddress) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.GET_MAIN_ACCOUNT);
-		return ResponseEntity.ok(tonMainAccountService.getMainAccount(jettonAddress));
+		return ResponseEntity.ok(tonMainAccountService.getMainAccounts(jettonMasterAddress));
 	}
 }

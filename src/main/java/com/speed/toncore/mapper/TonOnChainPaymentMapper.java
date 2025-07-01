@@ -26,8 +26,7 @@ public interface TonOnChainPaymentMapper {
 	default void updateContextInfoInOnChainTx(@MappingTarget TonOnChainTx onChainTx) {
 		onChainTx.setMainNet(ExecutionContextUtil.getContext().isMainNet());
 		onChainTx.setChainId(ExecutionContextUtil.getContext().getChainId());
-		long currentTimestamp = System.currentTimeMillis();
-		onChainTx.setTimestamp(currentTimestamp);
+		onChainTx.setTimestamp(System.currentTimeMillis());
 		onChainTx.setTransactionDate(DateTimeUtil.convertToLocalDateTime(Date.from(Instant.now())));
 	}
 }

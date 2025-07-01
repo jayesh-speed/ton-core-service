@@ -28,20 +28,18 @@ public class EventListener {
 				return;
 			}
 		}
-		listenerService.stopAndDisposeListener(List.of(listener));
+		listenerService.stopAndDisposeListener(listener);
 		listenerService.subscribeListener(listener);
 	}
 
 	@org.springframework.context.event.EventListener
 	public void handleContextClosedEvent(ContextClosedEvent event) {
 		List<TonListener> allListeners = listenerService.fetchAllListeners();
-		allListeners.forEach(listener -> {
-			listenerService.updateListenerStatus(listener, TonListenerStatus.IDLE.name());
-		});
+		allListeners.forEach(listener -> listenerService.updateListenerStatus(listener, TonListenerStatus.IDLE.name()));
 	}
 
 	@org.springframework.context.event.EventListener
-	public void handleTokenAddedEvent(TonJettonAddedEvent jettonAddedEvent) {
+	public void handleJettonAddedEvent(TonJettonAddedEvent jettonAddedEvent) {
 		TonListener listener = listenerService.getListener();
 		boolean equals = listener.getStatus().equals(TonListenerStatus.IDLE.name());
 		if (equals) {
@@ -50,7 +48,7 @@ public class EventListener {
 				return;
 			}
 		}
-		listenerService.stopAndDisposeListener(List.of(listener));
+		listenerService.stopAndDisposeListener(listener);
 		listenerService.subscribeListener(listener);
 	}
 }

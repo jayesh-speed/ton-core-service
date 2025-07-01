@@ -10,5 +10,5 @@ import org.springframework.stereotype.Repository;
 public interface TonWalletAddressRepository extends SpeedCustomRepository<TonWalletAddress, String> {
 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	TonWalletAddress findFirstByChainIdOrderByIdAsc(Long chainId);
+	TonWalletAddress findFirstByChainIdOrderByIdAsc(Integer chainId);
 }

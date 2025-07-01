@@ -11,24 +11,24 @@ import java.math.BigInteger;
 @Setter
 public class WalletInformationDto {
 
-	@JsonProperty(JsonKeys.ChainStack.BALANCE)
+	@JsonProperty(JsonKeys.TonIndexer.BALANCE)
 	private BigInteger balance;
 
-	@JsonProperty(JsonKeys.ChainStack.LAST_TRANSACTION_HASH)
+	@JsonProperty(JsonKeys.TonIndexer.LAST_TRANSACTION_HASH)
 	private String last_transaction_hash;
 
-	@JsonProperty(JsonKeys.ChainStack.LAST_TRANSACTION_LT)
+	@JsonProperty(JsonKeys.TonIndexer.LAST_TRANSACTION_LT)
 	private String last_transaction_lt;
 
-	@JsonProperty(JsonKeys.ChainStack.SEQ_NO)
+	@JsonProperty(JsonKeys.TonIndexer.SEQ_NO)
 	private Integer seqNo;
 
-	@JsonProperty(JsonKeys.ChainStack.STATUS)
+	@JsonProperty(JsonKeys.TonIndexer.STATUS)
 	private String status;
 
-	@JsonProperty(JsonKeys.ChainStack.WALLET_ID)
+	@JsonProperty(JsonKeys.TonIndexer.WALLET_ID)
 	private String walletId;
 
-	@JsonProperty(JsonKeys.ChainStack.WALLET_TYPE)
+	@JsonProperty(JsonKeys.TonIndexer.WALLET_TYPE)
 	private String walletType;
 }
