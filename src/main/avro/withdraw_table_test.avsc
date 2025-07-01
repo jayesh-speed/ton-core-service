@@ -1,0 +1,617 @@
+{
+  "type": "record",
+  "name": "Envelope",
+  "namespace": "speed_core_cdc.speed_core_test.tbl_withdraw",
+  "fields": [
+    {
+      "name": "before",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "Value",
+          "fields": [
+            {
+              "name": "account_id",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "currency",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "amount",
+              "type": [
+                "null",
+                {
+                  "type": "bytes",
+                  "scale": 16,
+                  "precision": 32,
+                  "connect.version": 1,
+                  "connect.parameters": {
+                    "scale": "16",
+                    "connect.decimal.precision": "32"
+                  },
+                  "connect.name": "org.apache.kafka.connect.data.Decimal",
+                  "logicalType": "decimal"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "public_key",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "target_currency",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "statement_descriptor",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "withdraw_request",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "secret",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "created",
+              "type": [
+                "null",
+                "long"
+              ],
+              "default": null
+            },
+            {
+              "name": "modified",
+              "type": [
+                "null",
+                "long"
+              ],
+              "default": null
+            },
+            {
+              "name": "id",
+              "type": "string"
+            },
+            {
+              "name": "status",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "livemode",
+              "type": [
+                "null",
+                {
+                  "type": "int",
+                  "connect.type": "int16"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "exchange_rate",
+              "type": [
+                "null",
+                {
+                  "type": "bytes",
+                  "scale": 16,
+                  "precision": 32,
+                  "connect.version": 1,
+                  "connect.parameters": {
+                    "scale": "16",
+                    "connect.decimal.precision": "32"
+                  },
+                  "connect.name": "org.apache.kafka.connect.data.Decimal",
+                  "logicalType": "decimal"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "fees",
+              "type": [
+                "null",
+                {
+                  "type": "bytes",
+                  "scale": 16,
+                  "precision": 32,
+                  "connect.version": 1,
+                  "connect.parameters": {
+                    "scale": "16",
+                    "connect.decimal.precision": "32"
+                  },
+                  "connect.name": "org.apache.kafka.connect.data.Decimal",
+                  "logicalType": "decimal"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "receiver_ln_invoice",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "target_amount_paid",
+              "type": [
+                "null",
+                {
+                  "type": "bytes",
+                  "scale": 16,
+                  "precision": 32,
+                  "connect.version": 1,
+                  "connect.parameters": {
+                    "scale": "16",
+                    "connect.decimal.precision": "32"
+                  },
+                  "connect.name": "org.apache.kafka.connect.data.Decimal",
+                  "logicalType": "decimal"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "target_amount",
+              "type": [
+                "null",
+                {
+                  "type": "bytes",
+                  "scale": 16,
+                  "precision": 32,
+                  "connect.version": 1,
+                  "connect.parameters": {
+                    "scale": "16",
+                    "connect.decimal.precision": "32"
+                  },
+                  "connect.name": "org.apache.kafka.connect.data.Decimal",
+                  "logicalType": "decimal"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "withdraw_method",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "target_amount_paid_at",
+              "type": [
+                "null",
+                "long"
+              ],
+              "default": null
+            },
+            {
+              "name": "failure_reason",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "reference_id",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "reference_type",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "transaction_hash",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "api_version",
+              "type": [
+                {
+                  "type": "string",
+                  "connect.default": "2022-04-15"
+                },
+                "null"
+              ],
+              "default": "2022-04-15"
+            },
+            {
+              "name": "speed_request",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "speed_service_version",
+              "type": [
+                {
+                  "type": "string",
+                  "connect.default": "2022-04-15"
+                },
+                "null"
+              ],
+              "default": "2022-04-15"
+            },
+            {
+              "name": "event_source",
+              "type": [
+                {
+                  "type": "string",
+                  "connect.version": 1,
+                  "connect.parameters": {
+                    "allowed": "App,Automatic,API"
+                  },
+                  "connect.default": "Automatic",
+                  "connect.name": "io.debezium.data.Enum"
+                },
+                "null"
+              ],
+              "default": "Automatic"
+            },
+            {
+              "name": "transaction_id",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "payment_preimage",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "est_fees",
+              "type": [
+                "null",
+                {
+                  "type": "bytes",
+                  "scale": 16,
+                  "precision": 32,
+                  "connect.version": 1,
+                  "connect.parameters": {
+                    "scale": "16",
+                    "connect.decimal.precision": "32"
+                  },
+                  "connect.name": "org.apache.kafka.connect.data.Decimal",
+                  "logicalType": "decimal"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "speed_fee_percentage",
+              "type": [
+                "null",
+                "double"
+              ],
+              "default": null
+            },
+            {
+              "name": "processed_by",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "speed_account_type",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "sats_per_vbyte",
+              "type": [
+                "null",
+                {
+                  "type": "bytes",
+                  "scale": 16,
+                  "precision": 32,
+                  "connect.version": 1,
+                  "connect.parameters": {
+                    "scale": "16",
+                    "connect.decimal.precision": "32"
+                  },
+                  "connect.name": "org.apache.kafka.connect.data.Decimal",
+                  "logicalType": "decimal"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "native_est_fees",
+              "type": [
+                "null",
+                {
+                  "type": "bytes",
+                  "scale": 16,
+                  "precision": 32,
+                  "connect.version": 1,
+                  "connect.parameters": {
+                    "scale": "16",
+                    "connect.decimal.precision": "32"
+                  },
+                  "connect.name": "org.apache.kafka.connect.data.Decimal",
+                  "logicalType": "decimal"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "native_fees",
+              "type": [
+                "null",
+                {
+                  "type": "bytes",
+                  "scale": 16,
+                  "precision": 32,
+                  "connect.version": 1,
+                  "connect.parameters": {
+                    "scale": "16",
+                    "connect.decimal.precision": "32"
+                  },
+                  "connect.name": "org.apache.kafka.connect.data.Decimal",
+                  "logicalType": "decimal"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "max_fee_per_gas",
+              "type": [
+                "null",
+                {
+                  "type": "bytes",
+                  "scale": 16,
+                  "precision": 32,
+                  "connect.version": 1,
+                  "connect.parameters": {
+                    "scale": "16",
+                    "connect.decimal.precision": "32"
+                  },
+                  "connect.name": "org.apache.kafka.connect.data.Decimal",
+                  "logicalType": "decimal"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "max_priority_fee_per_gas",
+              "type": [
+                "null",
+                {
+                  "type": "bytes",
+                  "scale": 16,
+                  "precision": 32,
+                  "connect.version": 1,
+                  "connect.parameters": {
+                    "scale": "16",
+                    "connect.decimal.precision": "32"
+                  },
+                  "connect.name": "org.apache.kafka.connect.data.Decimal",
+                  "logicalType": "decimal"
+                }
+              ],
+              "default": null
+            }
+          ],
+          "connect.name": "speed_core_cdc.speed_core_test.tbl_withdraw.Value"
+        }
+      ],
+      "default": null
+    },
+    {
+      "name": "after",
+      "type": [
+        "null",
+        "Value"
+      ],
+      "default": null
+    },
+    {
+      "name": "source",
+      "type": {
+        "type": "record",
+        "name": "Source",
+        "namespace": "io.debezium.connector.mysql",
+        "fields": [
+          {
+            "name": "version",
+            "type": "string"
+          },
+          {
+            "name": "connector",
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "ts_ms",
+            "type": "long"
+          },
+          {
+            "name": "snapshot",
+            "type": [
+              {
+                "type": "string",
+                "connect.version": 1,
+                "connect.parameters": {
+                  "allowed": "true,last,false,incremental"
+                },
+                "connect.default": "false",
+                "connect.name": "io.debezium.data.Enum"
+              },
+              "null"
+            ],
+            "default": "false"
+          },
+          {
+            "name": "db",
+            "type": "string"
+          },
+          {
+            "name": "sequence",
+            "type": [
+              "null",
+              "string"
+            ],
+            "default": null
+          },
+          {
+            "name": "table",
+            "type": [
+              "null",
+              "string"
+            ],
+            "default": null
+          },
+          {
+            "name": "server_id",
+            "type": "long"
+          },
+          {
+            "name": "gtid",
+            "type": [
+              "null",
+              "string"
+            ],
+            "default": null
+          },
+          {
+            "name": "file",
+            "type": "string"
+          },
+          {
+            "name": "pos",
+            "type": "long"
+          },
+          {
+            "name": "row",
+            "type": "int"
+          },
+          {
+            "name": "thread",
+            "type": [
+              "null",
+              "long"
+            ],
+            "default": null
+          },
+          {
+            "name": "query",
+            "type": [
+              "null",
+              "string"
+            ],
+            "default": null
+          }
+        ],
+        "connect.name": "io.debezium.connector.mysql.Source"
+      }
+    },
+    {
+      "name": "op",
+      "type": "string"
+    },
+    {
+      "name": "ts_ms",
+      "type": [
+        "null",
+        "long"
+      ],
+      "default": null
+    },
+    {
+      "name": "transaction",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "ConnectDefault",
+          "namespace": "io.confluent.connect.avro",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string"
+            },
+            {
+              "name": "total_order",
+              "type": "long"
+            },
+            {
+              "name": "data_collection_order",
+              "type": "long"
+            }
+          ]
+        }
+      ],
+      "default": null
+    }
+  ],
+  "connect.name": "speed_core_cdc.speed_core_test.tbl_withdraw.Envelope"
+}

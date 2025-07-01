@@ -1,0 +1,84 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.5'
+	id "io.freefair.lombok" version '8.13'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id "com.bakdata.avro" version "1.4.0"
+}
+
+group = 'com.speed'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+	maven {
+		url "https://packages.confluent.io/maven"
+	}
+	maven {
+		url "https://plugins.gradle.org/m2/"
+	}
+	maven {
+		url = uri("https://maven.pkg.github.com/Tryspeed/java-common-utils")
+		credentials {
+			username = project.properties["systemProp.gradle.wrapperUser"]
+			password = project.properties["systemProp.gradle.wrapperPassword"]
+		}
+	}
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+	annotationProcessor "org.mapstruct:mapstruct-processor:1.5.5.Final"
+	implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
+	implementation 'com.amazonaws:aws-java-sdk-secretsmanager:1.12.780'
+	annotationProcessor 'com.querydsl:querydsl-apt:5.1.0:jakarta'
+	implementation 'org.springframework.kafka:spring-kafka'
+	implementation 'io.confluent:kafka-avro-serializer:7.8.0'
+	annotationProcessor 'jakarta.persistence:jakarta.persistence-api:3.1.0'
+	implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
+	implementation 'org.springframework.retry:spring-retry'
+	implementation 'com.google.guava:guava:33.4.8-jre'
+	implementation 'com.speed:javacommon:0.1.30'
+	implementation 'org.json:json:20240303'
+	implementation 'net.logstash.logback:logstash-logback-encoder:7.1.1'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	implementation 'io.github.neodix42:smartcontract:0.9.9'
+	implementation 'io.github.neodix42:tweetnacl-java-8:0.9.5'
+	implementation 'io.github.neodix42:cell:0.9.9'
+	implementation 'io.github.neodix42:address:0.9.9'
+
+	implementation "com.squareup.okhttp3:okhttp:3.14.9"
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	implementation 'org.apache.avro:avro:1.12.0'
+
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'com.github.ben-manes.caffeine:caffeine'
+}
+jar {
+	enabled = false
+}
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
