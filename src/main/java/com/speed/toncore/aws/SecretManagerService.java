@@ -1,19 +1,11 @@
 package com.speed.toncore.aws;
 
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
-import com.amazonaws.services.secretsmanager.model.InvalidParameterException;
-import com.amazonaws.services.secretsmanager.model.InvalidRequestException;
-import com.amazonaws.services.secretsmanager.model.PutSecretValueRequest;
-import com.amazonaws.services.secretsmanager.model.PutSecretValueResult;
-import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.speed.javacommon.exceptions.InternalServerErrorException;
 import com.speed.toncore.config.SecretManagerConfig;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Errors;
@@ -21,6 +13,14 @@ import com.speed.toncore.interceptor.ExecutionContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
+import software.amazon.awssdk.services.secretsmanager.model.InvalidParameterException;
+import software.amazon.awssdk.services.secretsmanager.model.InvalidRequestException;
+import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueResponse;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -36,28 +36,31 @@ import java.util.Objects;
 public class SecretManagerService {
 
 	private final SecretManagerConfig secretsManagerConfig;
-	private final AWSSecretsManager secretsManager;
+	private final SecretsManagerClient secretsManagerClient;
 	private final SecretObject testNetSecretObject;
 	private final SecretObject mainNetSecretObject;
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Autowired
 	public SecretManagerService(SecretManagerConfig secretManagerConfig) {
 		this.secretsManagerConfig = secretManagerConfig;
-		this.secretsManager = AWSSecretsManagerClientBuilder.standard().withRegion(secretManagerConfig.getRegion()).build();
+		this.secretsManagerClient = SecretsManagerClient.builder().region(Region.of(secretManagerConfig.getRegion())).build();
 		this.testNetSecretObject = generateSecretObject(String.valueOf(Constants.TEST_NET_CHAIN_ID));
 		this.mainNetSecretObject = generateSecretObject(String.valueOf(Constants.MAIN_NET_CHAIN_ID));
 	}
 
 	private SecretObject generateSecretObject(String tonChainId) {
-		String baseUrl = getSecretValueString(Constants.SecretManagerKeys.BASE_URL, tonChainId);
-		String apiKey = getSecretValueString(Constants.SecretManagerKeys.API_KEY, tonChainId);
-		String encryptionKeyStr = getSecretValueString(Constants.SecretManagerKeys.ENCRYPTION_KEY, tonChainId);
+		JsonNode secrets = fetchSecretValues(tonChainId);
+		String baseUrl = getSecretValueString(Constants.SecretManagerKeys.BASE_URL, secrets);
+		String apiKey = getSecretValueString(Constants.SecretManagerKeys.API_KEY, secrets);
+		String encryptionKeyStr = getSecretValueString(Constants.SecretManagerKeys.ENCRYPTION_KEY, secrets);
 		byte[] encryptionKey = Base64.getDecoder().decode(encryptionKeyStr);
-		String encryptionAlgo = getSecretValueString(Constants.SecretManagerKeys.ENCRYPTION_ALGO, tonChainId);
-		String listenerBaseUrl = getSecretValueString(Constants.SecretManagerKeys.LISTENER_BASE_URL, tonChainId);
-		String listenerApiKey = getSecretValueString(Constants.SecretManagerKeys.LISTENER_API_KEY, tonChainId);
-		String tonCenterUrl = getSecretValueString(Constants.SecretManagerKeys.TON_CENTER_URL, tonChainId);
-		String tonCenterApiKey = getSecretValueString(Constants.SecretManagerKeys.TON_CENTER_API_KEY, tonChainId);
+		String encryptionAlgo = getSecretValueString(Constants.SecretManagerKeys.ENCRYPTION_ALGO, secrets);
+		String listenerBaseUrl = getSecretValueString(Constants.SecretManagerKeys.LISTENER_BASE_URL, secrets);
+		String listenerApiKey = getSecretValueString(Constants.SecretManagerKeys.LISTENER_API_KEY, secrets);
+		String walletId = getSecretValueString(Constants.SecretManagerKeys.WALLET_ID, secrets);
+		String tonCenterUrl = getSecretValueString(Constants.SecretManagerKeys.TON_CENTER_URL, secrets);
+		String tonCenterApiKey = getSecretValueString(Constants.SecretManagerKeys.TON_CENTER_API_KEY, secrets);
 		return SecretObject.builder()
 				.baseUrl(baseUrl)
 				.apiKey(apiKey)
@@ -68,6 +71,7 @@ public class SecretManagerService {
 				.chainId(tonChainId)
 				.tonCenterUrl(tonCenterUrl)
 				.tonCenterApiKey(tonCenterApiKey)
+				.walletId(walletId)
 				.build();
 	}
 
@@ -127,42 +131,34 @@ public class SecretManagerService {
 		return testNetSecretObject.getTonCenterApiKey();
 	}
 
-	private byte[] getSecretValueByte(String secretKey, String tonChainId) {
-		try {
-			JsonNode jsonNode = getSecretValue(secretKey, tonChainId);
-			return Objects.nonNull(jsonNode) ? jsonNode.binaryValue() : new byte[0];
-		} catch (IOException e) {
-			LOG.error(String.format(Errors.CONNECTION_ERROR_WITH_SECRET_MANAGER, e.getMessage()));
+	public String getWalletId(String tonChainId) {
+		if (tonChainId.equals(String.valueOf(Constants.MAIN_NET_CHAIN_ID))) {
+			return mainNetSecretObject.getWalletId();
 		}
-		return new byte[0];
+		return testNetSecretObject.getWalletId();
 	}
 
-	private String getSecretValueString(String secretKey, String tonChainId) {
-		JsonNode jsonNode = getSecretValue(secretKey, tonChainId);
+	private String getSecretValueString(String secretKey, JsonNode secrets) {
+		JsonNode jsonNode = secrets.get(secretKey);
 		return Objects.nonNull(jsonNode) ? jsonNode.asText() : null;
 	}
 
-	private JsonNode getSecretValue(String secretKey, String tonChainId) {
+	private JsonNode fetchSecretValues(String chainId) {
 		String secretResult;
 		String secretId;
-		if (tonChainId.equals(String.valueOf(Constants.MAIN_NET_CHAIN_ID))) {
+		if (chainId.equals(String.valueOf(Constants.MAIN_NET_CHAIN_ID))) {
 			secretId = secretsManagerConfig.getMainnetSecretId();
 		} else {
 			secretId = secretsManagerConfig.getTestnetSecretId();
 		}
 		try {
-			GetSecretValueRequest getSecretValueRequest = new GetSecretValueRequest();
-			getSecretValueRequest.setSecretId(secretId);
-			GetSecretValueResult secretValueResult = secretsManager.getSecretValue(getSecretValueRequest);
-			secretResult = secretValueResult.getSecretString();
+			GetSecretValueRequest valueRequest = GetSecretValueRequest.builder().secretId(secretId).build();
+			GetSecretValueResponse secretValueResult = secretsManagerClient.getSecretValue(valueRequest);
+			secretResult = secretValueResult.secretString();
 			if (Objects.isNull(secretResult)) {
-				LOG.error(String.format(Errors.SECRET_VALUE_NOT_FOUND, secretId));
-				throw new ResourceNotFoundException(String.format(Errors.SECRET_VALUE_NOT_FOUND, secretId));
+				throw new InternalServerErrorException(String.format(Errors.SECRET_VALUE_NOT_FOUND, secretId));
 			}
-			JsonNode jsonNode = new ObjectMapper().readTree(secretResult);
-			return jsonNode.get(secretKey);
-		} catch (ResourceNotFoundException e) {
-			LOG.error(String.format(Errors.SECRET_NOT_FOUND, secretId));
+			return objectMapper.readTree(secretResult);
 		} catch (InvalidRequestException e) {
 			LOG.error(String.format(Errors.INVALID_REQUEST, e.getMessage()));
 		} catch (InvalidParameterException e) {
@@ -170,7 +166,7 @@ public class SecretManagerService {
 		} catch (IOException e) {
 			LOG.error(String.format(Errors.CONNECTION_ERROR_WITH_SECRET_MANAGER, e.getMessage()));
 		}
-		return new ObjectMapper().createObjectNode();
+		return objectMapper.createObjectNode();
 	}
 
 	public void updateSecret() throws NoSuchAlgorithmException {
@@ -179,13 +175,15 @@ public class SecretManagerService {
 		String apiKey = getApiKey(String.valueOf(ExecutionContextUtil.getContext().getChainId()));
 		String listenerBaseUrl = getListenerBaseUrl(String.valueOf(ExecutionContextUtil.getContext().getChainId()));
 		String listenerApiKey = getListenerApiKey(String.valueOf(ExecutionContextUtil.getContext().getChainId()));
-
+		String walletId = getWalletId(String.valueOf(ExecutionContextUtil.getContext().getChainId()));
+		String tonCenterUrl = getTonCenterUrl(String.valueOf(ExecutionContextUtil.getContext().getChainId()));
+		String tonCenterApi = getTonCenterApiKey(String.valueOf(ExecutionContextUtil.getContext().getChainId()));
 		KeyGenerator keyGenerator = KeyGenerator.getInstance(encryptionAlgo);
 		keyGenerator.init(128);
 		SecretKey secretKey = keyGenerator.generateKey();
 		byte[] generatedSecret = secretKey.getEncoded();
 		String encryptionKey = Base64.getEncoder().encodeToString(generatedSecret);
-		PutSecretValueRequest psvr = new PutSecretValueRequest();
+		PutSecretValueRequest.Builder psvr = PutSecretValueRequest.builder();
 		Map<String, JsonNode> valueMap = HashMap.newHashMap(5);
 		valueMap.put(Constants.SecretManagerKeys.BASE_URL, new TextNode(baseUrl));
 		valueMap.put(Constants.SecretManagerKeys.API_KEY, new TextNode(apiKey));
@@ -193,6 +191,9 @@ public class SecretManagerService {
 		valueMap.put(Constants.SecretManagerKeys.LISTENER_API_KEY, new TextNode(listenerApiKey));
 		valueMap.put(Constants.SecretManagerKeys.ENCRYPTION_ALGO, new TextNode(encryptionAlgo));
 		valueMap.put(Constants.SecretManagerKeys.ENCRYPTION_KEY, new TextNode(encryptionKey));
+		valueMap.put(Constants.SecretManagerKeys.WALLET_ID, new TextNode(walletId));
+		valueMap.put(Constants.SecretManagerKeys.TON_CENTER_URL, new TextNode(tonCenterUrl));
+		valueMap.put(Constants.SecretManagerKeys.TON_CENTER_API_KEY, new TextNode(tonCenterApi));
 		ObjectNode jsonNode = new ObjectNode(JsonNodeFactory.instance);
 		jsonNode.setAll(valueMap);
 		String secretId;
@@ -201,8 +202,8 @@ public class SecretManagerService {
 		} else {
 			secretId = secretsManagerConfig.getTestnetSecretId();
 		}
-		psvr.setSecretId(secretId);
-		psvr.setSecretString(jsonNode.toString());
-		PutSecretValueResult result = secretsManager.putSecretValue(psvr);
+		psvr.secretId(secretId);
+		psvr.secretString(jsonNode.toString());
+		PutSecretValueResponse result = secretsManagerClient.putSecretValue(psvr.build());
 	}
 }

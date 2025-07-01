@@ -55,6 +55,7 @@ public class Ton4jClient {
 		String apiKey = secretManagerService.getApiKey(String.valueOf(chainId));
 		String encryptionAlgo = secretManagerService.getEncryptionAlgo(String.valueOf(chainId));
 		byte[] encryptionKey = secretManagerService.getEncryptionKey(String.valueOf(chainId));
+		long walletId = Long.parseLong(secretManagerService.getWalletId(String.valueOf(chainId)));
 		String tonCenterUrl = secretManagerService.getTonCenterUrl(String.valueOf(chainId));
 		String tonCenterApiKey = secretManagerService.getTonCenterApiKey(String.valueOf(chainId));
 		boolean isMainNet = Constants.MAIN_NET_CHAIN_ID.equals(chainId);
@@ -69,7 +70,7 @@ public class Ton4jClient {
 				.apiKey(apiKey)
 				.listenerBaseUrl(baseUrl)
 				.listenerApiKey(apiKey)
-				.walletId(890329482)
+				.walletId(walletId)
 				.build();
 	}
 }

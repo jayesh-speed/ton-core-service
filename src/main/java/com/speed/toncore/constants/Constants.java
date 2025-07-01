@@ -50,6 +50,7 @@ public class Constants {
 		public final String LISTENER_BASE_URL = "listener-base-url";
 		public final String TON_CENTER_API_KEY = "ton-center-api-key";
 		public final String TON_CENTER_URL = "ton-center-url";
+		public final String WALLET_ID = "wallet-id";
 	}
 
 	@UtilityClass

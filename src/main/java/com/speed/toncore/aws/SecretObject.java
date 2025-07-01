@@ -16,4 +16,5 @@ public class SecretObject {
 	private String tonCenterApiKey;
 	private String encryptionAlgo;
 	private String chainId;
+	private String walletId;
 }
