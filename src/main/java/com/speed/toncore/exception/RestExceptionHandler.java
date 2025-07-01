@@ -1,5 +1,6 @@
 package com.speed.toncore.exception;
 
+import com.speed.javacommon.constants.CommonConstants;
 import com.speed.javacommon.enums.CommonLogActions;
 import com.speed.javacommon.exceptions.BadRequestException;
 import com.speed.javacommon.exceptions.EntityNotFoundException;
@@ -102,7 +103,8 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(InternalServerErrorException.class)
 	public ResponseEntity<Object> handleInternalServerError(InternalServerErrorException ex) {
 		LOG.error(ex.getMessage(), ex.getCause());
-		ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, String.format(Errors.INTERNAL_SERVER_ERROR, MDC.get(Constants.REQUEST_ID)));
+		ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR,
+				String.format(Errors.INTERNAL_SERVER_ERROR, MDC.get(CommonConstants.REQUEST_ID)));
 		return buildResponseEntity(apiError);
 	}
 

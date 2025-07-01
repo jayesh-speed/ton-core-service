@@ -36,7 +36,7 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 	@Override
 	public TonAccountResponse createMainAccount(String jettonMasterAddress) {
 		TonMainAccount mainAccount = tonWalletServiceHelper.createMainAccount(jettonMasterAddress);
-		return TonAccountResponse.builder().address(mainAccount.getAddress()).publicKey(mainAccount.getPublicKey()).build();
+		return TonAccountResponse.builder().address(mainAccount.getAddress()).build();
 	}
 
 	@Override
@@ -65,47 +65,6 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 	}
 
 	@Override
-	public TonAccountResponse getTonBalance(String address) {
-		BooleanBuilder queryPredicate = new BooleanBuilder(qTonMainAccount.address.eq(address)).and(
-				qTonMainAccount.chainId.eq(ExecutionContextUtil.getContext().getChainId()));
-		TonMainAccount mainAccount = tonMainAccountRepository.findAndProjectUnique(queryPredicate, qTonMainAccount, qTonMainAccount.id,
-				qTonMainAccount.address, qTonMainAccount.publicKey, qTonMainAccount.tonBalance);
-		if (Objects.isNull(mainAccount)) {
-			throw new BadRequestException(String.format(Errors.NO_MAIN_ACCOUNT, address), null, null);
-		}
-		return TonAccountResponse.builder()
-				.address(mainAccount.getAddress())
-				.publicKey(mainAccount.getPublicKey())
-				.localBalance(mainAccount.getTonBalance().compareTo(BigDecimal.ZERO) == 0
-						? String.valueOf(BigDecimal.ZERO)
-						: String.valueOf(mainAccount.getTonBalance()))
-				.build();
-	}
-
-	@Override
-	public TonAccountResponse updateMainAccountLocalBalance(String address) {
-		Predicate queryPredicate = qTonMainAccount.address.eq(address).and(qTonMainAccount.chainId.eq(ExecutionContextUtil.getContext().getChainId()));
-		BigDecimal tonBalance = tonCoreService.fetchTonBalance(address);
-		Long currentTime = DateTimeUtil.currentEpochMilliSecondsUTC();
-		Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(2);
-		fieldWithValue.put(qTonMainAccount.tonBalance, tonBalance);
-		fieldWithValue.put(qTonMainAccount.modified, currentTime);
-		long count = tonMainAccountRepository.updateFields(queryPredicate, qTonMainAccount, fieldWithValue);
-		if (!(count > 0)) {
-			throw new BadRequestException(String.format(Errors.NO_MAIN_ACCOUNT, address), null, null);
-		}
-		TonMainAccount mainAccount = tonMainAccountRepository.findAndProjectUnique(queryPredicate, qTonMainAccount, qTonMainAccount.id,
-				qTonMainAccount.address, qTonMainAccount.publicKey, qTonMainAccount.tonBalance);
-		return TonAccountResponse.builder()
-				.address(mainAccount.getAddress())
-				.publicKey(mainAccount.getPublicKey())
-				.localBalance(mainAccount.getTonBalance().compareTo(BigDecimal.ZERO) == 0
-						? String.valueOf(BigDecimal.ZERO)
-						: String.valueOf(mainAccount.getTonBalance()))
-				.build();
-	}
-
-	@Override
 	public TonAccountResponse getMainAccount(String jettonAddress) {
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
 		Predicate queryPredicate = qTonMainAccount.chainId.eq(chainId).and(qTonMainAccount.jettonMasterAddress.eq(jettonAddress));
@@ -113,10 +72,7 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 				qTonMainAccount.publicKey, qTonMainAccount.id, qTonMainAccount.tonBalance);
 		return TonAccountResponse.builder()
 				.address(mainAccount.getAddress())
-				.publicKey(mainAccount.getPublicKey())
-				.localBalance(mainAccount.getTonBalance().compareTo(BigDecimal.ZERO) == 0
-						? String.valueOf(BigDecimal.ZERO)
-						: String.valueOf(mainAccount.getTonBalance()))
+				.localBalance(mainAccount.getTonBalance())
 				.build();
 	}
 

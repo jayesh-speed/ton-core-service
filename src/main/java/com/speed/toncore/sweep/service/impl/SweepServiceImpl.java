@@ -84,7 +84,7 @@ public class SweepServiceImpl implements SweepService {
 	@Override
 	public String initiateSweepOnChainTx(SweepRequest sweepRequest) {
 		TonNode tonNode = tonNodePool.getTonNodeByChainId();
-		TonFeeAccount feeAccount = tonFeeAccountService.getTonFeeAccount();
+		TonFeeAccount feeAccount = tonFeeAccountService.getTonFeeAccounts().getFirst();
 		String mainAccountAddress = tonWalletService.fetchSendAddresses(tonNode.getChainId()).stream().toList().getFirst();
 		TonUsedWalletAddress address = tonUsedWalletAddressRepository.findAndProjectUnique(
 				qTonUsedWalletAddress.chainId.eq(tonNode.getChainId()).and(qTonUsedWalletAddress.address.eq(sweepRequest.getFromAddress())),

@@ -31,7 +31,6 @@ public class TonAccountController {
 		tonWalletService.checkAddressAvailabilityAndCreate();
 		return ResponseEntity.ok(TonAccountResponse.builder()
 				.address(Address.of(usedWalletAddress.getAddress()).toBounceable())
-				.publicKey(usedWalletAddress.getPublicKey())
 				.build());
 	}
 

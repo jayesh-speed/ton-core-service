@@ -32,18 +32,6 @@ public class TonMainAccountController {
 		return ResponseEntity.ok(mainAccount);
 	}
 
-	@GetMapping(Endpoints.MAIN_ACCOUNT_BALANCE)
-	public ResponseEntity<TonAccountResponse> getMainAccountBalance(@PathVariable String address) {
-		MDC.put(LogKeys.EVENT_NAME, Constants.Events.GET_MAIN_ACCOUNT_BALANCE);
-		return ResponseEntity.ok(tonMainAccountService.getTonBalance(address));
-	}
-
-	@PutMapping(Endpoints.MAIN_ACCOUNT_BALANCE)
-	public ResponseEntity<TonAccountResponse> updateMainAccountLocalBalance(@PathVariable String address) {
-		MDC.put(LogKeys.EVENT_NAME, Constants.Events.UPDATE_MAIN_ACCOUNT_BALANCE);
-		return ResponseEntity.ok(tonMainAccountService.updateMainAccountLocalBalance(address));
-	}
-
 	@DeleteMapping(Endpoints.REMOVE_MAIN_ACCOUNT)
 	public ResponseEntity<Void> removeMainAccount(@PathVariable String address) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.REMOVE_MAIN_ACCOUNT);

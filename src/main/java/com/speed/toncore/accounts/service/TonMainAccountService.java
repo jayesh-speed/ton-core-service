@@ -12,10 +12,6 @@ public interface TonMainAccountService {
 
 	DeployedAccountResponse deployMainAccount(String address);
 
-	TonAccountResponse getTonBalance(String address);
-
-	TonAccountResponse updateMainAccountLocalBalance(String address);
-
 	TonAccountResponse getMainAccount(String jettonAddress);
 
 	TonMainAccount getMainAccountDetail(String address);
