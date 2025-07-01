@@ -1,22 +1,22 @@
 package com.speed.toncore.accounts.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.speed.javacommon.util.serializer.BigDecimalSerializer;
 import com.speed.toncore.constants.JsonKeys;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+
+import java.math.BigDecimal;
 
 @Getter
-@Setter
 @Builder
 public class TonAccountResponse {
 
 	@JsonProperty(JsonKeys.ADDRESS)
 	private String address;
 
-	@JsonProperty(JsonKeys.PUBLIC_KEY)
-	private String publicKey;
-
 	@JsonProperty(JsonKeys.LOCAL_BALANCE)
-	private String localBalance;
+	@JsonSerialize(using = BigDecimalSerializer.class)
+	private BigDecimal localBalance;
 }

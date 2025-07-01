@@ -13,8 +13,9 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,20 +26,7 @@ public class TonFeeAccountController {
 	@PostMapping(Endpoints.CREATE_FEE_ACCOUNT)
 	public ResponseEntity<TonAccountResponse> createFeeAccount() {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.CREATE_FEE_ACCOUNT);
-		TonAccountResponse feeAccount = tonFeeAccountService.createFeeAccount();
-		return ResponseEntity.ok(feeAccount);
-	}
-
-	@GetMapping(Endpoints.FEE_ACCOUNT_BALANCE)
-	public ResponseEntity<TonAccountResponse> getFeeAccountBalance(@PathVariable String address) {
-		MDC.put(LogKeys.EVENT_NAME, Constants.Events.GET_FEE_ACCOUNT_BALANCE);
-		return ResponseEntity.ok(tonFeeAccountService.getTonBalance(address));
-	}
-
-	@PutMapping(Endpoints.FEE_ACCOUNT_BALANCE)
-	public ResponseEntity<TonAccountResponse> updateFeeAccountLocalBalance(@PathVariable String address) {
-		MDC.put(LogKeys.EVENT_NAME, Constants.Events.UPDATE_FEE_ACCOUNT_BALANCE);
-		return ResponseEntity.ok(tonFeeAccountService.updateFeeAccountLocalBalance(address));
+		return ResponseEntity.ok(tonFeeAccountService.createFeeAccount());
 	}
 
 	@DeleteMapping(Endpoints.REMOVE_FEE_ACCOUNT)
@@ -54,9 +42,9 @@ public class TonFeeAccountController {
 		return ResponseEntity.ok(tonFeeAccountService.deployFeeAccount(address));
 	}
 
-	@GetMapping(Endpoints.GET_FEE_ACCOUNT)
-	public ResponseEntity<TonAccountResponse> getFeeAccount() {
-		MDC.put(LogKeys.EVENT_NAME, Constants.Events.GET_FEE_ACCOUNT);
-		return ResponseEntity.ok(tonFeeAccountService.getFeeAccount());
+	@GetMapping(Endpoints.GET_FEE_ACCOUNTS)
+	public ResponseEntity<List<TonAccountResponse>> getFeeAccounts() {
+		MDC.put(LogKeys.EVENT_NAME, Constants.Events.GET_FEE_ACCOUNTS);
+		return ResponseEntity.ok(tonFeeAccountService.getFeeAccounts());
 	}
 }

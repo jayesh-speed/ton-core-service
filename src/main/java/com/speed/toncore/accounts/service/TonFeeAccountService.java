@@ -4,6 +4,8 @@ import com.speed.toncore.accounts.response.DeployedAccountResponse;
 import com.speed.toncore.accounts.response.TonAccountResponse;
 import com.speed.toncore.domain.model.TonFeeAccount;
 
+import java.util.List;
+
 public interface TonFeeAccountService {
 
 	TonAccountResponse createFeeAccount();
@@ -12,11 +14,7 @@ public interface TonFeeAccountService {
 
 	DeployedAccountResponse deployFeeAccount(String address);
 
-	TonAccountResponse getTonBalance(String address);
+	List<TonAccountResponse> getFeeAccounts();
 
-	TonAccountResponse updateFeeAccountLocalBalance(String address);
-
-	TonAccountResponse getFeeAccount();
-
-	TonFeeAccount getTonFeeAccount();
+	List<TonFeeAccount> getTonFeeAccounts();
 }

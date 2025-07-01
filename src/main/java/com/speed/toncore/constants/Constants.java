@@ -73,8 +73,7 @@ public class Constants {
 		public final String DEPLOY_FEE_ACCOUNT = "deployFeeAccount";
 		public final String DEPLOY_MAIN_ACCOUNT = "deployMainAccount";
 		public final String GET_ALL_JETTONS = "getAllJettons";
-		public final String GET_FEE_ACCOUNT = "getFeeAccount";
-		public final String GET_FEE_ACCOUNT_BALANCE = "getFeeAccountBalance";
+		public final String GET_FEE_ACCOUNTS = "getFeeAccounts";
 		public final String GET_JETTON = "getJetton";
 		public final String GET_JETTON_BALANCE = "getJettonBalance";
 		public final String GET_JETTON_BY_SYMBOL = "getJettonBySymbol";
@@ -89,7 +88,6 @@ public class Constants {
 		public final String REMOVE_TON_LISTENER = "removeTonListener";
 		public final String REMOVE_USED_TON_WALLET_ADDRESS = "removeUsedTonWalletAddress";
 		public final String TRANSFER_JETTON = "transferJetton";
-		public final String UPDATE_FEE_ACCOUNT_BALANCE = "updateFeeAccountBalance";
 		public final String UPDATE_LOGICAL_TIME = "updateLogicalTime";
 		public final String UPDATE_MAIN_ACCOUNT_BALANCE = "updateMainAccountBalance";
 		public final String UPDATE_TON_LISTENER_STATUS = "updateTonListenerStatus";

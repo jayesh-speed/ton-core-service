@@ -12,9 +12,8 @@ public class Endpoints {
 	public final String CREATE_TON_WALLET_ADDRESSES = "/account/ton-wallet-address/create";
 	public final String DEPLOY_FEE_ACCOUNT = "/account/ton-fee/deploy/{address}";
 	public final String DEPLOY_MAIN_ACCOUNT = "/account/ton-main/deploy/{address}";
-	public final String FEE_ACCOUNT_BALANCE = "/account/ton-fee/balance/{address}";
 	public final String GET_ALL_JETTONS = "/jetton/all";
-	public final String GET_FEE_ACCOUNT = "/account/ton-fee/get";
+	public final String GET_FEE_ACCOUNTS = "/account/ton-fee/get";
 	public final String GET_JETTON = "/jetton/{address}";
 	public final String GET_JETTON_BALANCE = "/account/ton-wallet-address/balance/{jettonAddress}/{accountAddress}";
 	public final String GET_JETTON_BY_SYMBOL = "/jetton/symbol/{symbol}";
