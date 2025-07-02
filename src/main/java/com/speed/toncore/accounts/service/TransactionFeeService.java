@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public interface TransactionFeeService {
 
-	BigDecimal getJettonTransactionFee(String accountId);
+	BigDecimal getJettonTransactionFee(String traceId);
 
-	BigDecimal getSweepTransactionFee(String accountId);
+	BigDecimal getSweepTransactionFee(String traceId);
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.speed.javacommon.exceptions.BadRequestException;
+import com.speed.javacommon.util.StringUtil;
 import com.speed.toncore.constants.Errors;
 import lombok.extern.slf4j.Slf4j;
 import org.ton.ton4j.address.Address;
@@ -16,7 +17,7 @@ public class TonRawAddressDeserializer extends JsonDeserializer<String> {
 	@Override
 	public String deserialize(JsonParser p, DeserializationContext context) throws IOException {
 		String address = p.getText();
-		if (address == null || address.isEmpty()) {
+		if (StringUtil.nullOrEmpty(address)) {
 			return null;
 		}
 		try {

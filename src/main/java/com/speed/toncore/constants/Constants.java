@@ -31,6 +31,8 @@ public class Constants {
 	public final int MAIN_NET_POLLING_INTERVAL = 10;
 	public final int TEST_NET_POLLING_INTERVAL = 15;
 	public final BigDecimal DEFAULT_TRANSACTION_FEE = new BigDecimal("0.03942688");
+	public final BigDecimal DEFAULT_SWEEP_TRANSACTION_FEE = new BigDecimal("0.03942688");
+
 
 	@UtilityClass
 	public class SecretManagerKeys {

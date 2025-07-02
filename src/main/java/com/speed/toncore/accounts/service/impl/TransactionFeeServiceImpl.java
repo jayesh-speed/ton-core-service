@@ -6,6 +6,7 @@ import com.speed.toncore.constants.Errors;
 import com.speed.toncore.pojo.TraceDto;
 import com.speed.toncore.ton.TonCoreServiceHelper;
 import com.speed.toncore.util.LogMessages;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +16,10 @@ import java.util.Map;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class TransactionFeeServiceImpl implements TransactionFeeService {
 
 	private final TonCoreServiceHelper tonCoreServiceHelper;
-
-	public TransactionFeeServiceImpl(TonCoreServiceHelper tonCoreServiceHelper) {this.tonCoreServiceHelper = tonCoreServiceHelper;}
 
 	@Override
 	public BigDecimal getJettonTransactionFee(String traceId) {
@@ -91,7 +91,7 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 
 		} catch (Exception e) {
 			LOG.error(String.format(Errors.ERROR_ON_FETCHING_TRACE, traceId), e);
-			return BigDecimal.ZERO;
+			return Constants.DEFAULT_SWEEP_TRANSACTION_FEE;
 		}
 	}
 }

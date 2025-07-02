@@ -2,7 +2,9 @@ package com.speed.toncore.util;
 
 import com.speed.javacommon.exceptions.InternalServerErrorException;
 import com.speed.javacommon.util.DateTimeUtil;
+import com.speed.javacommon.util.StringUtil;
 import com.speed.toncore.constants.Constants;
+import com.speed.toncore.constants.Errors;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
 import lombok.experimental.UtilityClass;
 import org.ton.ton4j.address.Address;
@@ -17,18 +19,18 @@ import java.util.concurrent.ThreadLocalRandom;
 public class TonUtils {
 
 	public String toRawAddress(String address) {
-		if (address == null || address.isEmpty()) {
+		if (StringUtil.nullOrEmpty(address)) {
 			return null;
 		}
 		try {
 			return Address.of(address).toRaw().toUpperCase();
 		} catch (Exception e) {
-			throw new InternalServerErrorException(String.format("Invalid address: %s", address), e);
+			throw new InternalServerErrorException(String.format(Errors.INVALID_ADDRESS, address), e);
 		}
 	}
 
 	public String rawToUserFriendlyAddress(String rawAddress) {
-		if (rawAddress == null || rawAddress.isEmpty()) {
+		if (StringUtil.nullOrEmpty(rawAddress)) {
 			return null;
 		}
 		try {
@@ -38,7 +40,7 @@ public class TonUtils {
 				return Address.of(rawAddress).toBounceableTestnet();
 			}
 		} catch (Exception e) {
-			throw new InternalServerErrorException(String.format("Invalid raw address: %s", rawAddress), e);
+			throw new InternalServerErrorException(String.format(Errors.INVALID_ADDRESS, rawAddress), e);
 		}
 	}
 
