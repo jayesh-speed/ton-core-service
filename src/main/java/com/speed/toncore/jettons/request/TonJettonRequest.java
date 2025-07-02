@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.constants.JsonKeys;
 import com.speed.toncore.constants.ValidationMessages;
-import com.speed.toncore.util.TonRawAddressDeserializer;
+import com.speed.toncore.util.TonAddressDeserializer;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
@@ -21,7 +21,7 @@ import java.math.BigDecimal;
 public class TonJettonRequest {
 
 	@JsonProperty(JsonKeys.JETTON_MASTER_ADDRESS)
-	@JsonDeserialize(using = TonRawAddressDeserializer.class)
+	@JsonDeserialize(using = TonAddressDeserializer.class)
 	@NotBlank(message = JsonKeys.JETTON_MASTER_ADDRESS + ValidationMessages.NOT_BLANK)
 	private String jettonMasterAddress;
 

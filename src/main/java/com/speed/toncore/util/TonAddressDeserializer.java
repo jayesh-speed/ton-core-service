@@ -12,7 +12,7 @@ import org.ton.ton4j.address.Address;
 import java.io.IOException;
 
 @Slf4j
-public class TonRawAddressDeserializer extends JsonDeserializer<String> {
+public class TonAddressDeserializer extends JsonDeserializer<String> {
 
 	@Override
 	public String deserialize(JsonParser p, DeserializationContext context) throws IOException {

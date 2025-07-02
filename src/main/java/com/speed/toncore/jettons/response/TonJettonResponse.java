@@ -22,12 +22,6 @@ public class TonJettonResponse {
 	@JsonProperty(JsonKeys.JETTON_SYMBOL)
 	private String jettonSymbol;
 
-	@JsonProperty(JsonKeys.CHAIN_ID)
-	private Long chainId;
-
-	@JsonProperty(JsonKeys.IS_MAIN_NET)
-	private boolean mainNet;
-
 	@JsonProperty(JsonKeys.FORWARD_TON_AMOUNT)
 	@JsonSerialize(using = BigDecimalSerializer.class)
 	private BigDecimal forwardTonAmount;

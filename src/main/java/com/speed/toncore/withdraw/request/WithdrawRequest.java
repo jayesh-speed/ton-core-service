@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.speed.toncore.constants.JsonKeys;
 import com.speed.toncore.constants.ValidationMessages;
-import com.speed.toncore.util.TonRawAddressDeserializer;
+import com.speed.toncore.util.TonAddressDeserializer;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,15 +19,15 @@ public class WithdrawRequest {
 
 	@JsonProperty(JsonKeys.TO_ADDRESS)
 	@NotNull(message = JsonKeys.TO_ADDRESS + ValidationMessages.NOT_NULL)
-	@JsonDeserialize(using = TonRawAddressDeserializer.class)
+	@JsonDeserialize(using = TonAddressDeserializer.class)
 	private String toAddress;
 
 	@JsonProperty(JsonKeys.FROM_ADDRESS)
-	@JsonDeserialize(using = TonRawAddressDeserializer.class)
+	@JsonDeserialize(using = TonAddressDeserializer.class)
 	private String fromAddress;
 
 	@JsonProperty(JsonKeys.JETTON_MASTER_ADDRESS)
-	@JsonDeserialize(using = TonRawAddressDeserializer.class)
+	@JsonDeserialize(using = TonAddressDeserializer.class)
 	private String jettonMasterAddress;
 
 	@JsonProperty(JsonKeys.JETTON_SYMBOL)
