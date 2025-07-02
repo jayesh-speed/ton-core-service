@@ -3,7 +3,6 @@ package com.speed.toncore.jettons.service.impl;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.speed.javacommon.exceptions.BadRequestException;
-import com.speed.javacommon.exceptions.InternalServerErrorException;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.QTonJetton;
@@ -40,7 +39,8 @@ public class TonJettonServiceImpl implements TonJettonService {
 		Predicate queryPredicate = new BooleanBuilder(qTonJetton.jettonMasterAddress.eq(tonJetton.getJettonMasterAddress())).and(
 				qTonJetton.chainId.eq(ExecutionContextUtil.getContext().getChainId()));
 		if (tonJettonRepository.exists(queryPredicate)) {
-			throw new BadRequestException(String.format(Errors.JETTON_ALREADY_EXISTS,tonJetton.getJettonMasterAddress(),tonJetton.getChainId()),null,null);
+			throw new BadRequestException(String.format(Errors.JETTON_ALREADY_EXISTS, tonJetton.getJettonMasterAddress(), tonJetton.getChainId()), null,
+					null);
 		}
 		tonJettonRepository.save(tonJetton);
 		TonJettonAddedEvent tokenAddedEvent = new TonJettonAddedEvent();
