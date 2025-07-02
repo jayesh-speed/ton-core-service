@@ -22,7 +22,7 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 	private final TonCoreServiceHelper tonCoreServiceHelper;
 
 	private TraceDto waitForTraceReady(String traceId) throws InterruptedException {
-		for (int attempt = 1; attempt <= 10; attempt++) {
+		for (int attempt = 1; attempt <= 5; attempt++) {
 			TraceDto traceDto = tonCoreServiceHelper.getTraceByTraceId(traceId);
 			if (traceDto != null && traceDto.getTraces() != null && !traceDto.getTraces().isEmpty()) {
 				return traceDto;
