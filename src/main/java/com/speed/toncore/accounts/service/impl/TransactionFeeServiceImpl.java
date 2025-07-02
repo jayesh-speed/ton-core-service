@@ -27,6 +27,7 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 			if (traceDto != null && traceDto.getTraces() != null && !traceDto.getTraces().isEmpty()) {
 				return traceDto;
 			}
+			LOG.info(String.format(LogMessages.Info.WAITING_FOR_TRACE_UPDATE, traceId));
 			Thread.sleep(1000);
 		}
 		throw new IllegalStateException();
@@ -35,7 +36,6 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 	@Override
 	public BigDecimal getJettonTransactionFee(String traceId) {
 		try {
-			LOG.info(String.format(LogMessages.Info.WAITING_FOR_TRACE_UPDATE, traceId));
 			TraceDto traceDto = waitForTraceReady(traceId);
 
 			TraceDto.Trace trace = traceDto.getTraces().getFirst();
@@ -75,7 +75,6 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 	@Override
 	public BigDecimal getSweepTransactionFee(String traceId) {
 		try {
-			LOG.info(String.format(LogMessages.Info.WAITING_FOR_TRACE_UPDATE, traceId));
 			TraceDto traceDto = waitForTraceReady(traceId);
 
 			TraceDto.Trace trace = traceDto.getTraces().getFirst();
