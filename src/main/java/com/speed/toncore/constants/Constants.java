@@ -83,6 +83,7 @@ public class Constants {
 		public final String SWEEP_TRANSACTION_FEE = "SweepTransactionFee";
 		public final String TRANSFER_JETTON = "transferJetton";
 		public final String UPDATE_LOGICAL_TIME = "updateLogicalTime";
+		public final String UPDATE_JETTON_WALLET = "updateJettonWallet";
 		public final String UPDATE_TON_LISTENER_STATUS = "updateTonListenerStatus";
 	}
 

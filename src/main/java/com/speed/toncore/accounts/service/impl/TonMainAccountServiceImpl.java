@@ -6,6 +6,7 @@ import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.speed.javacommon.exceptions.BadRequestException;
 import com.speed.javacommon.exceptions.InternalServerErrorException;
+import com.speed.javacommon.util.CollectionUtil;
 import com.speed.javacommon.util.DateTimeUtil;
 import com.speed.toncore.accounts.response.DeployedAccountResponse;
 import com.speed.toncore.accounts.response.TonAccountResponse;
@@ -14,8 +15,10 @@ import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.QTonMainAccount;
 import com.speed.toncore.domain.model.TonMainAccount;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
+import com.speed.toncore.pojo.JettonWalletDto;
 import com.speed.toncore.repository.TonMainAccountRepository;
 import com.speed.toncore.ton.TonCoreService;
+import com.speed.toncore.ton.TonCoreServiceHelper;
 import com.speed.toncore.ton.TonNode;
 import com.speed.toncore.ton.TonNodePool;
 import com.speed.toncore.util.SecurityManagerUtil;
@@ -54,6 +57,7 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 	private final TonMainAccountRepository tonMainAccountRepository;
 	private final TonNodePool tonNodePool;
 	private final TonCoreService tonCoreService;
+	private final TonCoreServiceHelper tonCoreServiceHelper;
 
 	@Override
 	public TonAccountResponse createMainAccount(String jettonMasterAddress) {
@@ -79,6 +83,29 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 				.build();
 		tonMainAccountRepository.save(tonMainAccount);
 		return TonAccountResponse.builder().address(tonMainAccount.getAddress()).build();
+	}
+
+	@Override
+	public void addMainAccountJettonWallet(String address) {
+		String rawAddress = TonUtils.toRawAddress(address);
+		TonNode tonNode = tonNodePool.getTonNodeByChainId();
+		Predicate queryPredicate = new BooleanBuilder(qTonMainAccount.address.eq(rawAddress)).and(qTonMainAccount.chainId.eq(tonNode.getChainId()));
+		TonMainAccount tonMainAccount = tonMainAccountRepository.findOne(queryPredicate)
+				.orElseThrow(() -> new BadRequestException(String.format(Errors.MAIN_ACCOUNT_NOT_FOUND, rawAddress, tonNode.getChainId()), null, null));
+		JettonWalletDto jettonWalletDto = tonCoreServiceHelper.getJettonWallet(tonMainAccount.getAddress(), tonMainAccount.getJettonMasterAddress());
+		List<JettonWalletDto.JettonWallet> jettonWallets = jettonWalletDto.getJettonWallets();
+		if (CollectionUtil.nullOrEmpty(jettonWallets)) {
+			throw new BadRequestException(String.format(Errors.JETTON_WALLET_NOT_FOUND, address, tonMainAccount.getJettonMasterAddress()), null, null);
+		}
+		Long currentTime = DateTimeUtil.currentEpochMilliSecondsUTC();
+		String jettonWalletAddress = jettonWallets.getFirst().getAddress();
+		Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(2);
+		fieldWithValue.put(qTonMainAccount.jettonWalletAddress, jettonWalletAddress);
+		fieldWithValue.put(qTonMainAccount.modified, currentTime);
+		long count = tonMainAccountRepository.updateFields(queryPredicate, qTonMainAccount, fieldWithValue);
+		if (count < 1) {
+			throw new BadRequestException(String.format(Errors.MAIN_ACCOUNT_NOT_FOUND, address, tonNode.getChainId()), null, null);
+		}
 	}
 
 	@Override

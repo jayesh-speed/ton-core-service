@@ -28,6 +28,7 @@ public class Endpoints {
 	public final String TRANSFER_JETTON = "/payment/send-jetton";
 	public final String UPDATE_LOGICAL_TIME = "/payment/logical-time/update/{id}/{logicalTime}";
 	public final String UPDATE_TON_LISTENER = "/ton-listener/update/{id}";
+	public final String UPDATE_JETTON_WALLET = "/account/ton-main/update/{address}";
 	public final String INITIATE_SWEEP = "/sweep/initiate";
 	public final String SWEEP_TRANSACTION_FEE = "/transaction-fee/sweep";
 	public final String JETTON_TRANSFER_FEE = "/transaction-fee/jetton";

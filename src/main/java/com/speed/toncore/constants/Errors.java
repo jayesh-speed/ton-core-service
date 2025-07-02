@@ -36,6 +36,7 @@ public class Errors {
 	public final String ERROR_SUBSCRIBE_JETTON_LISTENER = "Error in rebooting the on chain jetton listener. Shutting down the current listener.";
 	public final String ERROR_SUBSCRIBING_ONCHAIN_TRANSACTION = "Error while subscribing on chain transaction for listener id: %s";
 	public final String ERROR_WHILE_PARSING_MESSAGE = "Error while parsing message";
+	public final String JETTON_WALLET_NOT_FOUND = "Jetton wallet not found for address %s and jetton master %s";
 	public final String ERROR_WITHDRAW_AMOUNT = "Invalid withdraw amount. Your request cannot be completed";
 	public final String ERROR_WITHDRAW_METHOD = "Invalid withdraw method. Your request cannot be completed";
 	public final String ERROR_WITHDRAW_REQUEST = "Empty withdraw request(to_address). Your request cannot be completed";

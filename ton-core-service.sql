@@ -98,7 +98,7 @@ CREATE TABLE speed_node.tbl_ton_sweep_tx
     `jetton_master_address`  varchar(80)     NOT NULL,
     `from_address`           varchar(80)     NOT NULL,
     `to_address`             varchar(80)     NOT NULL,
-    `amount`                 decimal(32, 16) NOT NULL,
+    `amount`                 decimal(32, 16) DEFAULT NULL,
     `transaction_hash`       varchar(80)     NOT NULL,
     `trace_id`               varchar(80)     DEFAULT NULL,
     `transaction_status`     tinyint         DEFAULT NULL,

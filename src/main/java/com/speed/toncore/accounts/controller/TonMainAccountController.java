@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,6 +37,13 @@ public class TonMainAccountController {
 	public ResponseEntity<Void> removeMainAccount(@PathVariable String address) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.REMOVE_MAIN_ACCOUNT);
 		tonMainAccountService.deleteMainAccount(address);
+		return ResponseEntity.ok().build();
+	}
+
+	@PutMapping(Endpoints.UPDATE_JETTON_WALLET)
+	public ResponseEntity<Void> updateJettonWallet(@PathVariable String address) {
+		MDC.put(LogKeys.EVENT_NAME, Constants.Events.UPDATE_JETTON_WALLET);
+		tonMainAccountService.addMainAccountJettonWallet(address);
 		return ResponseEntity.ok().build();
 	}
 

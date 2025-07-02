@@ -26,7 +26,6 @@ import com.speed.toncore.sweep.request.SweepRequest;
 import com.speed.toncore.sweep.response.SweepResponse;
 import com.speed.toncore.sweep.service.SweepService;
 import com.speed.toncore.ton.TonCoreService;
-import com.speed.toncore.ton.TonCoreServiceHelper;
 import com.speed.toncore.ton.TonNode;
 import com.speed.toncore.ton.TonNodePool;
 import com.speed.toncore.util.TonUtils;
@@ -56,7 +55,6 @@ public class SweepServiceImpl implements SweepService {
 	private final TonWalletService tonWalletService;
 	private final TonNodePool tonNodePool;
 	private final TonCoreService tonCoreService;
-	private final TonCoreServiceHelper tonCoreServiceHelper;
 	private final TransactionFeeService transactionFeeService;
 
 	@Override

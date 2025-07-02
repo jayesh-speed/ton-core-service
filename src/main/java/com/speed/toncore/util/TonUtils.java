@@ -70,6 +70,9 @@ public class TonUtils {
 	 * @return Decoded string transaction reference
 	 */
 	public String deserializeTransactionReference(String message) {
+		if (StringUtil.nullOrEmpty(message)) {
+			return "";
+		}
 		return new String(HexFormat.of().parseHex(Cell.fromBocBase64(message).toString().substring(8)), StandardCharsets.UTF_8);
 	}
 }

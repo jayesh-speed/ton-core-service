@@ -12,6 +12,8 @@ public interface TonMainAccountService {
 
 	void deleteMainAccount(String address);
 
+	void addMainAccountJettonWallet(String address);
+
 	DeployedAccountResponse deployMainAccount(String address);
 
 	List<TonAccountResponse> getMainAccounts(String jettonMasterAddress);
