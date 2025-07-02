@@ -21,12 +21,23 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 
 	private final TonCoreServiceHelper tonCoreServiceHelper;
 
+	private TraceDto waitForTraceReady(String traceId) throws InterruptedException {
+		for (int attempt = 1; attempt <= 10; attempt++) {
+			TraceDto traceDto = tonCoreServiceHelper.getTraceByTraceId(traceId);
+			if (traceDto != null && traceDto.getTraces() != null && !traceDto.getTraces().isEmpty()) {
+				return traceDto;
+			}
+			Thread.sleep(1000);
+		}
+		throw new IllegalStateException();
+	}
+
 	@Override
 	public BigDecimal getJettonTransactionFee(String traceId) {
 		try {
 			LOG.info(String.format(LogMessages.Info.WAITING_FOR_TRACE_UPDATE, traceId));
-			Thread.sleep(10000);
-			TraceDto traceDto = tonCoreServiceHelper.getTraceByTraceId(traceId);
+			TraceDto traceDto = waitForTraceReady(traceId);
+
 			TraceDto.Trace trace = traceDto.getTraces().getFirst();
 			List<String> txOrder = trace.getTransactionsOrder();
 			Map<String, TraceDto.Trace.Transaction> txMap = trace.getTransactions();
@@ -65,8 +76,8 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 	public BigDecimal getSweepTransactionFee(String traceId) {
 		try {
 			LOG.info(String.format(LogMessages.Info.WAITING_FOR_TRACE_UPDATE, traceId));
-			Thread.sleep(10000);
-			TraceDto traceDto = tonCoreServiceHelper.getTraceByTraceId(traceId);
+			TraceDto traceDto = waitForTraceReady(traceId);
+
 			TraceDto.Trace trace = traceDto.getTraces().getFirst();
 			List<String> txOrder = trace.getTransactionsOrder();
 			Map<String, TraceDto.Trace.Transaction> txMap = trace.getTransactions();
