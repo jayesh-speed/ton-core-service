@@ -19,7 +19,7 @@ import com.speed.toncore.ton.TonCoreService;
 import com.speed.toncore.ton.TonNode;
 import com.speed.toncore.ton.TonNodePool;
 import com.speed.toncore.util.SecurityManagerUtil;
-import com.speed.toncore.util.TonUtils;
+import com.speed.toncore.util.TonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -69,14 +69,14 @@ public class TonFeeAccountServiceImpl implements TonFeeAccountService {
 
 	@Override
 	public void deleteFeeAccount(String address) {
-		address = TonUtils.toRawAddress(address);
+		address = TonUtil.toRawAddress(address);
 		Predicate queryPredicate = getFeeAccountQueryPredicate(address);
 		tonFeeAccountRepository.deleteByPredicate(queryPredicate, qTonFeeAccount);
 	}
 
 	@Override
 	public DeployedAccountResponse deployFeeAccount(String address) {
-		String rawAddress = TonUtils.toRawAddress(address);
+		String rawAddress = TonUtil.toRawAddress(address);
 		TonNode tonNode = tonNodePool.getTonNodeByChainId();
 		Predicate queryPredicate = getFeeAccountQueryPredicate(rawAddress);
 		TonFeeAccount tonFeeAccount = tonFeeAccountRepository.findOne(queryPredicate)

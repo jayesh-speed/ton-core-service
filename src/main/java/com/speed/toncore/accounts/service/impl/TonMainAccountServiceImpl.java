@@ -22,7 +22,7 @@ import com.speed.toncore.ton.TonCoreServiceHelper;
 import com.speed.toncore.ton.TonNode;
 import com.speed.toncore.ton.TonNodePool;
 import com.speed.toncore.util.SecurityManagerUtil;
-import com.speed.toncore.util.TonUtils;
+import com.speed.toncore.util.TonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -87,7 +87,7 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 
 	@Override
 	public void addMainAccountJettonWallet(String address) {
-		String rawAddress = TonUtils.toRawAddress(address);
+		String rawAddress = TonUtil.toRawAddress(address);
 		TonNode tonNode = tonNodePool.getTonNodeByChainId();
 		Predicate queryPredicate = new BooleanBuilder(qTonMainAccount.address.eq(rawAddress)).and(qTonMainAccount.chainId.eq(tonNode.getChainId()));
 		TonMainAccount tonMainAccount = tonMainAccountRepository.findOne(queryPredicate)
@@ -110,7 +110,7 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 
 	@Override
 	public void deleteMainAccount(String address) {
-		address = TonUtils.toRawAddress(address);
+		address = TonUtil.toRawAddress(address);
 		Predicate queryPredicate = new BooleanBuilder(qTonMainAccount.address.eq(address)).and(
 				qTonMainAccount.chainId.eq(ExecutionContextUtil.getContext().getChainId()));
 		tonMainAccountRepository.deleteByPredicate(queryPredicate, qTonMainAccount);
@@ -118,7 +118,7 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 
 	@Override
 	public DeployedAccountResponse deployMainAccount(String address) {
-		String rawAddress = TonUtils.toRawAddress(address);
+		String rawAddress = TonUtil.toRawAddress(address);
 		TonNode tonNode = tonNodePool.getTonNodeByChainId();
 		Predicate queryPredicate = new BooleanBuilder(qTonMainAccount.address.eq(address)).and(qTonMainAccount.chainId.eq(tonNode.getChainId()));
 		TonMainAccount tonMainAccount = tonMainAccountRepository.findOne(queryPredicate)

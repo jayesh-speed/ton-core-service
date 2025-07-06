@@ -6,6 +6,7 @@ import com.speed.toncore.aws.SecretManagerService;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
 import com.speed.toncore.listener.service.impl.ListenerServiceImpl;
+import com.speed.toncore.schedular.TonConfigParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
@@ -24,6 +25,7 @@ public class Ton4jClient {
 	private final SecretManagerService secretManagerService;
 	private final ListenerServiceImpl listenerService;
 	private final TonWalletService tonWalletService;
+	private final TonConfigParam tonConfigParam;
 
 	public void setupTonNodes() {
 		List<Integer> supportedChainIds = tonNodePool.getSupportedChainIds();
@@ -34,6 +36,7 @@ public class Ton4jClient {
 			Set<String> receivingAddresses = tonWalletService.fetchReceiveAddresses(chainId);
 			Set<String> sendingAddresses = tonWalletService.fetchSendAddresses(chainId);
 			listenerService.bootUpTonListeners(true);
+			tonConfigParam.initConfigParam(chainId);
 		});
 	}
 

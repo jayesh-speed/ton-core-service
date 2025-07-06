@@ -4,20 +4,23 @@ import com.speed.javacommon.exceptions.BadRequestException;
 import com.speed.javacommon.exceptions.InternalServerErrorException;
 import com.speed.javacommon.util.CollectionUtil;
 import com.speed.javacommon.util.StringUtil;
+import com.speed.toncore.accounts.request.FeeEstimationRequest;
 import com.speed.toncore.accounts.service.TonMainAccountService;
+import com.speed.toncore.accounts.service.TransactionFeeService;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.TonMainAccount;
 import com.speed.toncore.jettons.response.TonJettonResponse;
 import com.speed.toncore.jettons.service.TonJettonService;
 import com.speed.toncore.service.OnChainTxService;
 import com.speed.toncore.ton.TonCoreService;
-import com.speed.toncore.util.TonUtils;
+import com.speed.toncore.util.TonUtil;
 import com.speed.toncore.withdraw.request.WithdrawRequest;
 import com.speed.toncore.withdraw.response.WithdrawResponse;
 import com.speed.toncore.withdraw.service.WithdrawService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -31,13 +34,15 @@ public class WithdrawServiceImpl implements WithdrawService {
 	private final TonMainAccountService tonMainAccountService;
 	private final TonCoreService tonCoreService;
 	private final OnChainTxService onChainTxService;
+	private final TransactionFeeService transactionFeeService;
 
 	public WithdrawServiceImpl(TonJettonService tonJettonService, TonMainAccountService tonMainAccountService, TonCoreService tonCoreService,
-			OnChainTxService onChainTxService) {
+			OnChainTxService onChainTxService, TransactionFeeService transactionFeeService) {
 		this.tonJettonService = tonJettonService;
 		this.tonMainAccountService = tonMainAccountService;
 		this.tonCoreService = tonCoreService;
 		this.onChainTxService = onChainTxService;
+		this.transactionFeeService = transactionFeeService;
 	}
 
 	@Override
@@ -81,9 +86,10 @@ public class WithdrawServiceImpl implements WithdrawService {
 			throw new InternalServerErrorException(String.format(Errors.INSUFFICIENT_FEE_BALANCE, jetton.getJettonSymbol()));
 		}
 		withdrawRequest.setFromAddress(maxBalanceAcc.getAddress());
-		String txReference = TonUtils.generateTransferTransactionReference();
+		String txReference = TonUtil.generateTransferTransactionReference();
+		BigInteger estimatedFee = estimateFee(withdrawRequest.getFromAddress(), withdrawRequest.getToAddress(), jetton.getJettonMasterAddress());
 		String transactionHash = tonCoreService.transferJettons(withdrawRequest.getFromAddress(), withdrawRequest.getToAddress(), jetton, value,
-				maxBalanceAcc.getSecretKey(), maxBalanceAcc.getJettonWalletAddress(), txReference);
+				maxBalanceAcc.getSecretKey(), maxBalanceAcc.getJettonWalletAddress(), txReference, estimatedFee);
 		onChainTxService.createOnChainDebitTx(transactionHash, withdrawRequest, txReference);
 		return WithdrawResponse.builder()
 				.transactionHash(transactionHash)
@@ -97,5 +103,13 @@ public class WithdrawServiceImpl implements WithdrawService {
 	@Override
 	public void updateLatestLogicalTime(String id, Long logicalTime) {
 		onChainTxService.updateLatestLogicalTime(id, logicalTime);
+	}
+
+	private BigInteger estimateFee(String fromAddress, String toAddress, String jettonMasterAddress) {
+		FeeEstimationRequest feeEstimationRequest = new FeeEstimationRequest();
+		feeEstimationRequest.setFromAddress(fromAddress);
+		feeEstimationRequest.setToAddress(toAddress);
+		feeEstimationRequest.setJettonMasterAddress(jettonMasterAddress);
+		return transactionFeeService.estimateManualTransactionFee(feeEstimationRequest).getTransactionFee();
 	}
 }

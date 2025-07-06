@@ -15,7 +15,7 @@ public class JsonKeys {
 	public final String FORWARD_TON_AMOUNT = "forward_ton_amount";
 	public final String FROM_ADDRESS = "from_address";
 	public final String FWD_FEE = "fwd_fee";
-	public final String TRANSACTION_FEE="transaction_fee";
+	public final String TRANSACTION_FEE = "transaction_fee";
 	public final String IN_MSG = "in_msg";
 	public final String IS_MAIN_NET = "is_main_net";
 	public final String JETTON_MASTER_ADDRESS = "jetton_master_address";
@@ -43,6 +43,7 @@ public class JsonKeys {
 		public final String ADDRESS = "address";
 		public final String BOC = "boc";
 		public final String BODY = "body";
+		public final String CONFIG_ID = "config_id";
 		public final String EXCLUDE_ZERO_BALANCE = "exclude_zero_balance";
 		public final String IGNORE_CHKSIG = "ignore_chksig";
 		public final String INCLUDE_ACTIONS = "include_actions";

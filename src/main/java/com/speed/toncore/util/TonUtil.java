@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 @UtilityClass
-public class TonUtils {
+public class TonUtil {
 
 	public String toRawAddress(String address) {
 		if (StringUtil.nullOrEmpty(address)) {

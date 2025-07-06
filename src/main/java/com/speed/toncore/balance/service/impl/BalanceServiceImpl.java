@@ -7,7 +7,7 @@ import com.speed.toncore.constants.Errors;
 import com.speed.toncore.jettons.response.TonJettonResponse;
 import com.speed.toncore.jettons.service.TonJettonService;
 import com.speed.toncore.ton.TonCoreService;
-import com.speed.toncore.util.TonUtils;
+import com.speed.toncore.util.TonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,14 +23,14 @@ public class BalanceServiceImpl implements BalanceService {
 
 	@Override
 	public BalanceResponse getTonBalance(String address) {
-		address = TonUtils.toRawAddress(address);
+		address = TonUtil.toRawAddress(address);
 		return BalanceResponse.builder().balance(tonCoreService.fetchTonBalance(address)).build();
 	}
 
 	@Override
 	public BalanceResponse getJettonBalance(String jettonMasterAddress, String ownerAddress) {
-		jettonMasterAddress = TonUtils.toRawAddress(jettonMasterAddress);
-		ownerAddress = TonUtils.toRawAddress(ownerAddress);
+		jettonMasterAddress = TonUtil.toRawAddress(jettonMasterAddress);
+		ownerAddress = TonUtil.toRawAddress(ownerAddress);
 		TonJettonResponse jetton = tonJettonService.getTonJettonByAddress(jettonMasterAddress);
 		if (Objects.isNull(jetton)) {
 			throw new BadRequestException(String.format(Errors.JETTON_ADDRESS_NOT_SUPPORTED), null, null);

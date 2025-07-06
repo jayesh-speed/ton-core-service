@@ -16,6 +16,7 @@ import com.speed.toncore.pojo.AccountStatusDto;
 import com.speed.toncore.pojo.FeeDto;
 import com.speed.toncore.pojo.JettonWalletDto;
 import com.speed.toncore.pojo.SendTransactionDto;
+import com.speed.toncore.pojo.TonConfigParamDto;
 import com.speed.toncore.pojo.TraceDto;
 import com.speed.toncore.pojo.WalletInformationDto;
 import lombok.RequiredArgsConstructor;
@@ -116,9 +117,9 @@ public class TonCoreServiceHelper {
 	}
 
 	@Retryable(retryFor = RetryException.class, backoff = @Backoff(delay = 2000, multiplier = 2, random = true, maxDelay = 8000), maxAttempts = 5)
-	public FeeDto getEstimateFees(String destinationAddress, String requestBody, String initCode, String initData, boolean ignoreChksig) {
+	public FeeDto getEstimateFees(String sourceAddress, String requestBody, String initCode, String initData, boolean ignoreChksig) {
 		TonNode tonNode = tonNodePool.getTonNodeByChainId();
-		Map<String, Object> payload = Map.of(JsonKeys.QueryParameters.ADDRESS, destinationAddress, JsonKeys.QueryParameters.BODY, requestBody,
+		Map<String, Object> payload = Map.of(JsonKeys.QueryParameters.ADDRESS, sourceAddress, JsonKeys.QueryParameters.BODY, requestBody,
 				JsonKeys.QueryParameters.INIT_CODE, initCode, JsonKeys.QueryParameters.INIT_DATA, initData, JsonKeys.QueryParameters.IGNORE_CHKSIG,
 				ignoreChksig);
 		Map<String, Object> response = restClient.executeAPICall(HttpMethod.POST,
@@ -139,6 +140,16 @@ public class TonCoreServiceHelper {
 				String.format(URL_TEMPLATE, tonNode.getTonCenterUrl(), Endpoints.TonIndexer.GET_TRACE_BY_TRACE_ID), params,
 				getHeaders(tonNode.getTonCenterApiKey()));
 		return parseResponse(response, TraceDto.class);
+	}
+
+	@Retryable(retryFor = RetryException.class, backoff = @Backoff(delay = 2000, multiplier = 2, random = true, maxDelay = 8000), maxAttempts = 5)
+	public TonConfigParamDto getConfigParam(Integer configParam) {
+		TonNode tonNode = tonNodePool.getTonNodeByChainId();
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add(JsonKeys.QueryParameters.CONFIG_ID, configParam.toString());
+		Map<String, Object> response = restClient.executeAPICall(HttpMethod.GET,
+				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_CONFIG_PARAM), params, getHeaders(tonNode.getApiKey()), null);
+		return parseResponse(response, TonConfigParamDto.class);
 	}
 
 	private <T> T parseResponse(Map<String, Object> response, Class<T> clazz) {

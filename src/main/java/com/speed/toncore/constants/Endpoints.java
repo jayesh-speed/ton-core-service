@@ -32,12 +32,14 @@ public class Endpoints {
 	public final String INITIATE_SWEEP = "/sweep/initiate";
 	public final String SWEEP_TRANSACTION_FEE = "/transaction-fee/sweep";
 	public final String JETTON_TRANSFER_FEE = "/transaction-fee/jetton";
+	public final String ESTIMATE_TRANSACTION_FEE = "/transaction-fee/estimate";
 
 	@UtilityClass
 	public static class TonIndexer {
 
 		public final String GET_ACCOUNT_STATE = "/api/v2/getAddressState";
 		public final String GET_ESTIMATE_FEES = "/api/v3/estimateFee";
+		public final String GET_CONFIG_PARAM = "/api/v2/getConfigParam";
 		public final String GET_JETTON_TRANSFERS = "/api/v3/jetton/transfers";
 		public final String GET_JETTON_WALLET = "/api/v3/jetton/wallets";
 		public final String GET_TON_BALANCE = "/api/v2/getAddressBalance";

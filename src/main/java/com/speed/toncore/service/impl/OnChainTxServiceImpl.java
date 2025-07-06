@@ -16,7 +16,7 @@ import com.speed.toncore.mapper.TonOnChainTxMapper;
 import com.speed.toncore.pojo.JettonTransferDto;
 import com.speed.toncore.repository.OnChainTxRepository;
 import com.speed.toncore.service.OnChainTxService;
-import com.speed.toncore.util.TonUtils;
+import com.speed.toncore.util.TonUtil;
 import com.speed.toncore.withdraw.request.WithdrawRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
@@ -86,7 +86,7 @@ public class OnChainTxServiceImpl implements OnChainTxService {
 
 	@Override
 	public void updateConfirmedDebitOnChainTx(JettonTransferDto transfer, int jettonDecimals) {
-		String txReference = TonUtils.deserializeTransactionReference(transfer.getForwardPayload());
+		String txReference = TonUtil.deserializeTransactionReference(transfer.getForwardPayload());
 		Predicate queryPredicate = new BooleanBuilder(qTonOnChainTx.txReference.eq(txReference));
 		TonOnChainTx onChainTx = onChainTxRepository.findAndProjectUnique(queryPredicate, qTonOnChainTx, qTonOnChainTx.id, qTonOnChainTx.transactionHash,
 				qTonOnChainTx.toAddress, qTonOnChainTx.jettonMasterAddress);

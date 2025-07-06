@@ -13,7 +13,7 @@ import com.speed.toncore.pojo.WithdrawProcessPojo;
 import com.speed.toncore.util.ConsumerUtil;
 import com.speed.toncore.util.LogMessages;
 import com.speed.toncore.util.OperationPredicateUtil;
-import com.speed.toncore.util.TonUtils;
+import com.speed.toncore.util.TonUtil;
 import com.speed.toncore.withdraw.request.WithdrawRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -173,19 +173,19 @@ public class WithdrawConsumer {
 
 	private WithdrawRequest getWithdrawRequest(Value afterWithdraw, String targetCurrency) {
 		WithdrawRequest withdrawRequest = new WithdrawRequest();
-		withdrawRequest.setToAddress(TonUtils.toRawAddress(afterWithdraw.getWithdrawRequest()));
+		withdrawRequest.setToAddress(TonUtil.toRawAddress(afterWithdraw.getWithdrawRequest()));
 		withdrawRequest.setValue(String.valueOf(afterWithdraw.getTargetAmount().divide(new BigDecimal(100))));
 		withdrawRequest.setJettonSymbol(targetCurrency);
-		withdrawRequest.setFromAddress(TonUtils.toRawAddress(afterWithdraw.getPublicKey()));
+		withdrawRequest.setFromAddress(TonUtil.toRawAddress(afterWithdraw.getPublicKey()));
 		return withdrawRequest;
 	}
 
 	private WithdrawRequest getWithdrawRequest(speed_core_cdc.speed_core_live.tbl_withdraw.Value afterWithdraw, String targetCurrency) {
 		WithdrawRequest withdrawRequest = new WithdrawRequest();
-		withdrawRequest.setToAddress(TonUtils.toRawAddress(afterWithdraw.getWithdrawRequest()));
+		withdrawRequest.setToAddress(TonUtil.toRawAddress(afterWithdraw.getWithdrawRequest()));
 		withdrawRequest.setValue(String.valueOf(afterWithdraw.getTargetAmount().divide(new BigDecimal(100))));
 		withdrawRequest.setJettonSymbol(targetCurrency);
-		withdrawRequest.setFromAddress(TonUtils.toRawAddress(afterWithdraw.getPublicKey()));
+		withdrawRequest.setFromAddress(TonUtil.toRawAddress(afterWithdraw.getPublicKey()));
 		return withdrawRequest;
 	}
 }

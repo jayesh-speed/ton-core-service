@@ -3,6 +3,7 @@ package com.speed.toncore.constants;
 import lombok.experimental.UtilityClass;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 @UtilityClass
 public class Constants {
@@ -17,7 +18,6 @@ public class Constants {
 	public final String CACHE_KEY_GENERATOR = "cachingKeyGenerator";
 	public final String CHAIN_ID = "chain-id";
 	public final String ELAPSE_TIME = "elapse_time";
-	public final String EVENT = "event";
 	public final String FALSE = "false";
 	public final String FORWARD_TON_AMOUNT_FOR_DEPLOYMENT = "0.1";
 	public final String MAIN_NET = "main_net";
@@ -85,6 +85,7 @@ public class Constants {
 		public final String UPDATE_LOGICAL_TIME = "updateLogicalTime";
 		public final String UPDATE_JETTON_WALLET = "updateJettonWallet";
 		public final String UPDATE_TON_LISTENER_STATUS = "updateTonListenerStatus";
+		public final String ESTIMATE_TRANSACTION_FEE = "estimateTransactionFee";
 	}
 
 	@UtilityClass

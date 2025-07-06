@@ -12,8 +12,7 @@ import com.speed.toncore.interceptor.ExecutionContextUtil;
 import com.speed.toncore.pojo.JettonTransferDto;
 import com.speed.toncore.pojo.WithdrawProcessPojo;
 import com.speed.toncore.repository.WithdrawProcessRepository;
-import com.speed.toncore.ton.TonCoreServiceHelper;
-import com.speed.toncore.util.TonUtils;
+import com.speed.toncore.util.TonUtil;
 import com.speed.toncore.withdraw.request.WithdrawRequest;
 import com.speed.toncore.withdraw.response.WithdrawResponse;
 import com.speed.toncore.withdraw.service.WithdrawService;
@@ -34,7 +33,6 @@ public class WithdrawProcessHelper {
 	private static final QWithdrawProcess qWithdrawProcess = QWithdrawProcess.withdrawProcess;
 	private final WithdrawProcessRepository withdrawProcessRepository;
 	private final WithdrawService withdrawService;
-	private final TonCoreServiceHelper tonCoreServiceHelper;
 	private final TransactionFeeService transactionFeeService;
 
 	public void saveWithdrawProcess(WithdrawProcessPojo withdrawProcessPojo) {
@@ -102,7 +100,7 @@ public class WithdrawProcessHelper {
 	public void markWithdrawProcessPaid(JettonTransferDto transfer) {
 		BigDecimal fees = transactionFeeService.getJettonTransactionFee(transfer.getTraceId());
 		Long currentTime = DateTimeUtil.currentEpochMilliSecondsUTC();
-		String txReference = TonUtils.deserializeTransactionReference(transfer.getForwardPayload());
+		String txReference = TonUtil.deserializeTransactionReference(transfer.getForwardPayload());
 		Predicate predicate = qWithdrawProcess.txReference.eq(txReference);
 		Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(5);
 		fieldWithValue.put(qWithdrawProcess.actualFee, fees);

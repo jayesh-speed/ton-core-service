@@ -18,7 +18,7 @@ import com.speed.toncore.mapper.TonAddressMapper;
 import com.speed.toncore.repository.TonMainAccountRepository;
 import com.speed.toncore.repository.TonUsedWalletAddressRepository;
 import com.speed.toncore.repository.TonWalletAddressRepository;
-import com.speed.toncore.util.TonUtils;
+import com.speed.toncore.util.TonUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +51,7 @@ public class TonWalletServiceImpl implements TonWalletService {
 		TonUsedWalletAddress usedWalletAddress = TonAddressMapper.INSTANCE.mapAddressToUsedAddress(tonWalletAddress);
 		usedWalletAddress.setId(null);
 		tonUsedWalletAddressRepository.save(usedWalletAddress);
-		return TonAccountResponse.builder().address(TonUtils.rawToUserFriendlyAddress(usedWalletAddress.getAddress())).build();
+		return TonAccountResponse.builder().address(TonUtil.rawToUserFriendlyAddress(usedWalletAddress.getAddress())).build();
 	}
 
 	@Async
@@ -69,7 +69,7 @@ public class TonWalletServiceImpl implements TonWalletService {
 	@Override
 	@Transactional
 	public void removeUsedTonWalletAddress(String address) {
-		address = TonUtils.toRawAddress(address);
+		address = TonUtil.toRawAddress(address);
 		BooleanBuilder queryPredicate = new BooleanBuilder(qTonUsedWalletAddress.address.eq(address));
 		TonUsedWalletAddress usedWalletAddress = tonUsedWalletAddressRepository.findAndProjectUnique(queryPredicate, qTonUsedWalletAddress,
 				qTonUsedWalletAddress.address, qTonUsedWalletAddress.publicKey, qTonUsedWalletAddress.secretKey, qTonUsedWalletAddress.walletId,

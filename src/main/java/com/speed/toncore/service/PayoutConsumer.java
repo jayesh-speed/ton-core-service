@@ -9,7 +9,7 @@ import com.speed.toncore.constants.LogKeys;
 import com.speed.toncore.enums.WithdrawProcessReference;
 import com.speed.toncore.enums.WithdrawProcessStatus;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
-import com.speed.toncore.util.TonUtils;
+import com.speed.toncore.util.TonUtil;
 import com.speed.toncore.withdraw.request.WithdrawRequest;
 import com.speed.toncore.pojo.WithdrawProcessPojo;
 import com.speed.toncore.util.ConsumerUtil;
@@ -173,19 +173,19 @@ public class PayoutConsumer {
 
 	private WithdrawRequest getWithdrawRequest(Value afterPayout, String targetCurrency) {
 		WithdrawRequest withdrawRequest = new WithdrawRequest();
-		withdrawRequest.setToAddress(TonUtils.toRawAddress(afterPayout.getPayoutRequest()));
+		withdrawRequest.setToAddress(TonUtil.toRawAddress(afterPayout.getPayoutRequest()));
 		withdrawRequest.setValue(String.valueOf(afterPayout.getTargetAmount().divide(new BigDecimal(100))));
 		withdrawRequest.setJettonSymbol(targetCurrency);
-		withdrawRequest.setFromAddress(TonUtils.toRawAddress(afterPayout.getPublicKey()));
+		withdrawRequest.setFromAddress(TonUtil.toRawAddress(afterPayout.getPublicKey()));
 		return withdrawRequest;
 	}
 
 	private WithdrawRequest getWithdrawRequest(speed_core_cdc.speed_core_live.tbl_payout.Value afterPayout, String targetCurrency) {
 		WithdrawRequest withdrawRequest = new WithdrawRequest();
-		withdrawRequest.setToAddress(TonUtils.toRawAddress(afterPayout.getPayoutRequest()));
+		withdrawRequest.setToAddress(TonUtil.toRawAddress(afterPayout.getPayoutRequest()));
 		withdrawRequest.setValue(String.valueOf(afterPayout.getTargetAmount().divide(new BigDecimal(100))));
 		withdrawRequest.setJettonSymbol(targetCurrency);
-		withdrawRequest.setFromAddress(TonUtils.toRawAddress(afterPayout.getPublicKey()));
+		withdrawRequest.setFromAddress(TonUtil.toRawAddress(afterPayout.getPublicKey()));
 		return withdrawRequest;
 	}
 }

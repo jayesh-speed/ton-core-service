@@ -6,7 +6,7 @@ import com.speed.toncore.constants.LogKeys;
 import com.speed.toncore.jettons.request.TonJettonRequest;
 import com.speed.toncore.jettons.response.TonJettonResponse;
 import com.speed.toncore.jettons.service.TonJettonService;
-import com.speed.toncore.util.TonUtils;
+import com.speed.toncore.util.TonUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
@@ -35,7 +35,7 @@ public class TonJettonController {
 	@DeleteMapping(Endpoints.REMOVE_TON_JETTON)
 	public ResponseEntity<Void> removeTonJetton(@PathVariable String address) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.REMOVE_TON_JETTON);
-		tonJettonService.deleteTonJetton(TonUtils.toRawAddress(address));
+		tonJettonService.deleteTonJetton(TonUtil.toRawAddress(address));
 		return ResponseEntity.ok().build();
 	}
 
@@ -54,6 +54,6 @@ public class TonJettonController {
 	@GetMapping(Endpoints.GET_JETTON)
 	public ResponseEntity<TonJettonResponse> getTonJetton(@PathVariable String address) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.GET_JETTON);
-		return ResponseEntity.ok(tonJettonService.getTonJettonByAddress(TonUtils.toRawAddress(address)));
+		return ResponseEntity.ok(tonJettonService.getTonJettonByAddress(TonUtil.toRawAddress(address)));
 	}
 }

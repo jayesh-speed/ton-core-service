@@ -97,7 +97,7 @@ public class TonCoreService {
 
 	@Retryable(retryFor = RetryException.class, backoff = @Backoff(delay = 2000), maxAttempts = 5)
 	public String transferJettons(String fromAddress, String toAddress, TonJettonResponse jetton, BigDecimal value, String encryptedKey,
-			String jettonWalletAddress, String txReference) {
+			String jettonWalletAddress, String txReference, BigInteger estimatedTransactionFee) {
 		try {
 			TonNode tonNode = tonNodePool.getTonNodeByChainId();
 			BigDecimal scaled = value.setScale(jetton.getDecimals(), RoundingMode.HALF_DOWN);
@@ -117,13 +117,14 @@ public class TonCoreService {
 					.queryId(queryId)
 					.body(mainAccount.createBulkTransfer(Collections.singletonList(Destination.builder()
 							.address(jettonWalletAddress)
-							.amount(Utils.toNano(jetton.getForwardTonAmount(), 9))
+							.amount(estimatedTransactionFee)
 							.body(JettonWallet.createTransferBody(queryId, amountToTransfer, Address.of(toAddress), mainAccountAddress, null,
 									BigInteger.ONE, forwardPayload))
 							.build()), BigInteger.valueOf(queryId)))
 					.sendMode(SendMode.PAY_GAS_SEPARATELY_AND_IGNORE_ERRORS)
 					.build();
 			String bocMessage = createJettonTransferBocMessage(mainAccountAddress, mainAccount, config);
+			System.out.println("Jetton Transfer BOC Message: " + bocMessage);
 			try {
 				return tonCoreServiceHelper.sendMessageWithReturnHash(bocMessage);
 			} catch (RuntimeException e) {

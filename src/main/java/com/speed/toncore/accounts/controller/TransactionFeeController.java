@@ -1,6 +1,8 @@
 package com.speed.toncore.accounts.controller;
 
+import com.speed.toncore.accounts.request.FeeEstimationRequest;
 import com.speed.toncore.accounts.request.TransactionFeeRequest;
+import com.speed.toncore.accounts.response.EstimateFeeResponse;
 import com.speed.toncore.accounts.response.TransactionFeeResponse;
 import com.speed.toncore.accounts.service.TransactionFeeService;
 import com.speed.toncore.constants.Constants;
@@ -10,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,5 +35,12 @@ public class TransactionFeeController {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.SWEEP_TRANSACTION_FEE);
 		return ResponseEntity.ok(
 				TransactionFeeResponse.builder().transactionFee(transactionFeeService.getSweepTransactionFee(request.getTraceId())).build());
+	}
+
+	@GetMapping(Endpoints.ESTIMATE_TRANSACTION_FEE)
+	public ResponseEntity<EstimateFeeResponse> estimateTransactionFee(@Valid @RequestBody FeeEstimationRequest request) {
+		MDC.put(LogKeys.EVENT_NAME, Constants.Events.ESTIMATE_TRANSACTION_FEE);
+		EstimateFeeResponse fee = transactionFeeService.estimateManualTransactionFee(request);
+		return ResponseEntity.ok(fee);
 	}
 }
