@@ -30,7 +30,7 @@ CREATE TABLE speed_node.tbl_ton_jettons
     `decimals`              int         NOT NULL,
     `no_of_cell`            tinyint unsigned  DEFAULT NULL,
     `no_of_bits`            int    DEFAULT NULL,
-    `gas_unit`              tinyint unsigned  DEFAULT NULL,
+    `gas_unit`              int unsigned  DEFAULT NULL,
     `deployment_cost`       bigint DEFAULT NULL,
     `reserve_storage_fee`   bigint DEFAULT NULL,
     `created`               bigint(20)        NOT NULL,
