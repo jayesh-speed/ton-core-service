@@ -9,8 +9,6 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-
 @Getter
 @Setter
 @Entity
@@ -29,8 +27,20 @@ public class TonJetton extends IdentityJpaDomain {
 	@Column(name = DbFields.MAIN_NET, columnDefinition = "TINYINT(1)")
 	private boolean mainNet;
 
-	@Column(name = DbFields.FORWARD_TON_AMOUNT, columnDefinition = "DECIMAL(19,9)")
-	private BigDecimal forwardTonAmount;
+	@Column(name = DbFields.NO_OF_CELL, columnDefinition = "TINYINT UNSIGNED")
+	private Integer noOfCell;
+
+	@Column(name = DbFields.NO_OF_BITS, columnDefinition = "INT")
+	private Integer noOfBits;
+
+	@Column(name = DbFields.GAS_UNIT, columnDefinition = "TINYINT UNSIGNED")
+	private Integer gasUnit;
+
+	@Column(name = DbFields.DEPLOYMENT_COST, columnDefinition = "BIGINT")
+	private Long deploymentCost;
+
+	@Column(name = DbFields.RESERVE_STORAGE_FEE, columnDefinition = "BIGINT")
+	private Long reserveStorageFee;
 
 	@Column(name = DbFields.CHAIN_ID, nullable = false, columnDefinition = "TINYINT UNSIGNED")
 	private Integer chainId;

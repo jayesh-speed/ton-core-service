@@ -62,7 +62,7 @@ public class TonJettonServiceImpl implements TonJettonService {
 		BooleanBuilder predicateQuery = new BooleanBuilder(qTonJetton.chainId.eq(chainId));
 		List<TonJetton> tonJettons = tonJettonRepository.findAndProject(predicateQuery, qTonJetton, qTonJetton.jettonMasterAddress,
 				qTonJetton.jettonName, qTonJetton.id, qTonJetton.mainNet, qTonJetton.chainId, qTonJetton.decimals, qTonJetton.jettonSymbol,
-				qTonJetton.forwardTonAmount);
+				qTonJetton.noOfCell, qTonJetton.noOfBits, qTonJetton.gasUnit, qTonJetton.deploymentCost, qTonJetton.reserveStorageFee);
 		List<TonJettonResponse> responseList = new ArrayList<>();
 		tonJettons.forEach(token -> responseList.add(TonJettonMapper.INSTANCE.mapModalToJettonResponse(token)));
 		return responseList;
@@ -74,7 +74,8 @@ public class TonJettonServiceImpl implements TonJettonService {
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
 		Predicate queryPredicate = new BooleanBuilder(qTonJetton.chainId.eq(chainId)).and(qTonJetton.jettonSymbol.eq(jettonSymbol));
 		TonJetton ethToken = tonJettonRepository.findAndProjectUnique(queryPredicate, qTonJetton, qTonJetton.id, qTonJetton.chainId,
-				qTonJetton.jettonMasterAddress, qTonJetton.jettonName, qTonJetton.jettonSymbol, qTonJetton.decimals, qTonJetton.forwardTonAmount);
+				qTonJetton.jettonMasterAddress, qTonJetton.jettonName, qTonJetton.jettonSymbol, qTonJetton.decimals, qTonJetton.noOfCell,
+				qTonJetton.noOfBits, qTonJetton.gasUnit, qTonJetton.deploymentCost, qTonJetton.reserveStorageFee);
 		return TonJettonMapper.INSTANCE.mapModalToJettonResponse(ethToken);
 	}
 
@@ -85,7 +86,7 @@ public class TonJettonServiceImpl implements TonJettonService {
 		Predicate predicateQuery = new BooleanBuilder(qTonJetton.chainId.eq(chainId)).and(qTonJetton.jettonMasterAddress.eq(jettonMasterAddress));
 		TonJetton tonJetton = tonJettonRepository.findAndProjectUnique(predicateQuery, qTonJetton, qTonJetton.id, qTonJetton.chainId,
 				qTonJetton.jettonMasterAddress, qTonJetton.jettonName, qTonJetton.jettonSymbol, qTonJetton.mainNet, qTonJetton.decimals,
-				qTonJetton.forwardTonAmount);
+				qTonJetton.noOfCell, qTonJetton.noOfBits, qTonJetton.gasUnit, qTonJetton.deploymentCost, qTonJetton.reserveStorageFee);
 		return TonJettonMapper.INSTANCE.mapModalToJettonResponse(tonJetton);
 	}
 }

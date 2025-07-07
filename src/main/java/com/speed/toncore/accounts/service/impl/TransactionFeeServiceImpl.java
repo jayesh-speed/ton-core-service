@@ -1,5 +1,6 @@
 package com.speed.toncore.accounts.service.impl;
 
+import com.speed.javacommon.exceptions.InternalServerErrorException;
 import com.speed.javacommon.util.CollectionUtil;
 import com.speed.javacommon.util.StringUtil;
 import com.speed.toncore.accounts.request.FeeEstimationRequest;
@@ -10,6 +11,8 @@ import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.TonMainAccount;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
+import com.speed.toncore.jettons.response.TonJettonResponse;
+import com.speed.toncore.jettons.service.TonJettonService;
 import com.speed.toncore.pojo.JettonWalletDto;
 import com.speed.toncore.pojo.TraceDto;
 import com.speed.toncore.schedular.ConfigParam;
@@ -24,6 +27,7 @@ import org.ton.ton4j.cell.CellBuilder;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -33,6 +37,7 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 	private static final int BIT16 = 65536;   // 2^16, used for fee calculations
 	private final TonCoreServiceHelper tonCoreServiceHelper;
 	private final TonMainAccountService tonMainAccountService;
+	private final TonJettonService tonJettonService;
 
 	private TraceDto waitForTraceReady(String traceId) throws InterruptedException {
 		for (int attempt = 1; attempt <= 5; attempt++) {
@@ -124,68 +129,69 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 	}
 
 	@Override
-	public EstimateFeeResponse estimateManualTransactionFee(FeeEstimationRequest request) {
+	public EstimateFeeResponse estimateTransactionFee(FeeEstimationRequest request) {
+		TonJettonResponse tonJetton = tonJettonService.getTonJettonByAddress(request.getJettonMasterAddress());
+		if (Objects.isNull(tonJetton)) {
+			throw new InternalServerErrorException(Errors.JETTON_ADDRESS_NOT_SUPPORTED);
+		}
+		Integer chainId = ExecutionContextUtil.getContext().getChainId();
+		long storageFeeHighLoadWallet;
+		long storageFeeSenderJettonWallet;
+		long storageFeeRecipientJettonWallet = 0;
+		long deploymentFee = 0;
+		String fromAddress = request.getFromAddress();
+		String toAddress = request.getToAddress();
+		String jettonMasterAddress = request.getJettonMasterAddress();
 		try {
-			long storageFeeHighLoadWallet;
-			long storageFeeSenderJettonWallet;
-			long storageFeeRecipientJettonWallet = 0;
-			if (StringUtil.nullOrEmpty(request.getFromAddress())) {
-				TonMainAccount mainAccounts = tonMainAccountService.getMainAccountDetail(request.getJettonMasterAddress()).getFirst();
-				storageFeeHighLoadWallet = getStorageFee(mainAccounts.getAddress());
-				storageFeeSenderJettonWallet = getStorageFee(mainAccounts.getJettonWalletAddress());
+			if (StringUtil.nullOrEmpty(fromAddress)) {
+				TonMainAccount mainAccount = tonMainAccountService.getMainAccountDetail(jettonMasterAddress).getFirst();
+				storageFeeHighLoadWallet = getStorageFee(mainAccount.getAddress());
+				storageFeeSenderJettonWallet = getStorageFee(mainAccount.getJettonWalletAddress());
 			} else {
-				storageFeeHighLoadWallet = getStorageFee(request.getFromAddress());
-				JettonWalletDto senderJettonWallet = tonCoreServiceHelper.getJettonWallet(request.getFromAddress(), request.getJettonMasterAddress());
-				storageFeeSenderJettonWallet = getStorageFee(senderJettonWallet.getJettonWallets().getFirst().getAddress());
+				storageFeeHighLoadWallet = getStorageFee(fromAddress);
+				String senderJettonWalletAddress = getJettonWalletAddress(fromAddress, jettonMasterAddress);
+				storageFeeSenderJettonWallet = getStorageFee(senderJettonWalletAddress);
 			}
-			JettonWalletDto receiverJettonWallet = tonCoreServiceHelper.getJettonWallet(request.getToAddress(), request.getJettonMasterAddress());
-			if (!CollectionUtil.nullOrEmpty(receiverJettonWallet.getJettonWallets())) {
-				storageFeeRecipientJettonWallet = getStorageFee(receiverJettonWallet.getJettonWallets().getFirst().getAddress());
+
+			String recipientJettonWalletAddress = getJettonWalletAddress(toAddress, jettonMasterAddress);
+			if (recipientJettonWalletAddress != null) {
+				storageFeeRecipientJettonWallet = getStorageFee(recipientJettonWalletAddress);
 			} else {
-				storageFeeRecipientJettonWallet = 10000057; // Default Fee For Future Storage Fee
+				deploymentFee = tonJetton.getDeploymentCost();
 			}
-			int total = 0;
-			ConfigParam configParam = TonConfigParam.getConfigByChainId(ExecutionContextUtil.getContext().getChainId());
-
-			int step1Fwd = calculateFwdFee(5, 1488, configParam);
-			int step1Gas = calculateGasFee(7600, configParam);
-			total += (step1Fwd * 2 + step1Gas);
-			int internalFwdFee = calculateFwdFee(7, 2149, configParam);
-			total += (internalFwdFee - step1Fwd);
-
-			int step2Fwd = calculateFwdFee(2, 1032, configParam);
-			int step2Gas = calculateGasFee(1756, configParam);
-			total += (step2Fwd + step2Gas);
-
-			int step3Fwd = calculateFwdFee(21, 7543, configParam);
-			int step3Gas = calculateGasFee(8706, configParam);
-			total += (step3Fwd + step3Gas);
-
-			int step4Gas = calculateGasFee(10024, configParam);
-			total += step4Gas;
-
-			int message1Fwd = calculateFwdFee(2, 752, configParam);
-			int message2Fwd = calculateFwdFee(0, 0, configParam);
-			int messageFwdTotal = (message1Fwd + message2Fwd);
-			total += messageFwdTotal;
-
-			int extraGas = calculateGasFee(577, configParam);
-			total += extraGas;
+			ConfigParam configParam = TonConfigParam.getConfigByChainId(chainId);
+			int fwdFee = calculateFwdFee(tonJetton.getNoOfCell(), tonJetton.getNoOfBits(), configParam);
+			int gasFee = calculateGasFee(tonJetton.getGasUnit(), configParam);
 			long storageTotal = storageFeeHighLoadWallet + storageFeeSenderJettonWallet + storageFeeRecipientJettonWallet;
-			long reservedStorage = 9466772;
-			BigDecimal finalFee = BigDecimal.valueOf(total + storageTotal + reservedStorage);
-			return EstimateFeeResponse.builder().transactionFee(finalFee.multiply(BigDecimal.valueOf(1.1)).toBigInteger()).build();
+			long reservedStorage = tonJetton.getReserveStorageFee();
+			long totalFee = fwdFee + gasFee + storageTotal + reservedStorage + deploymentFee;
+
+			return EstimateFeeResponse.builder()
+					.chainId(chainId)
+					.mainNet(chainId.equals(Constants.MAIN_NET_CHAIN_ID))
+					.transactionFee(BigDecimal.valueOf(totalFee))
+					.build();
+
 		} catch (Exception e) {
-			LOG.error("Error estimating manual transaction fee", e);
-			return EstimateFeeResponse.builder().transactionFee(Constants.DEFAULT_TRANSACTION_FEE.toBigInteger()).build();
+			LOG.error(String.format(Errors.ERROR_WHILE_ESTIMATION_FEE, chainId), e);
+			return EstimateFeeResponse.builder().transactionFee(Constants.DEFAULT_TRANSACTION_FEE).build();
 		}
 	}
 
-	private int calculateFwdFee(int cell, int bits, ConfigParam configParam) {
-		return (int) (configParam.getLumpPrice() + Math.ceil((double) (configParam.getBitPrice() * bits + configParam.getCellPrice() * cell) / BIT16));
+	private String getJettonWalletAddress(String ownerAddress, String jettonMasterAddress) {
+		JettonWalletDto walletDto = tonCoreServiceHelper.getJettonWallet(ownerAddress, jettonMasterAddress);
+		if (!CollectionUtil.nullOrEmpty(walletDto.getJettonWallets())) {
+			return walletDto.getJettonWallets().getFirst().getAddress();
+		}
+		return null;
 	}
 
-	private int calculateGasFee(int gasUsed, ConfigParam configParam) {
-		return (int) Math.ceil((double) gasUsed * configParam.getGasPrice() / BIT16);
+	private int calculateFwdFee(int cellCount, int bitCount, ConfigParam config) {
+		double dataCost = (double) (config.getBitPrice() * bitCount + config.getCellPrice() * cellCount) / BIT16;
+		return (int) (6 * config.getLumpPrice() + Math.ceil(dataCost));
+	}
+
+	private int calculateGasFee(int gasUsed, ConfigParam config) {
+		return (int) Math.ceil((double) gasUsed * config.getGasPrice() / BIT16);
 	}
 }

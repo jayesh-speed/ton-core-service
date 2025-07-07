@@ -16,9 +16,7 @@ public class Errors {
 	public final String DECRYPTION_EXCEPTION = "Exception occurred during decryption";
 	public final String EMPTY_KAFKA_MESSAGE_RECEIVED = "Empty record received. Skipping the message.";
 	public final String ENCRYPTION_EXCEPTION = "Exception occurred during encryption";
-	public final String FORWARD_TON_AMOUNT_REQUIRED = "Forward TON amount is required";
-	public final String INVALID_FRACTIONAL = "Invalid amount. Integers and fractions can have up to 9 digits value only.";
-	public final String INVALID_AMOUNT_VALUE = "Invalid amount. It must be greater than or equal 0.05.";
+	public final String ERROR_WHILE_ESTIMATION_FEE = "Error while estimating fee for chainId %s";
 	public final String JETTON_ALREADY_EXISTS = "Jetton already exists for address %s and chainId %s";
 	public final String ERROR_DEPLOY_FEE_ACCOUNT = "Failed to deploy fee account for address %s and chainId %s";
 	public final String ERROR_DEPLOY_MAIN_ACCOUNT = "Failed to deploy main account for address %s and chainId %s";

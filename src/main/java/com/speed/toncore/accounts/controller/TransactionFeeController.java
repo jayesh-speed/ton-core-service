@@ -40,7 +40,7 @@ public class TransactionFeeController {
 	@GetMapping(Endpoints.ESTIMATE_TRANSACTION_FEE)
 	public ResponseEntity<EstimateFeeResponse> estimateTransactionFee(@Valid @RequestBody FeeEstimationRequest request) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.ESTIMATE_TRANSACTION_FEE);
-		EstimateFeeResponse fee = transactionFeeService.estimateManualTransactionFee(request);
+		EstimateFeeResponse fee = transactionFeeService.estimateTransactionFee(request);
 		return ResponseEntity.ok(fee);
 	}
 }

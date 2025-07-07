@@ -110,6 +110,6 @@ public class WithdrawServiceImpl implements WithdrawService {
 		feeEstimationRequest.setFromAddress(fromAddress);
 		feeEstimationRequest.setToAddress(toAddress);
 		feeEstimationRequest.setJettonMasterAddress(jettonMasterAddress);
-		return transactionFeeService.estimateManualTransactionFee(feeEstimationRequest).getTransactionFee();
+		return transactionFeeService.estimateTransactionFee(feeEstimationRequest).getTransactionFee().multiply(BigDecimal.valueOf(1.1)).toBigInteger();
 	}
 }

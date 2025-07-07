@@ -118,13 +118,13 @@ public class TonCoreService {
 					.body(mainAccount.createBulkTransfer(Collections.singletonList(Destination.builder()
 							.address(jettonWalletAddress)
 							.amount(estimatedTransactionFee)
+							.bounce(true)
 							.body(JettonWallet.createTransferBody(queryId, amountToTransfer, Address.of(toAddress), mainAccountAddress, null,
 									BigInteger.ONE, forwardPayload))
 							.build()), BigInteger.valueOf(queryId)))
 					.sendMode(SendMode.PAY_GAS_SEPARATELY_AND_IGNORE_ERRORS)
 					.build();
 			String bocMessage = createJettonTransferBocMessage(mainAccountAddress, mainAccount, config);
-			System.out.println("Jetton Transfer BOC Message: " + bocMessage);
 			try {
 				return tonCoreServiceHelper.sendMessageWithReturnHash(bocMessage);
 			} catch (RuntimeException e) {

@@ -6,15 +6,11 @@ import com.speed.toncore.constants.Errors;
 import com.speed.toncore.constants.JsonKeys;
 import com.speed.toncore.constants.ValidationMessages;
 import com.speed.toncore.util.TonAddressDeserializer;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -33,11 +29,20 @@ public class TonJettonRequest {
 	@NotBlank(message = JsonKeys.JETTON_SYMBOL + ValidationMessages.NOT_BLANK)
 	private String jettonSymbol;
 
-	@JsonProperty(JsonKeys.FORWARD_TON_AMOUNT)
-	@NotNull(message = Errors.FORWARD_TON_AMOUNT_REQUIRED)
-	@DecimalMin(value = "0.05", message = Errors.INVALID_AMOUNT_VALUE)
-	@Digits(integer = 19, fraction = 9, message = Errors.INVALID_FRACTIONAL)
-	private BigDecimal forwardTonAmount;
+	@JsonProperty(JsonKeys.NO_OF_CELL)
+	private Integer noOfCell;
+
+	@JsonProperty(JsonKeys.NO_OF_BITS)
+	private Integer noOfBits;
+
+	@JsonProperty(JsonKeys.GAS_UNIT)
+	private Integer gasUnit;
+
+	@JsonProperty(JsonKeys.DEPLOYMENT_COST)
+	private Long deploymentCost;
+
+	@JsonProperty(JsonKeys.RESERVE_STORAGE_FEE)
+	private Long reserveStorageFee;
 
 	@JsonProperty(JsonKeys.DECIMALS)
 	@NotNull(message = JsonKeys.DECIMALS + ValidationMessages.NOT_NULL)

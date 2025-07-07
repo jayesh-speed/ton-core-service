@@ -11,5 +11,5 @@ public interface TransactionFeeService {
 
 	BigDecimal getSweepTransactionFee(String traceId);
 
-	EstimateFeeResponse estimateManualTransactionFee(FeeEstimationRequest request);
+	EstimateFeeResponse estimateTransactionFee(FeeEstimationRequest request);
 }

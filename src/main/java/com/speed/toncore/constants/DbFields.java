@@ -12,10 +12,11 @@ public class DbFields {
 	public final String CHAIN_ID = "chain_id";
 	public final String CONFIRMATION_TIMESTAMP = "confirmation_timestamp";
 	public final String DECIMALS = "decimals";
+	public final String DEPLOYMENT_COST = "deployment_cost";
 	public final String DEPLOYMENT_TX_HASH = "deployment_tx_hash";
 	public final String FAILURE_REASON = "failure_reason";
-	public final String FORWARD_TON_AMOUNT = "forward_ton_amount";
 	public final String FROM_ADDRESS = "from_address";
+	public final String GAS_UNIT = "gas_unit";
 	public final String ID = "id";
 	public final String JETTON_MASTER_ADDRESS = "jetton_master_address";
 	public final String JETTON_NAME = "jetton_name";
@@ -23,9 +24,12 @@ public class DbFields {
 	public final String JETTON_WALLET_ADDRESS = "jetton_wallet_address";
 	public final String LOGICAL_TIME = "logical_time";
 	public final String MAIN_NET = "main_net";
+	public final String NO_OF_BITS = "no_of_bits";
+	public final String NO_OF_CELL = "no_of_cell";
 	public final String PUBLIC_KEY = "public_key";
 	public final String REFERENCE = "reference";
 	public final String REFERENCE_ID = "reference_id";
+	public final String RESERVE_STORAGE_FEE = "reserve_storage_fee";
 	public final String SECRET_KEY = "secret_key";
 	public final String STATUS = "status";
 	public final String TARGET_AMOUNT = "target_amount";
