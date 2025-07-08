@@ -19,6 +19,7 @@ import com.speed.toncore.pojo.SendTransactionDto;
 import com.speed.toncore.pojo.TonConfigParamDto;
 import com.speed.toncore.pojo.TraceDto;
 import com.speed.toncore.pojo.WalletInformationDto;
+import com.speed.toncore.util.LogMessages;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -139,7 +140,11 @@ public class TonCoreServiceHelper {
 		Map<String, Object> response = restClient.executeAPICall(HttpMethod.GET,
 				String.format(URL_TEMPLATE, tonNode.getTonCenterUrl(), Endpoints.TonIndexer.GET_TRACE_BY_TRACE_ID), params,
 				getHeaders(tonNode.getTonCenterApiKey()));
-		return parseResponse(response, TraceDto.class);
+		TraceDto traceDto = parseResponse(response, TraceDto.class);
+		if (traceDto != null && traceDto.getTraces() != null && !traceDto.getTraces().isEmpty()) {
+			return traceDto;
+		}
+		throw new RetryException(String.format(LogMessages.Warn.WAITING_FOR_TRACE_UPDATE, traceId));
 	}
 
 	@Retryable(retryFor = RetryException.class, backoff = @Backoff(delay = 2000, multiplier = 2, random = true, maxDelay = 8000), maxAttempts = 5)

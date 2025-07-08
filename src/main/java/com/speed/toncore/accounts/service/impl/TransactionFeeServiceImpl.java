@@ -18,7 +18,6 @@ import com.speed.toncore.pojo.TraceDto;
 import com.speed.toncore.schedular.ConfigParam;
 import com.speed.toncore.schedular.TonConfigParam;
 import com.speed.toncore.ton.TonCoreServiceHelper;
-import com.speed.toncore.util.LogMessages;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,22 +38,10 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 	private final TonMainAccountService tonMainAccountService;
 	private final TonJettonService tonJettonService;
 
-	private TraceDto waitForTraceReady(String traceId) throws InterruptedException {
-		for (int attempt = 1; attempt <= 5; attempt++) {
-			TraceDto traceDto = tonCoreServiceHelper.getTraceByTraceId(traceId);
-			if (traceDto != null && traceDto.getTraces() != null && !traceDto.getTraces().isEmpty()) {
-				return traceDto;
-			}
-			LOG.info(String.format(LogMessages.Info.WAITING_FOR_TRACE_UPDATE, traceId));
-			Thread.sleep(1000);
-		}
-		throw new IllegalStateException();
-	}
-
 	@Override
 	public BigDecimal getJettonTransactionFee(String traceId) {
 		try {
-			TraceDto traceDto = waitForTraceReady(traceId);
+			TraceDto traceDto = tonCoreServiceHelper.getTraceByTraceId(traceId);
 
 			TraceDto.Trace trace = traceDto.getTraces().getFirst();
 			List<String> txOrder = trace.getTransactionsOrder();
@@ -93,7 +80,7 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 	@Override
 	public BigDecimal getSweepTransactionFee(String traceId) {
 		try {
-			TraceDto traceDto = waitForTraceReady(traceId);
+			TraceDto traceDto = tonCoreServiceHelper.getTraceByTraceId(traceId);
 
 			TraceDto.Trace trace = traceDto.getTraces().getFirst();
 			List<String> txOrder = trace.getTransactionsOrder();
