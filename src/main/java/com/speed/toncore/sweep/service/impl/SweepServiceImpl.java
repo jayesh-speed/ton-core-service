@@ -4,6 +4,8 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.speed.javacommon.exceptions.BadRequestException;
+import com.speed.javacommon.exceptions.InternalServerErrorException;
+import com.speed.javacommon.util.CollectionUtil;
 import com.speed.javacommon.util.DateTimeUtil;
 import com.speed.javacommon.util.StringUtil;
 import com.speed.toncore.accounts.service.TonFeeAccountService;
@@ -38,8 +40,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -82,10 +86,17 @@ public class SweepServiceImpl implements SweepService {
 	}
 
 	@Override
-	public String initiateSweepOnChainTx(SweepRequest sweepRequest, String id) {
+	public String initiateSweepOnChainTx(SweepRequest sweepRequest, String id, int decimals) {
 		TonNode tonNode = tonNodePool.getTonNodeByChainId();
 		TonFeeAccount feeAccount = tonFeeAccountService.getTonFeeAccounts().getFirst();
-		TonMainAccount tonMainAccount = tonMainAccountService.getMainAccountDetail(sweepRequest.getJettonMasterAddress()).getFirst();
+		List<TonMainAccount> mainAccountList = tonMainAccountService.getMainAccountDetail(sweepRequest.getJettonMasterAddress());
+		if (CollectionUtil.nullOrEmpty(mainAccountList)) {
+			throw new InternalServerErrorException(Errors.MAIN_ACCOUNT_NOT_FOUND);
+		}
+		TonMainAccount tonMainAccount = mainAccountList.stream()
+				.min(Comparator.comparing(acc -> tonCoreService.fetchJettonBalance(sweepRequest.getJettonMasterAddress(), acc.getAddress(), decimals)))
+				.get();
+
 		TonUsedWalletAddress usedTonWallet = tonUsedWalletAddressRepository.findAndProjectUnique(
 				qTonUsedWalletAddress.chainId.eq(tonNode.getChainId()).and(qTonUsedWalletAddress.address.eq(sweepRequest.getFromAddress())),
 				qTonUsedWalletAddress, qTonUsedWalletAddress.address, qTonUsedWalletAddress.secretKey);
@@ -132,7 +143,7 @@ public class SweepServiceImpl implements SweepService {
 				qTonUsedWalletAddress.chainId.eq(chainId).and(qTonUsedWalletAddress.address.eq(sweepRequest.getFromAddress())))) {
 			throw new BadRequestException(String.format(Errors.NOT_ELIGIBLE_FOR_SWEEP, sweepRequest.getFromAddress()), null, null);
 		}
-		String hash = initiateSweepOnChainTx(sweepRequest, id);
+		String hash = initiateSweepOnChainTx(sweepRequest, id, jetton.getDecimals());
 		return SweepResponse.builder().transactionHash(hash).build();
 	}
 

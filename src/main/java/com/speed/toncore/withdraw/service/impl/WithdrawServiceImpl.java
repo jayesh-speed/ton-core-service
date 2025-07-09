@@ -23,11 +23,10 @@ import org.ton.ton4j.utils.Utils;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 public class WithdrawServiceImpl implements WithdrawService {
@@ -52,32 +51,27 @@ public class WithdrawServiceImpl implements WithdrawService {
 		if (StringUtil.nullOrEmpty(withdrawRequest.getJettonMasterAddress()) && StringUtil.nullOrEmpty(withdrawRequest.getJettonSymbol())) {
 			throw new BadRequestException(Errors.JETTON_INFO_MISSING, null, null);
 		}
-		TonJettonResponse jetton;
-		if (StringUtil.nonNullNonEmpty(withdrawRequest.getJettonMasterAddress())) {
-			jetton = tonJettonService.getTonJettonByAddress(withdrawRequest.getJettonMasterAddress());
-			if (Objects.isNull(jetton)) {
-				throw new BadRequestException(Errors.JETTON_ADDRESS_NOT_SUPPORTED, null, null);
-			}
-		} else {
-			jetton = tonJettonService.getTonJettonBySymbol(withdrawRequest.getJettonSymbol());
-			if (Objects.isNull(jetton)) {
-				throw new BadRequestException(Errors.JETTON_SYMBOL_NOT_SUPPORTED, null, null);
-			}
+		TonJettonResponse jetton = Optional.ofNullable(withdrawRequest.getJettonMasterAddress())
+				.filter(StringUtil::nonNullNonEmpty)
+				.map(tonJettonService::getTonJettonByAddress)
+				.orElseGet(() -> tonJettonService.getTonJettonBySymbol(withdrawRequest.getJettonSymbol()));
+
+		if (Objects.isNull(jetton)) {
+			throw new BadRequestException(StringUtil.nonNullNonEmpty(withdrawRequest.getJettonMasterAddress())
+					? Errors.JETTON_ADDRESS_NOT_SUPPORTED
+					: Errors.JETTON_SYMBOL_NOT_SUPPORTED, null, null);
 		}
+
 		withdrawRequest.setJettonMasterAddress(jetton.getJettonMasterAddress());
 		BigDecimal value = new BigDecimal(withdrawRequest.getValue());
 		List<TonMainAccount> mainAccountList = tonMainAccountService.getMainAccountDetail(jetton.getJettonMasterAddress());
 		if (CollectionUtil.nullOrEmpty(mainAccountList)) {
 			throw new InternalServerErrorException(Errors.MAIN_ACCOUNT_NOT_FOUND);
 		}
-		Map<TonMainAccount, BigDecimal> accountBalanceMap = mainAccountList.stream()
-				.collect(Collectors.toMap(acc -> acc,
-						acc -> tonCoreService.fetchJettonBalance(jetton.getJettonMasterAddress(), acc.getAddress(), jetton.getDecimals())));
-		Map.Entry<TonMainAccount, BigDecimal> maxBalanceAccMap = accountBalanceMap.entrySet()
-				.stream()
-				.sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-				.toList()
-				.getFirst();
+		Map.Entry<TonMainAccount, BigDecimal> maxBalanceAccMap = mainAccountList.stream()
+				.map(acc -> Map.entry(acc, tonCoreService.fetchJettonBalance(jetton.getJettonMasterAddress(), acc.getAddress(), jetton.getDecimals())))
+				.max(Map.Entry.comparingByValue())
+				.get();
 		BigDecimal tokenBalanceOnAccount = maxBalanceAccMap.getValue();
 		if (tokenBalanceOnAccount.compareTo(value) < 0) {
 			throw new InternalServerErrorException(String.format(Errors.INSUFFICIENT_MAIN_ACC_BALANCE, jetton.getJettonSymbol()));
@@ -114,7 +108,7 @@ public class WithdrawServiceImpl implements WithdrawService {
 		feeEstimationRequest.setJettonMasterAddress(jettonMasterAddress);
 		BigDecimal scaledFee = transactionFeeService.estimateTransactionFee(feeEstimationRequest)
 				.getTransactionFee()
-				.multiply(BigDecimal.valueOf(1.1))
+				.multiply(BigDecimal.valueOf(1.1)) // Buffer 10% for fee estimation
 				.setScale(9, RoundingMode.HALF_UP);
 
 		return Utils.toNano(scaledFee);

@@ -8,7 +8,7 @@ public interface SweepService {
 
 	void updateConfirmedSweepOnChainTx(JettonTransferDto transfer, Integer chainId);
 
-	String initiateSweepOnChainTx(SweepRequest sweepRequest, String id);
+	String initiateSweepOnChainTx(SweepRequest sweepRequest, String id,int decimals);
 
 	SweepResponse createSweepOnChainTx(SweepRequest sweepRequest, String id);
 }

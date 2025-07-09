@@ -130,6 +130,6 @@ public class TonListenerHelper {
 		SweepRequest sweepRequest = new SweepRequest();
 		sweepRequest.setFromAddress(transfer.getDestination());
 		sweepRequest.setJettonMasterAddress(transfer.getJettonMaster());
-		sweepService.initiateSweepOnChainTx(sweepRequest, null);
+		sweepService.initiateSweepOnChainTx(sweepRequest, null, decimals);
 	}
 }
