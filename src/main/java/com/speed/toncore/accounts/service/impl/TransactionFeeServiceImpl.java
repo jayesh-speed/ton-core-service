@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.ton.ton4j.cell.CellBuilder;
+import org.ton.ton4j.utils.Utils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -34,7 +35,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class TransactionFeeServiceImpl implements TransactionFeeService {
 
-	private static final int BIT16 = 65536;   // 2^16, used for fee calculations
+	private static final int BIT16 = 1 << 16;   // 2^16, used for fee calculations
 	private final TonCoreServiceHelper tonCoreServiceHelper;
 	private final TonMainAccountService tonMainAccountService;
 	private final TonJettonService tonJettonService;
@@ -66,11 +67,11 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 			String finalTxFee = finalTx.getTotalFees();
 			String excessTonAmount = finalTx.getInMsg().getValue();
 
-			return new BigDecimal(firstTxFee).add(new BigDecimal(firstTxFwdFee))
+			return Utils.fromNano(new BigDecimal(firstTxFee).add(new BigDecimal(firstTxFwdFee))
 					.add(new BigDecimal(secondTxFee))
 					.add(new BigDecimal(secondTxFwdFee))
 					.add(new BigDecimal(finalTxFee))
-					.add(new BigDecimal(forwardedTonAmount).subtract(new BigDecimal(excessTonAmount)));
+					.add(new BigDecimal(forwardedTonAmount).subtract(new BigDecimal(excessTonAmount))), 9);
 
 		} catch (Exception e) {
 			LOG.error(String.format(Errors.ERROR_ON_FETCHING_TRACE, traceId), e);
@@ -101,9 +102,9 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 			String finalTxFee = finalTx.getTotalFees();
 			String excessTonAmount = finalTx.getInMsg().getValue();
 
-			return new BigDecimal(firstTxFee).add(new BigDecimal(firstTxFwdFee))
+			return Utils.fromNano(new BigDecimal(firstTxFee).add(new BigDecimal(firstTxFwdFee))
 					.add(new BigDecimal(finalTxFee))
-					.add(new BigDecimal(forwardedTonAmount).subtract(new BigDecimal(excessTonAmount)));
+					.add(new BigDecimal(forwardedTonAmount).subtract(new BigDecimal(excessTonAmount))), 9);
 
 		} catch (Exception e) {
 			LOG.error(String.format(Errors.ERROR_ON_FETCHING_TRACE, traceId), e);
@@ -152,7 +153,7 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 			return EstimateFeeResponse.builder()
 					.chainId(chainId)
 					.mainNet(chainId.equals(Constants.MAIN_NET_CHAIN_ID))
-					.transactionFee(BigDecimal.valueOf(totalFee))
+					.transactionFee(Utils.fromNano(totalFee))
 					.build();
 
 		} catch (Exception e) {

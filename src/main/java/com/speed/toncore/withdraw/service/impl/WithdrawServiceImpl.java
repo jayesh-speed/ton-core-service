@@ -18,9 +18,11 @@ import com.speed.toncore.withdraw.request.WithdrawRequest;
 import com.speed.toncore.withdraw.response.WithdrawResponse;
 import com.speed.toncore.withdraw.service.WithdrawService;
 import org.springframework.stereotype.Service;
+import org.ton.ton4j.utils.Utils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -110,6 +112,11 @@ public class WithdrawServiceImpl implements WithdrawService {
 		feeEstimationRequest.setFromAddress(fromAddress);
 		feeEstimationRequest.setToAddress(toAddress);
 		feeEstimationRequest.setJettonMasterAddress(jettonMasterAddress);
-		return transactionFeeService.estimateTransactionFee(feeEstimationRequest).getTransactionFee().multiply(BigDecimal.valueOf(1.1)).toBigInteger();
+		BigDecimal scaledFee = transactionFeeService.estimateTransactionFee(feeEstimationRequest)
+				.getTransactionFee()
+				.multiply(BigDecimal.valueOf(1.1))
+				.setScale(9, RoundingMode.HALF_UP);
+
+		return Utils.toNano(scaledFee);
 	}
 }

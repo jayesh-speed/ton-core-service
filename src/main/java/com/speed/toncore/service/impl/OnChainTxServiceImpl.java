@@ -103,6 +103,8 @@ public class OnChainTxServiceImpl implements OnChainTxService {
 		}
 		onChainTx = TonOnChainTxMapper.INSTANCE.mapTransferToOnChainTx(transfer);
 		onChainTx.setAmount(new BigDecimal(transfer.getAmount()).divide(BigDecimal.TEN.pow(jettonDecimals), jettonDecimals, RoundingMode.HALF_DOWN));
+		onChainTx.setTransactionFee(fees);
+		onChainTx.setTxReference(txReference);
 		onChainTx.setTransactionType(TonOnChainTxType.DEBIT.name());
 		onChainTx.setTransactionStatus(OnChainTxStatus.CONFIRMED.getValue());
 		try {

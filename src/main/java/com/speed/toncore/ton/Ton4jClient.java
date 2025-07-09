@@ -35,8 +35,8 @@ public class Ton4jClient {
 			tonNodePool.addTonNodeAndChainId(chainId, tonNode);
 			Set<String> receivingAddresses = tonWalletService.fetchReceiveAddresses(chainId);
 			Set<String> sendingAddresses = tonWalletService.fetchSendAddresses(chainId);
-			listenerService.bootUpTonListeners(true);
 			tonConfigParam.initConfigParam(chainId);
+			listenerService.bootUpTonListeners(true);
 		});
 	}
 

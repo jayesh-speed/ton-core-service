@@ -19,7 +19,6 @@ public class Constants {
 	public final String CHAIN_ID = "chain-id";
 	public final String ELAPSE_TIME = "elapse_time";
 	public final String FALSE = "false";
-	public final String FORWARD_TON_AMOUNT_FOR_DEPLOYMENT = "0.1";
 	public final String MAIN_NET = "main_net";
 	public final String MODE = "speed-livemode";
 	public final String PROCESSED_BY_TON = "ton";
@@ -28,6 +27,7 @@ public class Constants {
 	public final String USDT_CURRENCY_SYMBOL = "USDT";
 	public final String USER_ID = "user_id";
 	public final String WALLET = "wallet";
+	public final String X_API_KEY = "X-Api-Key";
 	public final int MAIN_NET_POLLING_INTERVAL = 10;
 	public final int TEST_NET_POLLING_INTERVAL = 15;
 	public final BigDecimal DEFAULT_TRANSACTION_FEE = new BigDecimal("0.03942688");

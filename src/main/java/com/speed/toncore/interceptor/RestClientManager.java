@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.speed.javacommon.constants.CommonLogKeys;
 import com.speed.javacommon.enums.CommonLogActions;
 import com.speed.javacommon.log.LogHolder;
+import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Errors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,15 +38,17 @@ public class RestClientManager {
 	public static final String RESPONSE_STATUS = "response_status";
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-	private static final List<String> SECURE_HEADER_NAMES = List.of(HttpHeaders.AUTHORIZATION);
+	private static final List<String> SECURE_HEADER_NAMES = List.of(HttpHeaders.AUTHORIZATION, Constants.X_API_KEY);
 	private final RestClient restClient;
 
 	private static void setHeadersToLog(HttpHeaders headers, APIRequest apiRequest) {
 		if (Objects.nonNull(headers)) {
 			MultiValueMap<String, String> secureHeaders = new LinkedMultiValueMap<>(SECURE_HEADER_NAMES.size());
 			SECURE_HEADER_NAMES.forEach(headerName -> {
-				List<String> headerValues = headers.remove(headerName);
-				secureHeaders.addAll(headerName, headerValues);
+				if (headers.containsKey(headerName)) {
+					List<String> headerValues = headers.remove(headerName);
+					secureHeaders.addAll(headerName, headerValues);
+				}
 			});
 			apiRequest.setHeaders(headers.toSingleValueMap());
 			headers.addAll(secureHeaders);

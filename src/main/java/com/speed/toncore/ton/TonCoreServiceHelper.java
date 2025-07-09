@@ -47,10 +47,14 @@ public class TonCoreServiceHelper {
 	private final TonNodePool tonNodePool;
 	private final ObjectMapper objectMapper;
 
-	private HttpHeaders getHeaders(String apiKey) {
+	private HttpHeaders getHeaders(String apiKey, boolean isTonCenterApi) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-		headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey);
+		if (isTonCenterApi) {
+			headers.add(Constants.X_API_KEY, apiKey);
+		} else {
+			headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey);
+		}
 		return headers;
 	}
 
@@ -60,7 +64,7 @@ public class TonCoreServiceHelper {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add(JsonKeys.QueryParameters.ADDRESS, address);
 		Map<String, Object> response = restClient.executeAPICall(HttpMethod.GET,
-				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_TON_BALANCE), params, getHeaders(tonNode.getApiKey()));
+				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_TON_BALANCE), params, getHeaders(tonNode.getApiKey(), false));
 		AccountBalanceDto accountBalanceDto = parseResponse(response, AccountBalanceDto.class);
 		return accountBalanceDto.getResult();
 	}
@@ -70,7 +74,7 @@ public class TonCoreServiceHelper {
 		TonNode tonNode = tonNodePool.getTonNodeByChainId();
 		String url = String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.SEND_MESSAGE_WITH_RETURN_DATA);
 		Map<String, Object> requestBody = Map.of(JsonKeys.QueryParameters.BOC, messageBoc);
-		Map<String, Object> response = restClient.executeAPICall(HttpMethod.POST, url, null, getHeaders(tonNode.getApiKey()), requestBody);
+		Map<String, Object> response = restClient.executeAPICall(HttpMethod.POST, url, null, getHeaders(tonNode.getApiKey(), false), requestBody);
 		SendTransactionDto sendTransactionDto = parseResponse(response, SendTransactionDto.class);
 		Assert.nonNull(sendTransactionDto.getMessageHash(), () -> new RetryException(String.format(CommonErrors.ERROR_WHILE_CALLING_URL, url)));
 		return sendTransactionDto.getMessageHash();
@@ -89,7 +93,8 @@ public class TonCoreServiceHelper {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add(JsonKeys.QueryParameters.ADDRESS, address);
 		Map<String, Object> response = restClient.executeAPICall(HttpMethod.GET,
-				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_ACCOUNT_STATE), params, getHeaders(tonNode.getApiKey()));
+				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_ACCOUNT_STATE), params,
+				getHeaders(tonNode.getApiKey(), false));
 		AccountStatusDto accountStatusDto = parseResponse(response, AccountStatusDto.class);
 		return accountStatusDto.getResult().equalsIgnoreCase(Constants.ACTIVE);
 	}
@@ -101,7 +106,8 @@ public class TonCoreServiceHelper {
 		params.add(JsonKeys.QueryParameters.ADDRESS, address);
 		params.add(JsonKeys.QueryParameters.USE_V2, Boolean.FALSE.toString());
 		Map<String, Object> response = restClient.executeAPICall(HttpMethod.GET,
-				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_WALLET_INFORMATION), params, getHeaders(tonNode.getApiKey()));
+				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_WALLET_INFORMATION), params,
+				getHeaders(tonNode.getApiKey(), false));
 		return parseResponse(response, WalletInformationDto.class);
 	}
 
@@ -113,7 +119,8 @@ public class TonCoreServiceHelper {
 		params.add(JsonKeys.QueryParameters.JETTON_MASTER_ADDRESS, jettonMasterAddress);
 		params.add(JsonKeys.QueryParameters.EXCLUDE_ZERO_BALANCE, Boolean.FALSE.toString());
 		Map<String, Object> response = restClient.executeAPICall(HttpMethod.GET,
-				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_JETTON_WALLET), params, getHeaders(tonNode.getApiKey()));
+				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_JETTON_WALLET), params,
+				getHeaders(tonNode.getApiKey(), false));
 		return parseResponse(response, JettonWalletDto.class);
 	}
 
@@ -124,7 +131,7 @@ public class TonCoreServiceHelper {
 				JsonKeys.QueryParameters.INIT_CODE, initCode, JsonKeys.QueryParameters.INIT_DATA, initData, JsonKeys.QueryParameters.IGNORE_CHKSIG,
 				ignoreChksig);
 		Map<String, Object> response = restClient.executeAPICall(HttpMethod.POST,
-				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_ESTIMATE_FEES), null, getHeaders(tonNode.getApiKey()),
+				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_ESTIMATE_FEES), null, getHeaders(tonNode.getApiKey(), false),
 				payload);
 		return parseResponse(response, FeeDto.class);
 	}
@@ -139,7 +146,7 @@ public class TonCoreServiceHelper {
 		params.add(JsonKeys.QueryParameters.SORT, JsonKeys.QueryParameters.SORT_ASC);
 		Map<String, Object> response = restClient.executeAPICall(HttpMethod.GET,
 				String.format(URL_TEMPLATE, tonNode.getTonCenterUrl(), Endpoints.TonIndexer.GET_TRACE_BY_TRACE_ID), params,
-				getHeaders(tonNode.getTonCenterApiKey()));
+				getHeaders(tonNode.getTonCenterApiKey(), true));
 		TraceDto traceDto = parseResponse(response, TraceDto.class);
 		if (traceDto != null && traceDto.getTraces() != null && !traceDto.getTraces().isEmpty()) {
 			return traceDto;
@@ -153,7 +160,8 @@ public class TonCoreServiceHelper {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add(JsonKeys.QueryParameters.CONFIG_ID, configParam.toString());
 		Map<String, Object> response = restClient.executeAPICall(HttpMethod.GET,
-				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_CONFIG_PARAM), params, getHeaders(tonNode.getApiKey()), null);
+				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_CONFIG_PARAM), params, getHeaders(tonNode.getApiKey(), false),
+				null);
 		return parseResponse(response, TonConfigParamDto.class);
 	}
 

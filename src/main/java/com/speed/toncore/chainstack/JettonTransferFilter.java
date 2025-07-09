@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.speed.javacommon.exceptions.InternalServerErrorException;
 import com.speed.javacommon.util.StringUtil;
+import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.constants.JsonKeys;
 import com.speed.toncore.pojo.JettonTransferDto;
@@ -122,7 +123,8 @@ public class JettonTransferFilter {
 						offset += 1000;
 					} else {
 						throw new InternalServerErrorException(
-								String.format(Errors.TonIndexer.ERROR_ON_FETCHING_JETTON_TRANSFERS, jettonMasterAddress, response.body(), response.code()));
+								String.format(Errors.TonIndexer.ERROR_ON_FETCHING_JETTON_TRANSFERS, jettonMasterAddress, response.body(),
+										response.code()));
 					}
 				}
 			} catch (InternalServerErrorException ex) {
@@ -146,7 +148,7 @@ public class JettonTransferFilter {
 				.build();
 		return new Request.Builder().url(url)
 				.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-				.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+				.addHeader(Constants.X_API_KEY, apiKey)
 				.build();
 	}
 }

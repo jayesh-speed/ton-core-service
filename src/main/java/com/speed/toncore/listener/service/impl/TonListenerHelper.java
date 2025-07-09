@@ -100,8 +100,8 @@ public class TonListenerHelper {
 			return;
 		}
 		BigDecimal fees = transactionFeeService.getJettonTransactionFee(transfer.getTraceId());
-		withdrawProcessHelper.markWithdrawProcessPaid(transfer,fees);
-		onChainTxService.updateConfirmedDebitOnChainTx(transfer, jettonResponse.getDecimals(),fees);
+		withdrawProcessHelper.markWithdrawProcessPaid(transfer, fees);
+		onChainTxService.updateConfirmedDebitOnChainTx(transfer, jettonResponse.getDecimals(), fees);
 	}
 
 	@Async
@@ -130,6 +130,6 @@ public class TonListenerHelper {
 		SweepRequest sweepRequest = new SweepRequest();
 		sweepRequest.setFromAddress(transfer.getDestination());
 		sweepRequest.setJettonMasterAddress(transfer.getJettonMaster());
-		sweepService.initiateSweepOnChainTx(sweepRequest);
+		sweepService.initiateSweepOnChainTx(sweepRequest, null);
 	}
 }
