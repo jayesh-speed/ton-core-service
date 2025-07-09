@@ -85,17 +85,18 @@ public class OnChainTxServiceImpl implements OnChainTxService {
 	}
 
 	@Override
-	public void updateConfirmedDebitOnChainTx(JettonTransferDto transfer, int jettonDecimals) {
+	public void updateConfirmedDebitOnChainTx(JettonTransferDto transfer, int jettonDecimals, BigDecimal fees) {
 		String txReference = TonUtil.deserializeTransactionReference(transfer.getForwardPayload());
 		Predicate queryPredicate = new BooleanBuilder(qTonOnChainTx.txReference.eq(txReference));
 		TonOnChainTx onChainTx = onChainTxRepository.findAndProjectUnique(queryPredicate, qTonOnChainTx, qTonOnChainTx.id, qTonOnChainTx.transactionHash,
 				qTonOnChainTx.toAddress, qTonOnChainTx.jettonMasterAddress);
 		if (Objects.nonNull(onChainTx)) {
-			Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(6);
+			Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(7);
 			fieldWithValue.put(qTonOnChainTx.transactionHash, transfer.getTransactionHash());
 			fieldWithValue.put(qTonOnChainTx.traceId, transfer.getTraceId());
 			fieldWithValue.put(qTonOnChainTx.confirmationTimestamp, transfer.getTransactionNow());
 			fieldWithValue.put(qTonOnChainTx.transactionStatus, OnChainTxStatus.CONFIRMED.getValue());
+			fieldWithValue.put(qTonOnChainTx.transactionFee, fees);
 			fieldWithValue.put(qTonOnChainTx.logicalTime, transfer.getTransactionLt());
 			updateOnChainTx(onChainTx, fieldWithValue);
 			return;

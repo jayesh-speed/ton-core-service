@@ -2,6 +2,7 @@ package com.speed.toncore.pojo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.speed.toncore.constants.JsonKeys;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Setter
 @Getter
+@Data
 public class FeeDto {
 
 	@JsonProperty(JsonKeys.TonIndexer.DESTINATION_FEES)
@@ -19,6 +21,7 @@ public class FeeDto {
 
 	@Setter
 	@Getter
+	@Data
 	public static class Fee {
 
 		@JsonProperty(JsonKeys.TonIndexer.FORWARD_FEE)

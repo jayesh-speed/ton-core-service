@@ -12,10 +12,10 @@ public class JsonKeys {
 	public final String DECIMALS = "decimals";
 	public final String DEPLOYMENT_COST = "deployment_cost";
 	public final String ERRORS = "errors";
-	public final String FORWARD_TON_AMOUNT = "forward_ton_amount";
 	public final String FROM_ADDRESS = "from_address";
 	public final String FWD_FEE = "fwd_fee";
 	public final String GAS_UNIT = "gas_unit";
+	public final String GAS_UNIT_V3 = "gas_unit_v3";
 	public final String IN_MSG = "in_msg";
 	public final String IS_MAIN_NET = "is_main_net";
 	public final String JETTON_MASTER_ADDRESS = "jetton_master_address";
@@ -23,7 +23,9 @@ public class JsonKeys {
 	public final String JETTON_SYMBOL = "jetton_symbol";
 	public final String LOCAL_BALANCE = "local_balance";
 	public final String NO_OF_BITS = "no_of_bits";
+	public final String NO_OF_BITS_V3 = "no_of_bits_v3";
 	public final String NO_OF_CELL = "no_of_cell";
+	public final String NO_OF_CELL_V3 = "no_of_cell_v3";
 	public final String OUT_MSGS = "out_msgs";
 	public final String PARAMETERS = "params";
 	public final String RESERVE_STORAGE_FEE = "reserve_storage_fee";
@@ -40,6 +42,7 @@ public class JsonKeys {
 	public final String TRANSACTION_HASH = "transaction_hash";
 	public final String TX_REFERENCE = "tx_reference";
 	public final String TYPE = "type";
+	public final String V5_DEPLOYMENT_COST = "v5_deployment_cost";
 	public final String VALUE = "value";
 
 	@UtilityClass

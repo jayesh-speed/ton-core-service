@@ -1,7 +1,9 @@
 package com.speed.toncore.service;
 
-import com.speed.toncore.withdraw.request.WithdrawRequest;
 import com.speed.toncore.pojo.JettonTransferDto;
+import com.speed.toncore.withdraw.request.WithdrawRequest;
+
+import java.math.BigDecimal;
 
 public interface OnChainTxService {
 
@@ -11,7 +13,7 @@ public interface OnChainTxService {
 
 	void createConfirmedCreditOnChainTx(JettonTransferDto transfer, int jettonDecimals);
 
-	void updateConfirmedDebitOnChainTx(JettonTransferDto transfer, int tokenDecimals);
+	void updateConfirmedDebitOnChainTx(JettonTransferDto transfer, int tokenDecimals, BigDecimal fees);
 
 	void updateLatestLogicalTime(String id, Long logicalTime);
 }

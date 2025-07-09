@@ -166,7 +166,7 @@ public class TonCoreService {
 
 	@Retryable(retryFor = RetryException.class, backoff = @Backoff(delay = 2000), maxAttempts = 5)
 	public String transferJettonToMainAccount(String spenderRawAddress, String encryptedKey, String jettonMasterAddress, String mainAccountAddress,
-			String feeAccountEncryptedKey, String txReference) {
+			String feeAccountEncryptedKey, String txReference,BigInteger fee) {
 		try {
 			TonNode tonNode = tonNodePool.getTonNodeByChainId();
 			String encryptionAlgo = tonNode.getEncryptionAlgo();
@@ -215,7 +215,7 @@ public class TonCoreService {
 					.walletId(tonNode.getWalletId())
 					.sendMode(SendMode.PAY_GAS_SEPARATELY_AND_IGNORE_ERRORS)
 					.bounce(true)
-					.amount(Utils.toNano(Constants.FORWARD_TON_AMOUNT_FOR_DEPLOYMENT))
+					.amount(fee)
 					.body(spenderWalletContract.createInternalSignedBody(spenderConfig))
 					.build();
 			if (!isDeployed) {

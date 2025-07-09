@@ -39,6 +39,15 @@ public class TonJetton extends IdentityJpaDomain {
 	@Column(name = DbFields.DEPLOYMENT_COST, columnDefinition = "BIGINT")
 	private Long deploymentCost;
 
+	@Column(name = DbFields.NO_OF_CELL_V3, columnDefinition = "TINYINT UNSIGNED")
+	private Integer noOfCellV3;
+
+	@Column(name = DbFields.NO_OF_BITS_V3, columnDefinition = "INT")
+	private Integer noOfBitsV3;
+
+	@Column(name = DbFields.GAS_UNIT_V3, columnDefinition = "TINYINT UNSIGNED")
+	private Integer gasUnitV3;
+
 	@Column(name = DbFields.RESERVE_STORAGE_FEE, columnDefinition = "BIGINT")
 	private Long reserveStorageFee;
 

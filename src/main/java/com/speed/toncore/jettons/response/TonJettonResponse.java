@@ -27,6 +27,15 @@ public class TonJettonResponse {
 	@JsonProperty(JsonKeys.GAS_UNIT)
 	private Integer gasUnit;
 
+	@JsonProperty(JsonKeys.NO_OF_CELL_V3)
+	private Integer noOfCellV3;
+
+	@JsonProperty(JsonKeys.NO_OF_BITS_V3)
+	private Integer noOfBitsV3;
+
+	@JsonProperty(JsonKeys.GAS_UNIT_V3)
+	private Integer gasUnitV3;
+
 	@JsonProperty(JsonKeys.DEPLOYMENT_COST)
 	private Long deploymentCost;
 

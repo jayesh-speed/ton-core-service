@@ -97,8 +97,7 @@ public class WithdrawProcessHelper {
 		withdrawProcessRepository.updateFields(predicate, qWithdrawProcess, fieldWithValue);
 	}
 
-	public void markWithdrawProcessPaid(JettonTransferDto transfer) {
-		BigDecimal fees = transactionFeeService.getJettonTransactionFee(transfer.getTraceId());
+	public void markWithdrawProcessPaid(JettonTransferDto transfer,BigDecimal fees) {
 		Long currentTime = DateTimeUtil.currentEpochMilliSecondsUTC();
 		String txReference = TonUtil.deserializeTransactionReference(transfer.getForwardPayload());
 		Predicate predicate = qWithdrawProcess.txReference.eq(txReference);

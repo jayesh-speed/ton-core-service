@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.ton.ton4j.cell.CellBuilder;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -110,11 +111,6 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 		}
 	}
 
-	private long getStorageFee(String address) {
-		String emptyCell = CellBuilder.beginCell().endCell().toBase64();
-		return tonCoreServiceHelper.getEstimateFees(address, emptyCell, "", "", true).getSourceFees().getStorageFee();
-	}
-
 	@Override
 	public EstimateFeeResponse estimateTransactionFee(FeeEstimationRequest request) {
 		TonJettonResponse tonJetton = tonJettonService.getTonJettonByAddress(request.getJettonMasterAddress());
@@ -122,7 +118,7 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 			throw new InternalServerErrorException(Errors.JETTON_ADDRESS_NOT_SUPPORTED);
 		}
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
-		long storageFeeHighLoadWallet;
+		long storageFeeMainAccount;
 		long storageFeeSenderJettonWallet;
 		long storageFeeRecipientJettonWallet = 0;
 		long deploymentFee = 0;
@@ -132,10 +128,10 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 		try {
 			if (StringUtil.nullOrEmpty(fromAddress)) {
 				TonMainAccount mainAccount = tonMainAccountService.getMainAccountDetail(jettonMasterAddress).getFirst();
-				storageFeeHighLoadWallet = getStorageFee(mainAccount.getAddress());
+				storageFeeMainAccount = getStorageFee(mainAccount.getAddress());
 				storageFeeSenderJettonWallet = getStorageFee(mainAccount.getJettonWalletAddress());
 			} else {
-				storageFeeHighLoadWallet = getStorageFee(fromAddress);
+				storageFeeMainAccount = getStorageFee(fromAddress);
 				String senderJettonWalletAddress = getJettonWalletAddress(fromAddress, jettonMasterAddress);
 				storageFeeSenderJettonWallet = getStorageFee(senderJettonWalletAddress);
 			}
@@ -149,7 +145,7 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 			ConfigParam configParam = TonConfigParam.getConfigByChainId(chainId);
 			int fwdFee = calculateFwdFee(tonJetton.getNoOfCell(), tonJetton.getNoOfBits(), configParam);
 			int gasFee = calculateGasFee(tonJetton.getGasUnit(), configParam);
-			long storageTotal = storageFeeHighLoadWallet + storageFeeSenderJettonWallet + storageFeeRecipientJettonWallet;
+			long storageTotal = storageFeeMainAccount + storageFeeSenderJettonWallet + storageFeeRecipientJettonWallet;
 			long reservedStorage = tonJetton.getReserveStorageFee();
 			long totalFee = fwdFee + gasFee + storageTotal + reservedStorage + deploymentFee;
 
@@ -165,6 +161,33 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 		}
 	}
 
+	@Override
+	public BigInteger estimateSweepFee(String feeAccountAddress, String spenderAccountAddress, String mainAccountJettonAddress,
+			String jettonMasterAddress) {
+		TonJettonResponse tonJetton = tonJettonService.getTonJettonByAddress(jettonMasterAddress);
+		if (Objects.isNull(tonJetton)) {
+			throw new InternalServerErrorException(Errors.JETTON_ADDRESS_NOT_SUPPORTED);
+		}
+		long feeAccountStorageFee = getStorageFee(feeAccountAddress);
+		long mainAccountJettonWalletStorageFee = getStorageFee(mainAccountJettonAddress);
+		long SpenderJettonWalletStorageFee = getStorageFee(getJettonWalletAddress(spenderAccountAddress, jettonMasterAddress));
+		long SpenderAccountStorageFee = getStorageFee(spenderAccountAddress);
+		Integer chainId = ExecutionContextUtil.getContext().getChainId();
+		ConfigParam configParam = TonConfigParam.getConfigByChainId(chainId);
+		int fwdFee = calculateFwdFee(tonJetton.getNoOfCellV3(), tonJetton.getNoOfBitsV3(), configParam);
+		int gasFee = calculateGasFee(tonJetton.getGasUnitV3(), configParam);
+		long reservedStorage = tonJetton.getReserveStorageFee();
+		long totalFee =
+				fwdFee + gasFee + feeAccountStorageFee + mainAccountJettonWalletStorageFee + SpenderJettonWalletStorageFee + SpenderAccountStorageFee +
+						reservedStorage;
+		return new BigInteger(String.valueOf((long) (totalFee * 1.15))); // Adding 15% buffer to the fee
+	}
+
+	private long getStorageFee(String address) {
+		String emptyCell = CellBuilder.beginCell().endCell().toBase64();
+		return tonCoreServiceHelper.getEstimateFees(address, emptyCell, "", "", true).getSourceFees().getStorageFee();
+	}
+
 	private String getJettonWalletAddress(String ownerAddress, String jettonMasterAddress) {
 		JettonWalletDto walletDto = tonCoreServiceHelper.getJettonWallet(ownerAddress, jettonMasterAddress);
 		if (!CollectionUtil.nullOrEmpty(walletDto.getJettonWallets())) {
@@ -175,7 +198,7 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 
 	private int calculateFwdFee(int cellCount, int bitCount, ConfigParam config) {
 		double dataCost = (double) (config.getBitPrice() * bitCount + config.getCellPrice() * cellCount) / BIT16;
-		return (int) (6 * config.getLumpPrice() + Math.ceil(dataCost));
+		return (int) (5 * config.getLumpPrice() + Math.ceil(dataCost));
 	}
 
 	private int calculateGasFee(int gasUsed, ConfigParam config) {

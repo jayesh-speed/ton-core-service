@@ -4,6 +4,7 @@ import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.speed.javacommon.util.DateTimeUtil;
 import com.speed.javacommon.util.RequestIdGenerator;
+import com.speed.toncore.accounts.service.TransactionFeeService;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.QTonListener;
@@ -28,6 +29,7 @@ import org.slf4j.MDC;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -43,6 +45,7 @@ public class TonListenerHelper {
 	private final OnChainTxService onChainTxService;
 	private final WithdrawProcessHelper withdrawProcessHelper;
 	private final SweepService sweepService;
+	private final TransactionFeeService transactionFeeService;
 
 	@Transactional
 	public TonListener fetchListenerAndUpdateToRunning() {
@@ -96,8 +99,9 @@ public class TonListenerHelper {
 			updateReceivedOnChainTx(transfer, jettonResponse.getDecimals());
 			return;
 		}
-		onChainTxService.updateConfirmedDebitOnChainTx(transfer, jettonResponse.getDecimals());
-		withdrawProcessHelper.markWithdrawProcessPaid(transfer);
+		BigDecimal fees = transactionFeeService.getJettonTransactionFee(transfer.getTraceId());
+		withdrawProcessHelper.markWithdrawProcessPaid(transfer,fees);
+		onChainTxService.updateConfirmedDebitOnChainTx(transfer, jettonResponse.getDecimals(),fees);
 	}
 
 	@Async
