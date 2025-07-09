@@ -153,12 +153,12 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 			return EstimateFeeResponse.builder()
 					.chainId(chainId)
 					.mainNet(chainId.equals(Constants.MAIN_NET_CHAIN_ID))
-					.transactionFee(Utils.fromNano(totalFee))
+					.estimateFee(Utils.fromNano(totalFee))
 					.build();
 
 		} catch (Exception e) {
 			LOG.error(String.format(Errors.ERROR_WHILE_ESTIMATION_FEE, chainId), e);
-			return EstimateFeeResponse.builder().transactionFee(Constants.DEFAULT_TRANSACTION_FEE).build();
+			return EstimateFeeResponse.builder().estimateFee(Constants.DEFAULT_TRANSACTION_FEE).build();
 		}
 	}
 

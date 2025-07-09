@@ -39,10 +39,10 @@ public class JsonKeys {
 	public final String TRANSACTIONS = "transactions";
 	public final String TRANSACTIONS_ORDER = "transactions_order";
 	public final String TRANSACTION_FEE = "transaction_fee";
+	public final String ESTIMATE_FEE = "estimate_fee";
 	public final String TRANSACTION_HASH = "transaction_hash";
 	public final String TX_REFERENCE = "tx_reference";
 	public final String TYPE = "type";
-	public final String V5_DEPLOYMENT_COST = "v5_deployment_cost";
 	public final String VALUE = "value";
 
 	@UtilityClass

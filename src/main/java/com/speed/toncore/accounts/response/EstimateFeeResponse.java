@@ -17,6 +17,6 @@ public class EstimateFeeResponse {
 	@JsonProperty(JsonKeys.IS_MAIN_NET)
 	private boolean mainNet;
 
-	@JsonProperty(JsonKeys.TRANSACTION_FEE)
-	private BigDecimal transactionFee;
+	@JsonProperty(JsonKeys.ESTIMATE_FEE)
+	private BigDecimal estimateFee;
 }
