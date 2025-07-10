@@ -128,7 +128,7 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 		String jettonMasterAddress = request.getJettonMasterAddress();
 		try {
 			if (StringUtil.nullOrEmpty(fromAddress)) {
-				TonMainAccount mainAccount = tonMainAccountService.getMainAccountDetail(jettonMasterAddress).getFirst();
+				TonMainAccount mainAccount = tonMainAccountService.getMainAccountInternal(jettonMasterAddress).getFirst();
 				storageFeeMainAccount = getStorageFee(mainAccount.getAddress());
 				storageFeeSenderJettonWallet = getStorageFee(mainAccount.getJettonWalletAddress());
 			} else {

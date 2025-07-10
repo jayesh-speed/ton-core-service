@@ -22,6 +22,7 @@ import com.speed.toncore.util.TonUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -62,7 +63,9 @@ public class TonWalletServiceImpl implements TonWalletService {
 		long usedCount = tonUsedWalletAddressRepository.findAndProject(tonUsedWalletPredicate, qTonUsedWalletAddress, qTonUsedWalletAddress.id).size();
 		long total = tonWalletAddressRepository.findAndProject(tonWalletPredicate, qTonWalletAddress, qTonWalletAddress.id).size() + usedCount;
 		if ((double) usedCount / total > 0.8) {
-			createPoolOfTonWalletAddresses(TonWalletRequest.builder().count(Math.toIntExact(total * 2)).build());
+			TonWalletRequest newAddressCreateRequest = new TonWalletRequest();
+			newAddressCreateRequest.setCount(Math.toIntExact(total * 2 - usedCount));
+			createPoolOfTonWalletAddresses(newAddressCreateRequest);
 		}
 	}
 
@@ -123,6 +126,10 @@ public class TonWalletServiceImpl implements TonWalletService {
 	}
 
 	@Override
+	@CacheEvict(value = Constants.CacheNames.RECEIVE_ADDRESSES, keyGenerator = Constants.CACHE_KEY_GENERATOR)
+	public void clearReceiveAddressesCache(Integer chainId) {}
+
+	@Override
 	@Cacheable(value = Constants.CacheNames.SEND_ADDRESSES, keyGenerator = Constants.CACHE_KEY_GENERATOR)
 	public Set<String> fetchSendAddresses(Integer chainId) {
 		List<TonMainAccount> mainAccountList = getMainAccounts();
@@ -131,4 +138,8 @@ public class TonWalletServiceImpl implements TonWalletService {
 		}
 		return Collections.emptySet();
 	}
+
+	@Override
+	@CacheEvict(value = Constants.CacheNames.SEND_ADDRESSES, keyGenerator = Constants.CACHE_KEY_GENERATOR)
+	public void clearSendAddressesCache(Integer chainId) {}
 }

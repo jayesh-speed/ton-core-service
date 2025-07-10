@@ -12,7 +12,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,7 +36,7 @@ public class TransactionFeeController {
 				TransactionFeeResponse.builder().transactionFee(transactionFeeService.getSweepTransactionFee(request.getTraceId())).build());
 	}
 
-	@GetMapping(Endpoints.ESTIMATE_TRANSACTION_FEE)
+	@PostMapping(Endpoints.ESTIMATE_TRANSACTION_FEE)
 	public ResponseEntity<EstimateFeeResponse> estimateTransactionFee(@Valid @RequestBody FeeEstimationRequest request) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.ESTIMATE_TRANSACTION_FEE);
 		EstimateFeeResponse fee = transactionFeeService.estimateTransactionFee(request);

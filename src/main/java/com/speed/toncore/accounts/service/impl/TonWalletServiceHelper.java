@@ -3,6 +3,7 @@ package com.speed.toncore.accounts.service.impl;
 import com.speed.toncore.accounts.request.TonWalletRequest;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.TonWalletAddress;
+import com.speed.toncore.events.TonAddressCreatedEvent;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
 import com.speed.toncore.repository.TonWalletAddressRepository;
 import com.speed.toncore.ton.TonNode;
@@ -10,6 +11,7 @@ import com.speed.toncore.ton.TonNodePool;
 import com.speed.toncore.util.SecurityManagerUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
@@ -29,6 +31,7 @@ public class TonWalletServiceHelper {
 	private final AtomicBoolean createInProgress = new AtomicBoolean(false);
 	private final TonNodePool tonNodePool;
 	private final TonWalletAddressRepository tonWalletAddressRepository;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public TonWalletAddress fetchWalletAddress() {
@@ -77,6 +80,10 @@ public class TonWalletServiceHelper {
 				tonAddresses.add(walletAddress);
 			}
 			tonWalletAddressRepository.saveAll(tonAddresses);
+			TonAddressCreatedEvent addressCreatedEvent = new TonAddressCreatedEvent(); // Update the cache and refresh the receive addresses
+			eventPublisher.publishEvent(addressCreatedEvent);
+		} catch (Exception e) {
+			LOG.error(String.format(Errors.ERROR_WHILE_CREATING_WALLETS, e.getMessage()), e);
 		} finally {
 			createInProgress.set(false);
 		}

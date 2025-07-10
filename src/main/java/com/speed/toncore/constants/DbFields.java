@@ -18,10 +18,7 @@ public class DbFields {
 	public final String FROM_ADDRESS = "from_address";
 	public final String GAS_UNIT = "gas_unit";
 	public final String GAS_UNIT_V3 = "gas_unit_v3";
-	public final String NO_OF_BITS_V3 = "no_of_bits_v3";
-	public final String NO_OF_CELL_V3 = "no_of_cell_v3";
 	public final String ID = "id";
-	public final String DEPLOYMENT_COST_V5 = "deployment_cost_v5";
 	public final String JETTON_MASTER_ADDRESS = "jetton_master_address";
 	public final String JETTON_NAME = "jetton_name";
 	public final String JETTON_SYMBOL = "jetton_symbol";
@@ -29,7 +26,9 @@ public class DbFields {
 	public final String LOGICAL_TIME = "logical_time";
 	public final String MAIN_NET = "main_net";
 	public final String NO_OF_BITS = "no_of_bits";
+	public final String NO_OF_BITS_V3 = "no_of_bits_v3";
 	public final String NO_OF_CELL = "no_of_cell";
+	public final String NO_OF_CELL_V3 = "no_of_cell_v3";
 	public final String PUBLIC_KEY = "public_key";
 	public final String REFERENCE = "reference";
 	public final String REFERENCE_ID = "reference_id";

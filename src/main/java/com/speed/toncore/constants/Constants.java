@@ -3,11 +3,12 @@ package com.speed.toncore.constants;
 import lombok.experimental.UtilityClass;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 
 @UtilityClass
 public class Constants {
 
+	public final BigDecimal DEFAULT_SWEEP_TRANSACTION_FEE = new BigDecimal("0.03942688");
+	public final BigDecimal DEFAULT_TRANSACTION_FEE = new BigDecimal("0.03942688");
 	public final Integer MAIN_NET_CHAIN_ID = 1;
 	public final Integer TEST_NET_CHAIN_ID = 11;
 	public final Long ONE_BILLION = 1_000_000_000L;
@@ -30,9 +31,6 @@ public class Constants {
 	public final String X_API_KEY = "X-Api-Key";
 	public final int MAIN_NET_POLLING_INTERVAL = 10;
 	public final int TEST_NET_POLLING_INTERVAL = 15;
-	public final BigDecimal DEFAULT_TRANSACTION_FEE = new BigDecimal("0.03942688");
-	public final BigDecimal DEFAULT_SWEEP_TRANSACTION_FEE = new BigDecimal("0.03942688");
-
 
 	@UtilityClass
 	public class SecretManagerKeys {
@@ -66,6 +64,7 @@ public class Constants {
 		public final String CREATE_TON_WALLET_ADDRESSES = "createTonWalletAddresses";
 		public final String DEPLOY_FEE_ACCOUNT = "deployFeeAccount";
 		public final String DEPLOY_MAIN_ACCOUNT = "deployMainAccount";
+		public final String ESTIMATE_TRANSACTION_FEE = "estimateTransactionFee";
 		public final String GET_ALL_JETTONS = "getAllJettons";
 		public final String GET_FEE_ACCOUNTS = "getFeeAccounts";
 		public final String GET_JETTON = "getJetton";
@@ -82,10 +81,9 @@ public class Constants {
 		public final String REMOVE_USED_TON_WALLET_ADDRESS = "removeUsedTonWalletAddress";
 		public final String SWEEP_TRANSACTION_FEE = "SweepTransactionFee";
 		public final String TRANSFER_JETTON = "transferJetton";
-		public final String UPDATE_LOGICAL_TIME = "updateLogicalTime";
 		public final String UPDATE_JETTON_WALLET = "updateJettonWallet";
+		public final String UPDATE_LOGICAL_TIME = "updateLogicalTime";
 		public final String UPDATE_TON_LISTENER_STATUS = "updateTonListenerStatus";
-		public final String ESTIMATE_TRANSACTION_FEE = "estimateTransactionFee";
 	}
 
 	@UtilityClass

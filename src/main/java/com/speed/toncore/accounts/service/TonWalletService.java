@@ -17,5 +17,9 @@ public interface TonWalletService {
 
 	Set<String> fetchReceiveAddresses(Integer chainId);
 
+	void clearReceiveAddressesCache(Integer chainId);
+
 	Set<String> fetchSendAddresses(Integer chainId);
+
+	void clearSendAddressesCache(Integer chainId);
 }

@@ -12,6 +12,7 @@ public class JsonKeys {
 	public final String DECIMALS = "decimals";
 	public final String DEPLOYMENT_COST = "deployment_cost";
 	public final String ERRORS = "errors";
+	public final String ESTIMATE_FEE = "estimate_fee";
 	public final String FROM_ADDRESS = "from_address";
 	public final String FWD_FEE = "fwd_fee";
 	public final String GAS_UNIT = "gas_unit";
@@ -39,7 +40,6 @@ public class JsonKeys {
 	public final String TRANSACTIONS = "transactions";
 	public final String TRANSACTIONS_ORDER = "transactions_order";
 	public final String TRANSACTION_FEE = "transaction_fee";
-	public final String ESTIMATE_FEE = "estimate_fee";
 	public final String TRANSACTION_HASH = "transaction_hash";
 	public final String TX_REFERENCE = "tx_reference";
 	public final String TYPE = "type";

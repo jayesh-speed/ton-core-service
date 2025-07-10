@@ -119,8 +119,8 @@ public class JettonTransferFilter {
 								throw new InternalServerErrorException(String.format(Errors.TonIndexer.FAILED_TO_PARSE_TRANSFER, item.toString()), e);
 							}
 						}
-						hasMore = transfersArray.size() == 1000;
-						offset += 1000;
+						hasMore = transfersArray.size() == PAGE_LIMIT;
+						offset += PAGE_LIMIT;
 					} else {
 						throw new InternalServerErrorException(
 								String.format(Errors.TonIndexer.ERROR_ON_FETCHING_JETTON_TRANSFERS, jettonMasterAddress, response.body(),

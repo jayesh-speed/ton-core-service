@@ -6,9 +6,11 @@ import com.speed.toncore.accounts.service.TonFeeAccountService;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Endpoints;
 import com.speed.toncore.constants.LogKeys;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 public class TonFeeAccountController {
 
 	private final TonFeeAccountService tonFeeAccountService;
@@ -30,14 +33,14 @@ public class TonFeeAccountController {
 	}
 
 	@DeleteMapping(Endpoints.REMOVE_FEE_ACCOUNT)
-	public ResponseEntity<Void> removeFeeAccount(@PathVariable String address) {
+	public ResponseEntity<Void> removeFeeAccount(@PathVariable @NotBlank String address) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.REMOVE_FEE_ACCOUNT);
 		tonFeeAccountService.deleteFeeAccount(address);
 		return ResponseEntity.ok().build();
 	}
 
 	@PostMapping(Endpoints.DEPLOY_FEE_ACCOUNT)
-	public ResponseEntity<DeployedAccountResponse> deployFeeAccount(@PathVariable String address) {
+	public ResponseEntity<DeployedAccountResponse> deployFeeAccount(@PathVariable @NotBlank String address) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.DEPLOY_FEE_ACCOUNT);
 		return ResponseEntity.ok(tonFeeAccountService.deployFeeAccount(address));
 	}

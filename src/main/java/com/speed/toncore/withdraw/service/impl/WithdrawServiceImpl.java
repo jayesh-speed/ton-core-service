@@ -64,7 +64,7 @@ public class WithdrawServiceImpl implements WithdrawService {
 
 		withdrawRequest.setJettonMasterAddress(jetton.getJettonMasterAddress());
 		BigDecimal value = new BigDecimal(withdrawRequest.getValue());
-		List<TonMainAccount> mainAccountList = tonMainAccountService.getMainAccountDetail(jetton.getJettonMasterAddress());
+		List<TonMainAccount> mainAccountList = tonMainAccountService.getMainAccountInternal(jetton.getJettonMasterAddress());
 		if (CollectionUtil.nullOrEmpty(mainAccountList)) {
 			throw new InternalServerErrorException(Errors.MAIN_ACCOUNT_NOT_FOUND);
 		}

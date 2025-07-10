@@ -1,7 +1,6 @@
 package com.speed.toncore.config;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
@@ -12,7 +11,7 @@ import java.util.concurrent.Executor;
 
 @Configuration
 @EnableAsync
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 public class AsyncConfiguration implements AsyncConfigurer {
 
 	private final AsyncConfig asyncConfig;

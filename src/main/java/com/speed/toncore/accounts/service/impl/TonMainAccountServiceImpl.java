@@ -14,6 +14,7 @@ import com.speed.toncore.accounts.service.TonMainAccountService;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.QTonMainAccount;
 import com.speed.toncore.domain.model.TonMainAccount;
+import com.speed.toncore.events.MainAccountCreateEvent;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
 import com.speed.toncore.pojo.JettonWalletDto;
 import com.speed.toncore.repository.TonMainAccountRepository;
@@ -25,6 +26,8 @@ import com.speed.toncore.util.SecurityManagerUtil;
 import com.speed.toncore.util.TonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.ton.ton4j.address.Address;
 import org.ton.ton4j.cell.Cell;
@@ -58,6 +61,7 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 	private final TonNodePool tonNodePool;
 	private final TonCoreService tonCoreService;
 	private final TonCoreServiceHelper tonCoreServiceHelper;
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	@Override
 	public TonAccountResponse createMainAccount(String jettonMasterAddress) {
@@ -83,6 +87,13 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 				.build();
 		tonMainAccountRepository.save(tonMainAccount);
 		return TonAccountResponse.builder().address(tonMainAccount.getAddress()).build();
+	}
+
+	@Override
+	@Async
+	public void publishMainAccountCreateEvent() {
+		MainAccountCreateEvent mainAccountCreateEvent = new MainAccountCreateEvent();
+		applicationEventPublisher.publishEvent(mainAccountCreateEvent);
 	}
 
 	@Override
@@ -158,14 +169,14 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 
 	@Override
 	public List<TonAccountResponse> getMainAccounts(String jettonMasterAddress) {
-		List<TonMainAccount> mainAccounts = getMainAccountDetail(jettonMasterAddress);
+		List<TonMainAccount> mainAccounts = getMainAccountInternal(jettonMasterAddress);
 		return mainAccounts.stream()
 				.map(mainAccount -> TonAccountResponse.builder().address(mainAccount.getAddress()).localBalance(mainAccount.getTonBalance()).build())
 				.collect(Collectors.toList());
 	}
 
 	@Override
-	public List<TonMainAccount> getMainAccountDetail(String jettonMasterAddress) {
+	public List<TonMainAccount> getMainAccountInternal(String jettonMasterAddress) {
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
 		Predicate queryPredicate = qTonMainAccount.chainId.eq(chainId).and(qTonMainAccount.jettonMasterAddress.eq(jettonMasterAddress));
 		return tonMainAccountRepository.findAndProject(queryPredicate, qTonMainAccount, qTonMainAccount.address, qTonMainAccount.publicKey,

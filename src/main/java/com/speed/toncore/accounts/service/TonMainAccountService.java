@@ -18,5 +18,7 @@ public interface TonMainAccountService {
 
 	List<TonAccountResponse> getMainAccounts(String jettonMasterAddress);
 
-	List<TonMainAccount> getMainAccountDetail(String jettonMasterAddress);
+	List<TonMainAccount> getMainAccountInternal(String jettonMasterAddress);
+
+	void publishMainAccountCreateEvent();
 }

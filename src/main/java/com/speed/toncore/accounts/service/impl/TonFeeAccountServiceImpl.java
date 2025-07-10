@@ -115,13 +115,13 @@ public class TonFeeAccountServiceImpl implements TonFeeAccountService {
 
 	@Override
 	public List<TonAccountResponse> getFeeAccounts() {
-		return getTonFeeAccounts().stream()
+		return getFeeAccountsInternal().stream()
 				.map(feeAccount -> TonAccountResponse.builder().address(feeAccount.getAddress()).localBalance(feeAccount.getTonBalance()).build())
 				.collect(Collectors.toList());
 	}
 
 	@Override
-	public List<TonFeeAccount> getTonFeeAccounts() {
+	public List<TonFeeAccount> getFeeAccountsInternal() {
 		int chainId = ExecutionContextUtil.getContext().getChainId();
 		Predicate queryPredicate = qTonFeeAccount.chainId.eq(chainId);
 		return tonFeeAccountRepository.findAndProject(queryPredicate, qTonFeeAccount, qTonFeeAccount.address, qTonFeeAccount.publicKey,

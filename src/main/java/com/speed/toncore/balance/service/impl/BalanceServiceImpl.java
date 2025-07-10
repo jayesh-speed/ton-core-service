@@ -33,7 +33,7 @@ public class BalanceServiceImpl implements BalanceService {
 		ownerAddress = TonUtil.toRawAddress(ownerAddress);
 		TonJettonResponse jetton = tonJettonService.getTonJettonByAddress(jettonMasterAddress);
 		if (Objects.isNull(jetton)) {
-			throw new BadRequestException(String.format(Errors.JETTON_ADDRESS_NOT_SUPPORTED), null, null);
+			throw new BadRequestException(Errors.JETTON_ADDRESS_NOT_SUPPORTED, null, null);
 		}
 		BigDecimal balance = tonCoreService.fetchJettonBalance(jettonMasterAddress, ownerAddress, jetton.getDecimals());
 		return BalanceResponse.builder().balance(balance).build();

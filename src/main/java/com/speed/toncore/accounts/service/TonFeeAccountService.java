@@ -16,5 +16,5 @@ public interface TonFeeAccountService {
 
 	List<TonAccountResponse> getFeeAccounts();
 
-	List<TonFeeAccount> getTonFeeAccounts();
+	List<TonFeeAccount> getFeeAccountsInternal();
 }
