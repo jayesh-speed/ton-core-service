@@ -36,9 +36,8 @@ public class RestClientManager {
 	public static final String RESPONSE_BODY = "response_body";
 	public static final String RESPONSE_HEADERS = "response_headers";
 	public static final String RESPONSE_STATUS = "response_status";
-
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private static final List<String> SECURE_HEADER_NAMES = List.of(HttpHeaders.AUTHORIZATION, Constants.X_API_KEY);
+	private final ObjectMapper OBJECT_MAPPER;
 	private final RestClient restClient;
 
 	private static void setHeadersToLog(HttpHeaders headers, APIRequest apiRequest) {

@@ -28,6 +28,7 @@ public class Errors {
 	public final String ERROR_PAYOUT_REQUEST = "Empty payout request(to_address). Your request cannot be completed";
 	public final String ERROR_PROCESSING_PAYOUT = "Error while processing payout";
 	public final String ERROR_PROCESSING_WITHDRAW = "Error while processing withdraw";
+	public final String ERROR_WHILE_FETCHING_CONFIG_PARAMS = "Failed to fetch or process config param %s for chain %s";
 	public final String ERROR_SUBSCRIBE_JETTON_LISTENER = "Error in rebooting the on chain jetton listener. Shutting down the current listener.";
 	public final String ERROR_SUBSCRIBING_ONCHAIN_TRANSACTION = "Error while subscribing on chain transaction for listener id: %s";
 	public final String ERROR_WHILE_CREATING_WALLETS = "Error creating new wallet addresses : %s";

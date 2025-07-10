@@ -166,7 +166,7 @@ public class TonCoreService {
 
 	@Retryable(retryFor = RetryException.class, backoff = @Backoff(delay = 2000), maxAttempts = 5)
 	public String transferJettonToMainAccount(String spenderRawAddress, String encryptedKey, String jettonMasterAddress, String mainAccountAddress,
-			String feeAccountEncryptedKey, String txReference,BigInteger fee) {
+			String feeAccountEncryptedKey, String txReference, BigInteger fee) {
 		try {
 			TonNode tonNode = tonNodePool.getTonNodeByChainId();
 			String encryptionAlgo = tonNode.getEncryptionAlgo();
@@ -193,11 +193,10 @@ public class TonCoreService {
 			Address feeAccountAddress = feeWalletContract.getAddress();
 			String feeAccountRawAddress = feeAccountAddress.toRaw();
 			LOG.info(LogMessages.Info.WAITING_FOR_BALANCE_UPDATE, spenderRawAddress);
-			Thread.sleep(5000);
+			Thread.sleep(3000);
 			List<JettonWalletDto.JettonWallet> jettonWallets = tonCoreServiceHelper.getJettonWallet(spenderRawAddress, jettonMasterAddress)
 					.getJettonWallets();
 			if (CollectionUtil.nullOrEmpty(jettonWallets)) {
-				LOG.error(String.format(Errors.ERROR_FETCHING_JETTON_WALLET, spenderRawAddress, jettonMasterAddress));
 				throw new RetryException(String.format(Errors.RETRYING_TO_FETCH_JETTON_WALLET, spenderAccountAddress, jettonMasterAddress));
 			}
 			JettonWalletDto.JettonWallet jettonWallet = jettonWallets.getFirst();

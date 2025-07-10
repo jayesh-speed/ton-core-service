@@ -59,7 +59,7 @@ public class TonJettonServiceImpl implements TonJettonService {
 	@Override
 	public List<TonJettonResponse> getAllJettons() {
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
-		BooleanBuilder predicateQuery = new BooleanBuilder(qTonJetton.chainId.eq(chainId));
+		Predicate predicateQuery = new BooleanBuilder(qTonJetton.chainId.eq(chainId));
 		List<TonJetton> tonJettons = tonJettonRepository.findAndProject(predicateQuery, qTonJetton, qTonJetton.jettonMasterAddress,
 				qTonJetton.jettonName, qTonJetton.id, qTonJetton.mainNet, qTonJetton.chainId, qTonJetton.decimals, qTonJetton.jettonSymbol,
 				qTonJetton.noOfCell, qTonJetton.noOfBits, qTonJetton.gasUnit, qTonJetton.deploymentCost, qTonJetton.reserveStorageFee,
@@ -74,11 +74,11 @@ public class TonJettonServiceImpl implements TonJettonService {
 	public TonJettonResponse getTonJettonBySymbol(String jettonSymbol) {
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
 		Predicate queryPredicate = new BooleanBuilder(qTonJetton.chainId.eq(chainId)).and(qTonJetton.jettonSymbol.eq(jettonSymbol));
-		TonJetton ethToken = tonJettonRepository.findAndProjectUnique(queryPredicate, qTonJetton, qTonJetton.id, qTonJetton.chainId,
+		TonJetton tonJetton = tonJettonRepository.findAndProjectUnique(queryPredicate, qTonJetton, qTonJetton.id, qTonJetton.chainId,
 				qTonJetton.jettonMasterAddress, qTonJetton.jettonName, qTonJetton.jettonSymbol, qTonJetton.decimals, qTonJetton.noOfCell,
 				qTonJetton.noOfBits, qTonJetton.gasUnit, qTonJetton.deploymentCost, qTonJetton.reserveStorageFee, qTonJetton.noOfCellV3,
 				qTonJetton.noOfBitsV3, qTonJetton.gasUnitV3);
-		return TonJettonMapper.INSTANCE.mapModalToJettonResponse(ethToken);
+		return TonJettonMapper.INSTANCE.mapModalToJettonResponse(tonJetton);
 	}
 
 	@Override

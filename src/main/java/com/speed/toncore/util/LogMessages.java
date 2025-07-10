@@ -7,6 +7,7 @@ public class LogMessages {
 
 	@UtilityClass
 	public class Warn {
+		public final String EMPTY_CONFIG_BYTES = "Config param bytes are empty for config ID: %s and chain ID: %s";
 		public final String LISTENER_ALREADY_RUNNING = "Ton listeners updated to Running status concurrently with another request.\n {}";
 		public final String LISTENER_NOT_FOUND = "Ton listener not found for chainId: {}";
 		public final String WAITING_FOR_TRACE_UPDATE = "Awaiting jetton trace update for traceId: %s";

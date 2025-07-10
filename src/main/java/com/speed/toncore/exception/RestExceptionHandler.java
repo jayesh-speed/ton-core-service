@@ -11,8 +11,7 @@ import com.speed.toncore.constants.Errors;
 import com.speed.toncore.interceptor.ApiError;
 import jakarta.servlet.ServletException;
 import jakarta.validation.constraints.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -39,9 +38,8 @@ import static net.logstash.logback.marker.Markers.appendEntries;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
+@Slf4j
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
-
-	private static final Logger LOG = LoggerFactory.getLogger(RestExceptionHandler.class);
 
 	@Override
 	protected ResponseEntity<Object> handleHttpMessageNotReadable(@NotNull HttpMessageNotReadableException ex, @NotNull HttpHeaders headers,

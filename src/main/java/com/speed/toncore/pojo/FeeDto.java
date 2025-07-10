@@ -10,7 +10,6 @@ import java.util.List;
 
 @Setter
 @Getter
-@Data
 public class FeeDto {
 
 	@JsonProperty(JsonKeys.TonIndexer.DESTINATION_FEES)
@@ -21,7 +20,6 @@ public class FeeDto {
 
 	@Setter
 	@Getter
-	@Data
 	public static class Fee {
 
 		@JsonProperty(JsonKeys.TonIndexer.FORWARD_FEE)

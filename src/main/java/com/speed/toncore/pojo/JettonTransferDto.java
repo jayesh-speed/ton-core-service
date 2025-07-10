@@ -8,7 +8,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Data
 public class JettonTransferDto {
 
 	@JsonProperty(JsonKeys.TonIndexer.QUERY_ID)

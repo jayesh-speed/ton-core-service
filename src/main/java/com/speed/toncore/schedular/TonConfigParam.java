@@ -3,9 +3,11 @@ package com.speed.toncore.schedular;
 import com.speed.javacommon.util.RequestIdGenerator;
 import com.speed.javacommon.util.StringUtil;
 import com.speed.toncore.constants.Constants;
+import com.speed.toncore.constants.Errors;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
 import com.speed.toncore.pojo.TonConfigParamDto;
 import com.speed.toncore.ton.TonCoreServiceHelper;
+import com.speed.toncore.util.LogMessages;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
@@ -71,7 +73,7 @@ public class TonConfigParam {
 				TonConfigParamDto configParamDto = tonCoreServiceHelper.getConfigParam(configId);
 				setTonConfig(configId, configParamDto, chainId);
 			} catch (Exception e) {
-				LOG.warn("Failed to fetch or process config param {} for chain {}: {}", configId, chainId, e.getMessage(), e);
+				LOG.error(String.format(Errors.ERROR_WHILE_FETCHING_CONFIG_PARAMS, configId, chainId), e);
 			}
 		}
 	}
@@ -80,7 +82,7 @@ public class TonConfigParam {
 		ConfigParam config = getConfigByChainId(chainId);
 		String bytes = configParamDto.getResult().getConfig().getBytes();
 		if (StringUtil.nullOrEmpty(bytes)) {
-			LOG.warn("Config param bytes are empty for config ID: {} and chain ID: {}", configId, chainId);
+			LOG.warn(String.format(LogMessages.Warn.EMPTY_CONFIG_BYTES, configId, chainId));
 			return;
 		}
 		Cell cell = CellBuilder.beginCell().fromBocBase64(bytes).endCell();
@@ -96,7 +98,6 @@ public class TonConfigParam {
 				config.setBitPrice(slice.loadUint(64).longValue());
 				config.setCellPrice(slice.loadUint(64).longValue());
 			}
-			default -> LOG.warn("Unsupported config param ID: {}", configId);
 		}
 	}
 }

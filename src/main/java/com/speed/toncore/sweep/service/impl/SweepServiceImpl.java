@@ -88,7 +88,7 @@ public class SweepServiceImpl implements SweepService {
 	@Override
 	public String initiateSweepOnChainTx(SweepRequest sweepRequest, String id, int decimals) {
 		TonNode tonNode = tonNodePool.getTonNodeByChainId();
-		TonFeeAccount feeAccount = tonFeeAccountService.getFeeAccountsInternal().getFirst();
+		TonFeeAccount feeAccount = tonFeeAccountService.getFeeAccountsInternal().parallelStream().findAny().get();
 		List<TonMainAccount> mainAccountList = tonMainAccountService.getMainAccountInternal(sweepRequest.getJettonMasterAddress());
 		if (CollectionUtil.nullOrEmpty(mainAccountList)) {
 			throw new InternalServerErrorException(Errors.MAIN_ACCOUNT_NOT_FOUND);

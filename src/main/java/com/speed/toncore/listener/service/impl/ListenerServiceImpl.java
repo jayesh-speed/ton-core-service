@@ -84,9 +84,8 @@ public class ListenerServiceImpl implements TonListenerService {
 
 	@Override
 	public void stopAndDisposeListener(TonListener listener) {
-		if (Objects.nonNull(tonChainListenerMap.get(listener))) {
-			tonChainListenerMap.get(listener).stop();
-			tonChainListenerMap.remove(listener);
+		if (tonChainListenerMap.containsKey(listener)) {
+			tonChainListenerMap.remove(listener).stop();
 		}
 	}
 
@@ -102,9 +101,8 @@ public class ListenerServiceImpl implements TonListenerService {
 				.apiKey(tonNode.getListenerApiKey())
 				.build();
 		jettonFilter.start().subscribe(transfer -> verifyAndUpdateOnChainTx(transfer, tonNode.getChainId()), error -> {
-			if (Objects.nonNull(tonChainListenerMap.get(listener))) {
-				JettonTransferFilter filter = tonChainListenerMap.get(listener);
-				filter.stop();
+			if (tonChainListenerMap.containsKey(listener)) {
+				tonChainListenerMap.get(listener).stop();
 			}
 			tonListenerHelper.updateListenerToIdle(listener);
 			LOG.error(String.format(Errors.ERROR_SUBSCRIBING_ONCHAIN_TRANSACTION, listener.getId()), error);

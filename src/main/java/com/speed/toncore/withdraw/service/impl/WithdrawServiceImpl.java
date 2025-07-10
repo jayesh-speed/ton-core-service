@@ -108,7 +108,7 @@ public class WithdrawServiceImpl implements WithdrawService {
 		feeEstimationRequest.setJettonMasterAddress(jettonMasterAddress);
 		BigDecimal scaledFee = transactionFeeService.estimateTransactionFee(feeEstimationRequest)
 				.getEstimateFee()
-				.multiply(BigDecimal.valueOf(1.1)) // Buffer 10% for fee estimation
+				.multiply(BigDecimal.valueOf(1.15)) // Buffer 15% for fee estimation
 				.setScale(9, RoundingMode.HALF_UP);
 
 		return Utils.toNano(scaledFee);

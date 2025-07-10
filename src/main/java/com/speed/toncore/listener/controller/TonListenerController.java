@@ -5,9 +5,11 @@ import com.speed.toncore.constants.Endpoints;
 import com.speed.toncore.constants.LogKeys;
 import com.speed.toncore.enums.TonListenerStatus;
 import com.speed.toncore.listener.service.TonListenerService;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class listenerController {
+@Validated
+public class TonListenerController {
 
 	private final TonListenerService tonListenerService;
 
@@ -28,14 +31,14 @@ public class listenerController {
 	}
 
 	@DeleteMapping(Endpoints.REMOVE_TON_LISTENER_BY_ID)
-	public ResponseEntity<Void> removeTonListenerById(@PathVariable String id) {
+	public ResponseEntity<Void> removeTonListenerById(@PathVariable @NotBlank String id) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.REMOVE_TON_LISTENER);
 		tonListenerService.deleteListenerById(id);
 		return ResponseEntity.ok().build();
 	}
 
 	@PutMapping(Endpoints.UPDATE_TON_LISTENER)
-	public ResponseEntity<Void> updateTonListener(@PathVariable String id) {
+	public ResponseEntity<Void> updateTonListener(@PathVariable @NotBlank String id) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.UPDATE_TON_LISTENER_STATUS);
 		tonListenerService.updateListenerStatus(tonListenerService.getListenerById(id), TonListenerStatus.IDLE.name());
 		return ResponseEntity.ok().build();

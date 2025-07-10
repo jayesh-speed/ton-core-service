@@ -19,7 +19,7 @@ public class SweepController {
 	private final SweepService sweepService;
 
 	@PostMapping(Endpoints.INITIATE_SWEEP)
-	public ResponseEntity<SweepResponse> performSweep(@RequestBody @Valid SweepRequest sweepRequest, @PathVariable String id) {
+	public ResponseEntity<SweepResponse> performSweep(@Valid @RequestBody SweepRequest sweepRequest, @PathVariable String id) {
 		return ResponseEntity.ok(sweepService.createSweepOnChainTx(sweepRequest, id));
 	}
 }
