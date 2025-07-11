@@ -185,7 +185,7 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 	}
 
 	private long getStorageFee(String address) {
-		if (StringUtil.nullOrEmpty(address)) {
+		if (StringUtil.nonNullNonEmpty(address)) {
 			String emptyCell = CellBuilder.beginCell().endCell().toBase64();
 			return tonCoreServiceHelper.getEstimateFees(address, emptyCell, "", "", true).getSourceFees().getStorageFee();
 		}
