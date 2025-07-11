@@ -185,8 +185,11 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 	}
 
 	private long getStorageFee(String address) {
-		String emptyCell = CellBuilder.beginCell().endCell().toBase64();
-		return tonCoreServiceHelper.getEstimateFees(address, emptyCell, "", "", true).getSourceFees().getStorageFee();
+		if (StringUtil.nullOrEmpty(address)) {
+			String emptyCell = CellBuilder.beginCell().endCell().toBase64();
+			return tonCoreServiceHelper.getEstimateFees(address, emptyCell, "", "", true).getSourceFees().getStorageFee();
+		}
+		return 0;
 	}
 
 	private String getJettonWalletAddress(String ownerAddress, String jettonMasterAddress) {

@@ -74,7 +74,7 @@ public class ApiInterceptor implements Filter {
 		byte[] buf = request.getContentAsByteArray();
 		if (buf.length > 0) {
 			try {
-				apiRequest.setBody(new String(buf, 0, buf.length, request.getCharacterEncoding()));
+				apiRequest.setBody(new String(buf, request.getCharacterEncoding()));
 			} catch (Exception e) {
 				LOG.error("error in reading request body", e);
 			}
@@ -108,7 +108,7 @@ public class ApiInterceptor implements Filter {
 			apiResponse.setStatus(HttpStatus.valueOf(response.getStatus()).getReasonPhrase());
 			byte[] buffer = response.getContentAsByteArray();
 			if (buffer.length > 0) {
-				apiResponse.setBody(new String(buffer, 0, buffer.length, response.getCharacterEncoding()));
+				apiResponse.setBody(new String(buffer, response.getCharacterEncoding()));
 				response.copyBodyToResponse();
 			}
 		} else {
