@@ -17,6 +17,7 @@ import com.speed.toncore.util.TonUtil;
 import com.speed.toncore.withdraw.request.WithdrawRequest;
 import com.speed.toncore.withdraw.response.WithdrawResponse;
 import com.speed.toncore.withdraw.service.WithdrawService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.ton.ton4j.utils.Utils;
 
@@ -29,6 +30,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class WithdrawServiceImpl implements WithdrawService {
 
 	private final TonJettonService tonJettonService;
@@ -36,15 +38,6 @@ public class WithdrawServiceImpl implements WithdrawService {
 	private final TonCoreService tonCoreService;
 	private final OnChainTxService onChainTxService;
 	private final TransactionFeeService transactionFeeService;
-
-	public WithdrawServiceImpl(TonJettonService tonJettonService, TonMainAccountService tonMainAccountService, TonCoreService tonCoreService,
-			OnChainTxService onChainTxService, TransactionFeeService transactionFeeService) {
-		this.tonJettonService = tonJettonService;
-		this.tonMainAccountService = tonMainAccountService;
-		this.tonCoreService = tonCoreService;
-		this.onChainTxService = onChainTxService;
-		this.transactionFeeService = transactionFeeService;
-	}
 
 	@Override
 	public WithdrawResponse transferJetton(WithdrawRequest withdrawRequest) {
