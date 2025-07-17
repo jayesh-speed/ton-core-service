@@ -1,4 +1,4 @@
-package com.speed.toncore.jettons.request;
+package com.speed.toncore.tokens.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -14,20 +14,20 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TonJettonRequest {
+public class TonTokenRequest {
 
-	@JsonProperty(JsonKeys.JETTON_MASTER_ADDRESS)
+	@JsonProperty(JsonKeys.TOKEN_ADDRESS)
 	@JsonDeserialize(using = TonAddressDeserializer.class)
-	@NotBlank(message = JsonKeys.JETTON_MASTER_ADDRESS + ValidationMessages.NOT_BLANK)
-	private String jettonMasterAddress;
+	@NotBlank(message = JsonKeys.TOKEN_ADDRESS + ValidationMessages.NOT_BLANK)
+	private String tokenAddress;
 
-	@JsonProperty(JsonKeys.JETTON_NAME)
-	@NotBlank(message = JsonKeys.JETTON_NAME + ValidationMessages.NOT_BLANK)
-	private String jettonName;
+	@JsonProperty(JsonKeys.TOKEN_NAME)
+	@NotBlank(message = JsonKeys.TOKEN_NAME + ValidationMessages.NOT_BLANK)
+	private String tokenName;
 
-	@JsonProperty(JsonKeys.JETTON_SYMBOL)
-	@NotBlank(message = JsonKeys.JETTON_SYMBOL + ValidationMessages.NOT_BLANK)
-	private String jettonSymbol;
+	@JsonProperty(JsonKeys.TOKEN_SYMBOL)
+	@NotBlank(message = JsonKeys.TOKEN_SYMBOL + ValidationMessages.NOT_BLANK)
+	private String tokenSymbol;
 
 	@JsonProperty(JsonKeys.NO_OF_CELL)
 	private Integer noOfCell;

@@ -30,7 +30,7 @@ public class CacheConfig {
 	public CacheManager cacheManager() {
 		CaffeineCache receiveAddressesCache = buildDefaultCache(Constants.CacheNames.RECEIVE_ADDRESSES);
 		CaffeineCache sendAddressesCache = buildDefaultCache(Constants.CacheNames.SEND_ADDRESSES);
-		CaffeineCache jettonResponseCache = buildDefaultCache(Constants.CacheNames.JETTON_RESPONSE);
+		CaffeineCache jettonResponseCache = buildDefaultCache(Constants.CacheNames.TOKEN_RESPONSE);
 
 		SimpleCacheManager cacheManager = new SimpleCacheManager();
 		cacheManager.setCaches(Arrays.asList(receiveAddressesCache, sendAddressesCache, jettonResponseCache));

@@ -26,10 +26,10 @@ public class WithdrawRequest {
 	@JsonDeserialize(using = TonAddressDeserializer.class)
 	private String fromAddress;
 
-	@JsonProperty(JsonKeys.JETTON_MASTER_ADDRESS)
+	@JsonProperty(JsonKeys.TOKEN_ADDRESS)
 	@JsonDeserialize(using = TonAddressDeserializer.class)
-	private String jettonMasterAddress;
+	private String tokenAddress;
 
-	@JsonProperty(JsonKeys.JETTON_SYMBOL)
-	private String jettonSymbol;
+	@JsonProperty(JsonKeys.TOKEN_SYMBOL)
+	private String tokenSymbol;
 }

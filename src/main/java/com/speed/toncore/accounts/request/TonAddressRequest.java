@@ -9,7 +9,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TonWalletRequest {
+public class TonAddressRequest {
 
 	@JsonProperty(JsonKeys.COUNT)
 	@Positive(message = JsonKeys.COUNT + Errors.MUST_BE_POSITIVE)

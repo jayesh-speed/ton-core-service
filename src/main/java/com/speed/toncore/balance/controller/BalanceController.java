@@ -27,10 +27,9 @@ public class BalanceController {
 		return ResponseEntity.ok(balanceService.getTonBalance(address));
 	}
 
-	@GetMapping(Endpoints.GET_JETTON_BALANCE)
-	public ResponseEntity<BalanceResponse> getJettonBalance(@PathVariable @NotBlank String jettonMasterAddress,
-			@PathVariable @NotBlank String ownerAddress) {
-		MDC.put(LogKeys.EVENT_NAME, Constants.Events.GET_JETTON_BALANCE);
-		return ResponseEntity.ok(balanceService.getJettonBalance(jettonMasterAddress, ownerAddress));
+	@GetMapping(Endpoints.GET_TOKEN_BALANCE)
+	public ResponseEntity<BalanceResponse> getJettonBalance(@PathVariable @NotBlank String tokenAddress, @PathVariable @NotBlank String ownerAddress) {
+		MDC.put(LogKeys.EVENT_NAME, Constants.Events.GET_TOKEN_BALANCE);
+		return ResponseEntity.ok(balanceService.getTokenBalance(tokenAddress, ownerAddress));
 	}
 }

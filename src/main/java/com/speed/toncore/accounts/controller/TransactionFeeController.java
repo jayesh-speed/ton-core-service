@@ -22,24 +22,22 @@ public class TransactionFeeController {
 
 	private final TransactionFeeService transactionFeeService;
 
-	@PostMapping(Endpoints.JETTON_TRANSFER_FEE)
-	public ResponseEntity<TransactionFeeResponse> getJettonTransactionFee(@Valid @RequestBody TransactionFeeRequest request) {
-		MDC.put(LogKeys.EVENT_NAME, Constants.Events.JETTON_TRANSACTION_FEE);
+	@PostMapping(Endpoints.TOKEN_TRANSFER_FEE)
+	public ResponseEntity<TransactionFeeResponse> getTokenTransferFee(@Valid @RequestBody TransactionFeeRequest request) {
+		MDC.put(LogKeys.EVENT_NAME, Constants.Events.TOKEN_TRANSFER_FEE);
 		return ResponseEntity.ok(
-				TransactionFeeResponse.builder().transactionFee(transactionFeeService.getJettonTransactionFee(request.getTraceId())).build());
+				TransactionFeeResponse.builder().transactionFee(transactionFeeService.getTokenTransferFee(request.getTraceId())).build());
 	}
 
-	@PostMapping(Endpoints.SWEEP_TRANSACTION_FEE)
-	public ResponseEntity<TransactionFeeResponse> getSweepTransactionFee(@Valid @RequestBody TransactionFeeRequest request) {
-		MDC.put(LogKeys.EVENT_NAME, Constants.Events.SWEEP_TRANSACTION_FEE);
-		return ResponseEntity.ok(
-				TransactionFeeResponse.builder().transactionFee(transactionFeeService.getSweepTransactionFee(request.getTraceId())).build());
+	@PostMapping(Endpoints.SWEEP_FEE)
+	public ResponseEntity<TransactionFeeResponse> getSweepFee(@Valid @RequestBody TransactionFeeRequest request) {
+		MDC.put(LogKeys.EVENT_NAME, Constants.Events.SWEEP_FEE);
+		return ResponseEntity.ok(TransactionFeeResponse.builder().transactionFee(transactionFeeService.getSweepFee(request.getTraceId())).build());
 	}
 
 	@PostMapping(Endpoints.ESTIMATE_TRANSACTION_FEE)
 	public ResponseEntity<EstimateFeeResponse> estimateTransactionFee(@Valid @RequestBody FeeEstimationRequest request) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.ESTIMATE_TRANSACTION_FEE);
-		EstimateFeeResponse fee = transactionFeeService.estimateTransactionFee(request);
-		return ResponseEntity.ok(fee);
+		return ResponseEntity.ok(transactionFeeService.estimateTransactionFee(request));
 	}
 }

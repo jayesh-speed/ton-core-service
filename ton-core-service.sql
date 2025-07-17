@@ -5,12 +5,11 @@ CREATE TABLE speed_node.tbl_ton_fee_accounts
 (
     `id`                 varchar(40)    NOT NULL,
     `address`            varchar(80)    NOT NULL,
-    `secret_key`         varchar(255)   NOT NULL,
+    `private_key`        varchar(255)   NOT NULL,
     `public_key`         varchar(255)            DEFAULT NULL,
     `deployment_tx_hash` varchar(80)             DEFAULT NULL,
-    `wallet_id`          int unsigned  NOT NULL,
     `chain_id`           tinyint unsigned NOT NULL,
-    `wallet_type`        varchar(30)    NOT NULL,
+    `address_type`       varchar(30)    NOT NULL,
     `ton_balance`        decimal(19, 9) NOT NULL DEFAULT 0,
     `main_net`           tinyint(1) DEFAULT 0,
     `created`            bigint(20) NOT NULL,
@@ -19,27 +18,27 @@ CREATE TABLE speed_node.tbl_ton_fee_accounts
     index                chain_id (`chain_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE speed_node.tbl_ton_jettons
+CREATE TABLE speed_node.tbl_ton_tokens
 (
-    `id`                    varchar(40) NOT NULL,
-    `jetton_master_address` varchar(80) NOT NULL,
-    `jetton_name`           varchar(30) NOT NULL,
-    `jetton_symbol`         varchar(30) NOT NULL,
-    `main_net`              tinyint(1)        DEFAULT 0,
-    `chain_id`              tinyint unsigned  NOT NULL,
-    `decimals`              tinyint     NOT NULL,
-    `no_of_cell`            tinyint unsigned  DEFAULT NULL,
-    `no_of_bits`            int unsigned  DEFAULT NULL,
-    `gas_unit`              int unsigned  DEFAULT NULL,
-    `deployment_cost`       bigint DEFAULT NULL,
-    `no_of_cell_v3`         tinyint unsigned  DEFAULT NULL,
-    `no_of_bits_v3`         int unsigned   DEFAULT NULL,
-    `gas_unit_v3`           int unsigned  DEFAULT NULL,
-    `reserve_storage_fee`   bigint DEFAULT NULL,
-    `created`               bigint(20)        NOT NULL,
-    `modified`              bigint(20)        NOT NULL,
+    `id`                  varchar(40) NOT NULL,
+    `token_address`       varchar(80) NOT NULL,
+    `token_name`          varchar(30) NOT NULL,
+    `token_symbol`        varchar(30) NOT NULL,
+    `main_net`            tinyint(1)        DEFAULT 0,
+    `chain_id`            tinyint unsigned  NOT NULL,
+    `decimals`            tinyint     NOT NULL,
+    `no_of_cell`          tinyint unsigned  DEFAULT NULL,
+    `no_of_bits`          int unsigned  DEFAULT NULL,
+    `gas_unit`            int unsigned  DEFAULT NULL,
+    `deployment_cost`     bigint DEFAULT NULL,
+    `no_of_cell_v3`       tinyint unsigned  DEFAULT NULL,
+    `no_of_bits_v3`       int unsigned   DEFAULT NULL,
+    `gas_unit_v3`         int unsigned  DEFAULT NULL,
+    `reserve_storage_fee` bigint DEFAULT NULL,
+    `created`             bigint(20)        NOT NULL,
+    `modified`            bigint(20)        NOT NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_jetton_master_address_chain` (`jetton_master_address`, `chain_id`)
+    UNIQUE KEY `uk_token_address_chain_id` (`token_address`, `chain_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE speed_node.tbl_ton_listeners
@@ -56,27 +55,26 @@ CREATE TABLE speed_node.tbl_ton_listeners
 
 CREATE TABLE speed_node.tbl_ton_main_accounts
 (
-    `id`                    varchar(40)    NOT NULL,
-    `address`               varchar(80)    NOT NULL,
-    `public_key`            varchar(255)            DEFAULT NULL,
-    `secret_key`            varchar(255)   NOT NULL,
-    `deployment_tx_hash`    varchar(100)            DEFAULT NULL,
-    `wallet_id`             int unsigned NOT NULL,
-    `wallet_type`           varchar(30)    NOT NULL,
-    `ton_balance`           decimal(19, 9) NOT NULL DEFAULT 0,
-    `jetton_master_address` varchar(80)    NOT NULL,
-    `jetton_wallet_address` varchar(80)             DEFAULT NULL,
-    `chain_id`              tinyint unsigned NOT NULL,
-    `main_net`              tinyint(1)   DEFAULT 0,
-    `created`               bigint(20)   NOT NULL,
-    `modified`              bigint(20)   NOT NULL,
+    `id`                     varchar(40)    NOT NULL,
+    `address`                varchar(80)    NOT NULL,
+    `public_key`             varchar(255)            DEFAULT NULL,
+    `private_key`            varchar(255)   NOT NULL,
+    `deployment_tx_hash`     varchar(100)            DEFAULT NULL,
+    `address_type`           varchar(30)    NOT NULL,
+    `ton_balance`            decimal(19, 9) NOT NULL DEFAULT 0,
+    `token_address`          varchar(80)    NOT NULL,
+    `token_contract_address` varchar(80)             DEFAULT NULL,
+    `chain_id`               tinyint unsigned NOT NULL,
+    `main_net`               tinyint(1)   DEFAULT 0,
+    `created`                bigint(20)   NOT NULL,
+    `modified`               bigint(20)   NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE speed_node.tbl_ton_on_chain_tx
 (
     `id`                     varchar(40)     NOT NULL,
-    `jetton_master_address`  varchar(80)     NOT NULL,
+    `token_address`          varchar(80)     NOT NULL,
     `from_address`           varchar(80)     NOT NULL,
     `to_address`             varchar(80)     NOT NULL,
     `amount`                 decimal(32, 16) NOT NULL,
@@ -95,14 +93,14 @@ CREATE TABLE speed_node.tbl_ton_on_chain_tx
     `created`                bigint(20)      NOT NULL,
     `modified`               bigint(20)      NOT NULL,
     PRIMARY KEY (`id`),
-    CONSTRAINT txhash_to_token UNIQUE (`transaction_hash`, `to_address`, `jetton_master_address`, `transaction_type`),
+    CONSTRAINT txhash_to_token UNIQUE (`transaction_hash`, `to_address`, `token_address`, `transaction_type`),
     INDEX                    chain_id_logical_time (`chain_id`, `logical_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE speed_node.tbl_ton_sweep_tx
 (
     `id`                     varchar(40)  NOT NULL,
-    `jetton_master_address`  varchar(80)  NOT NULL,
+    `token_address`          varchar(80)  NOT NULL,
     `from_address`           varchar(80)  NOT NULL,
     `to_address`             varchar(80)  NOT NULL,
     `amount`                 decimal(32, 16) DEFAULT NULL,
@@ -122,33 +120,31 @@ CREATE TABLE speed_node.tbl_ton_sweep_tx
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE speed_node.tbl_ton_used_wallet_address
+CREATE TABLE speed_node.tbl_ton_used_address
 (
-    `id`          varchar(40)  NOT NULL,
-    `address`     varchar(80)  NOT NULL,
-    `public_key`  varchar(255) DEFAULT NULL,
-    `secret_key`  varchar(255) NOT NULL,
-    `wallet_id`   int unsigned NOT NULL,
-    `wallet_type` varchar(30)  NOT NULL,
-    `chain_id`    tinyint unsigned NOT NULL,
-    `main_net`    tinyint(1)      DEFAULT 0,
-    `created`     bigint(20)      NOT NULL,
-    `modified`    bigint(20)      NOT NULL,
+    `id`           varchar(40)  NOT NULL,
+    `address`      varchar(80)  NOT NULL,
+    `public_key`   varchar(255) DEFAULT NULL,
+    `private_key`  varchar(255) NOT NULL,
+    `address_type` varchar(30)  NOT NULL,
+    `chain_id`     tinyint unsigned NOT NULL,
+    `main_net`     tinyint(1)      DEFAULT 0,
+    `created`      bigint(20)      NOT NULL,
+    `modified`     bigint(20)      NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE speed_node.tbl_ton_wallet_address
+CREATE TABLE speed_node.tbl_ton_address
 (
-    `id`          varchar(40)  NOT NULL,
-    `address`     varchar(80)  NOT NULL,
-    `public_key`  varchar(255) DEFAULT NULL,
-    `secret_key`  varchar(255) NOT NULL,
-    `wallet_id`   int unsigned NOT NULL,
-    `wallet_type` varchar(30)  NOT NULL,
-    `chain_id`    tinyint unsigned NOT NULL,
-    `main_net`    tinyint(1)      DEFAULT 0,
-    `created`     bigint(20)      NOT NULL,
-    `modified`    bigint(20)      NOT NULL,
+    `id`           varchar(40)  NOT NULL,
+    `address`      varchar(80)  NOT NULL,
+    `public_key`   varchar(255) DEFAULT NULL,
+    `private_key`  varchar(255) NOT NULL,
+    `address_type` varchar(30)  NOT NULL,
+    `chain_id`     tinyint unsigned NOT NULL,
+    `main_net`     tinyint(1)      DEFAULT 0,
+    `created`      bigint(20)      NOT NULL,
+    `modified`     bigint(20)      NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 

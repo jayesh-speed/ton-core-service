@@ -5,7 +5,7 @@ import com.speed.toncore.withdraw.response.WithdrawResponse;
 
 public interface WithdrawService {
 
-	WithdrawResponse transferJetton(WithdrawRequest withdrawRequest);
+	WithdrawResponse transferToken(WithdrawRequest withdrawRequest);
 
 	void updateLatestLogicalTime(String id, Long logicalTime);
 }

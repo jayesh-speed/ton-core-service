@@ -12,8 +12,8 @@ import com.speed.toncore.domain.model.TonListener;
 import com.speed.toncore.enums.TonListenerStatus;
 import com.speed.toncore.enums.TonTransactionType;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
-import com.speed.toncore.jettons.response.TonJettonResponse;
-import com.speed.toncore.jettons.service.TonJettonService;
+import com.speed.toncore.tokens.response.TonTokenResponse;
+import com.speed.toncore.tokens.service.TonTokenService;
 import com.speed.toncore.pojo.JettonTransferDto;
 import com.speed.toncore.repository.TonListenerRepository;
 import com.speed.toncore.service.OnChainTxService;
@@ -41,7 +41,7 @@ public class TonListenerHelper {
 
 	private static final QTonListener qTonListener = QTonListener.tonListener;
 	private final TonListenerRepository listenerRepository;
-	private final TonJettonService tonJettonService;
+	private final TonTokenService tonTokenService;
 	private final OnChainTxService onChainTxService;
 	private final WithdrawProcessHelper withdrawProcessHelper;
 	private final SweepService sweepService;
@@ -94,12 +94,12 @@ public class TonListenerHelper {
 	public void updateOnChainTransaction(JettonTransferDto transfer, String transactionType, Integer chainId) {
 		LOG.info(String.format(LogMessages.Info.ON_CHAIN_TRANSACTION_INFO, transactionType, transfer.getTransactionHash(), chainId));
 		setContext(chainId);
-		TonJettonResponse jettonResponse = tonJettonService.getTonJettonByAddress(transfer.getJettonMaster());
+		TonTokenResponse jettonResponse = tonTokenService.getTonTokenByAddress(transfer.getJettonMaster());
 		if (transactionType.equals(TonTransactionType.RECEIVE.name())) {
 			updateReceivedOnChainTx(transfer, jettonResponse.getDecimals());
 			return;
 		}
-		BigDecimal fees = transactionFeeService.getJettonTransactionFee(transfer.getTraceId());
+		BigDecimal fees = transactionFeeService.getTokenTransferFee(transfer.getTraceId());
 		withdrawProcessHelper.markWithdrawProcessPaid(transfer, fees);
 		onChainTxService.updateConfirmedDebitOnChainTx(transfer, jettonResponse.getDecimals(), fees);
 	}
@@ -129,7 +129,7 @@ public class TonListenerHelper {
 		// Create Sweep
 		SweepRequest sweepRequest = new SweepRequest();
 		sweepRequest.setFromAddress(transfer.getDestination());
-		sweepRequest.setJettonMasterAddress(transfer.getJettonMaster());
+		sweepRequest.setTokenAddress(transfer.getJettonMaster());
 		sweepService.initiateSweepOnChainTx(sweepRequest, null, decimals);
 	}
 }

@@ -1,7 +1,7 @@
 package com.speed.toncore.mapper;
 
-import com.speed.toncore.domain.model.TonUsedWalletAddress;
-import com.speed.toncore.domain.model.TonWalletAddress;
+import com.speed.toncore.domain.model.TonAddress;
+import com.speed.toncore.domain.model.TonUsedAddress;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -10,6 +10,6 @@ public interface TonAddressMapper {
 
 	TonAddressMapper INSTANCE = Mappers.getMapper(TonAddressMapper.class);
 
-	TonUsedWalletAddress mapAddressToUsedAddress(TonWalletAddress tonWalletAddress);
-	TonWalletAddress mapUsedAddressToAddress(TonUsedWalletAddress tonWalletAddress);
+	TonUsedAddress mapAddressToUsedAddress(TonAddress tonAddress);
+	TonAddress mapUsedAddressToAddress(TonUsedAddress tonWalletAddress);
 }

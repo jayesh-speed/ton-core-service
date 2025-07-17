@@ -22,10 +22,10 @@ public class WithdrawController {
 
 	private final WithdrawService withdrawService;
 
-	@PostMapping(Endpoints.TRANSFER_JETTON)
-	public ResponseEntity<WithdrawResponse> transferJetton(@RequestBody @Validated WithdrawRequest withdrawRequest) {
-		MDC.put(LogKeys.EVENT_NAME, Constants.Events.TRANSFER_JETTON);
-		return ResponseEntity.ok(withdrawService.transferJetton(withdrawRequest));
+	@PostMapping(Endpoints.TRANSFER_TOKEN)
+	public ResponseEntity<WithdrawResponse> transferToken(@RequestBody @Validated WithdrawRequest withdrawRequest) {
+		MDC.put(LogKeys.EVENT_NAME, Constants.Events.TRANSFER_TOKEN);
+		return ResponseEntity.ok(withdrawService.transferToken(withdrawRequest));
 	}
 
 	@PutMapping(Endpoints.UPDATE_LOGICAL_TIME)

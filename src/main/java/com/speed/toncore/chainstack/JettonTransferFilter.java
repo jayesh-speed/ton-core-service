@@ -34,7 +34,7 @@ public class JettonTransferFilter {
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private static final int PAGE_LIMIT = 1000;
 	private final OkHttpClient httpClient;
-	private final List<MutablePair<String, Long>> jettonMasters;
+	private final List<MutablePair<String, Long>> tokenAddresses;
 	private final String apiUrl;
 	private final String apiKey;
 	private final Sinks.Many<JettonTransferDto> sink = Sinks.many().unicast().onBackpressureBuffer();
@@ -67,11 +67,10 @@ public class JettonTransferFilter {
 			List<JettonTransferDto> newTransfers = new ArrayList<>();
 			try {
 				long startTime = System.currentTimeMillis();
-				for (MutablePair<String, Long> jettonPair : jettonMasters) {
-					List<JettonTransferDto> transfers = fetchJettonTransfers(jettonPair);
+				for (MutablePair<String, Long> tokenPair : tokenAddresses) {
+					List<JettonTransferDto> transfers = fetchTokenTransfers(tokenPair);
 					newTransfers.addAll(transfers);
 				}
-				LOG.info("Fetched Jetton Transfer {}", newTransfers.size());
 				LOG.info(Errors.TonIndexer.ELAPSE_TIME, System.currentTimeMillis() - startTime);
 				return Flux.fromIterable(newTransfers);
 			} catch (Exception e) {
@@ -80,9 +79,9 @@ public class JettonTransferFilter {
 		});
 	}
 
-	private List<JettonTransferDto> fetchJettonTransfers(MutablePair<String, Long> jettonPair) {
-		String jettonMasterAddress = jettonPair.getLeft();
-		long fromLt = jettonPair.getRight();
+	private List<JettonTransferDto> fetchTokenTransfers(MutablePair<String, Long> tokenPair) {
+		String tokenAddress = tokenPair.getLeft();
+		long fromLt = tokenPair.getRight();
 		long maxLt = fromLt;
 
 		List<JettonTransferDto> transfers = new ArrayList<>();
@@ -91,7 +90,7 @@ public class JettonTransferFilter {
 
 		while (hasMore) {
 			try {
-				Request request = buildRequest(jettonMasterAddress, fromLt, offset);
+				Request request = buildRequest(tokenAddress, fromLt, offset);
 				try (Response response = httpClient.newCall(request).execute()) {
 					if (response.isSuccessful()) {
 						String responseBody = response.body() != null ? response.body().string() : null;
@@ -123,24 +122,23 @@ public class JettonTransferFilter {
 						offset += PAGE_LIMIT;
 					} else {
 						throw new InternalServerErrorException(
-								String.format(Errors.TonIndexer.ERROR_ON_FETCHING_JETTON_TRANSFERS, jettonMasterAddress, response.body(),
-										response.code()));
+								String.format(Errors.TonIndexer.ERROR_ON_FETCHING_TOKEN_TRANSFERS, tokenAddress, response.body(), response.code()));
 					}
 				}
 			} catch (InternalServerErrorException ex) {
 				throw ex;
 			} catch (Exception e) {
-				throw new InternalServerErrorException(String.format(Errors.TonIndexer.UNEXPECTED_ERROR_ON_FETCH_TRANSFERS, jettonMasterAddress), e);
+				throw new InternalServerErrorException(String.format(Errors.TonIndexer.UNEXPECTED_ERROR_ON_FETCH_TRANSFERS, tokenAddress), e);
 			}
 		}
-		jettonPair.setRight(maxLt);
+		tokenPair.setRight(maxLt);
 		return transfers;
 	}
 
-	private Request buildRequest(String jettonMaster, long fromLt, long offset) {
+	private Request buildRequest(String tokenAddress, long fromLt, long offset) {
 		HttpUrl url = Objects.requireNonNull(HttpUrl.parse(apiUrl))
 				.newBuilder()
-				.addQueryParameter(JsonKeys.QueryParameters.JETTON_MASTER, jettonMaster)
+				.addQueryParameter(JsonKeys.QueryParameters.JETTON_MASTER, tokenAddress)
 				.addQueryParameter(JsonKeys.QueryParameters.LIMIT, String.valueOf(PAGE_LIMIT))
 				.addQueryParameter(JsonKeys.QueryParameters.OFFSET, String.valueOf(offset))
 				.addQueryParameter(JsonKeys.QueryParameters.SORT, JsonKeys.QueryParameters.SORT_ASC)

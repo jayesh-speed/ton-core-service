@@ -13,21 +13,21 @@ import com.speed.toncore.accounts.service.TonMainAccountService;
 import com.speed.toncore.accounts.service.TransactionFeeService;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.QTonSweepTx;
-import com.speed.toncore.domain.model.QTonUsedWalletAddress;
+import com.speed.toncore.domain.model.QTonUsedAddress;
 import com.speed.toncore.domain.model.TonFeeAccount;
 import com.speed.toncore.domain.model.TonMainAccount;
 import com.speed.toncore.domain.model.TonSweepTx;
-import com.speed.toncore.domain.model.TonUsedWalletAddress;
+import com.speed.toncore.domain.model.TonUsedAddress;
 import com.speed.toncore.enums.OnChainTxStatus;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
-import com.speed.toncore.jettons.response.TonJettonResponse;
-import com.speed.toncore.jettons.service.TonJettonService;
 import com.speed.toncore.pojo.JettonTransferDto;
 import com.speed.toncore.repository.TonSweepTxRepository;
-import com.speed.toncore.repository.TonUsedWalletAddressRepository;
+import com.speed.toncore.repository.TonUsedAddressRepository;
 import com.speed.toncore.sweep.request.SweepRequest;
 import com.speed.toncore.sweep.response.SweepResponse;
 import com.speed.toncore.sweep.service.SweepService;
+import com.speed.toncore.tokens.response.TonTokenResponse;
+import com.speed.toncore.tokens.service.TonTokenService;
 import com.speed.toncore.ton.TonCoreService;
 import com.speed.toncore.ton.TonNode;
 import com.speed.toncore.ton.TonNodePool;
@@ -53,10 +53,10 @@ import java.util.Objects;
 public class SweepServiceImpl implements SweepService {
 
 	private static final QTonSweepTx qTonSweepTx = QTonSweepTx.tonSweepTx;
-	private static final QTonUsedWalletAddress qTonUsedWalletAddress = QTonUsedWalletAddress.tonUsedWalletAddress;
+	private static final QTonUsedAddress qTonUsedTonAddress = QTonUsedAddress.tonUsedAddress;
 	private final TonSweepTxRepository tonSweepTxRepository;
-	private final TonUsedWalletAddressRepository tonUsedWalletAddressRepository;
-	private final TonJettonService tonJettonService;
+	private final TonUsedAddressRepository tonUsedAddressRepository;
+	private final TonTokenService tonTokenService;
 	private final TonFeeAccountService tonFeeAccountService;
 	private final TonNodePool tonNodePool;
 	private final TonCoreService tonCoreService;
@@ -68,8 +68,8 @@ public class SweepServiceImpl implements SweepService {
 		String txReference = TonUtil.deserializeTransactionReference(transfer.getForwardPayload());
 		Predicate queryPredicate = qTonSweepTx.chainId.eq(chainId).and(qTonSweepTx.txReference.eq(txReference));
 		TonSweepTx sweepTx = tonSweepTxRepository.findAndProjectUnique(queryPredicate, qTonSweepTx, qTonSweepTx.id);
-		TonJettonResponse jettonResponse = tonJettonService.getTonJettonByAddress(transfer.getJettonMaster());
-		BigDecimal transactionFee = transactionFeeService.getSweepTransactionFee(transfer.getTraceId());
+		TonTokenResponse jettonResponse = tonTokenService.getTonTokenByAddress(transfer.getJettonMaster());
+		BigDecimal transactionFee = transactionFeeService.getSweepFee(transfer.getTraceId());
 		if (Objects.nonNull(sweepTx)) {
 			Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(9);
 			fieldWithValue.put(qTonSweepTx.transactionHash, transfer.getTransactionHash());
@@ -89,22 +89,22 @@ public class SweepServiceImpl implements SweepService {
 	public String initiateSweepOnChainTx(SweepRequest sweepRequest, String id, int decimals) {
 		TonNode tonNode = tonNodePool.getTonNodeByChainId();
 		TonFeeAccount feeAccount = tonFeeAccountService.getFeeAccountsInternal().parallelStream().findAny().get();
-		List<TonMainAccount> mainAccountList = tonMainAccountService.getMainAccountInternal(sweepRequest.getJettonMasterAddress());
+		List<TonMainAccount> mainAccountList = tonMainAccountService.getMainAccountInternal(sweepRequest.getTokenAddress());
 		if (CollectionUtil.nullOrEmpty(mainAccountList)) {
 			throw new InternalServerErrorException(Errors.MAIN_ACCOUNT_NOT_FOUND);
 		}
 		TonMainAccount tonMainAccount = mainAccountList.stream()
-				.min(Comparator.comparing(acc -> tonCoreService.fetchJettonBalance(sweepRequest.getJettonMasterAddress(), acc.getAddress(), decimals)))
+				.min(Comparator.comparing(acc -> tonCoreService.fetchTokenBalance(sweepRequest.getTokenAddress(), acc.getAddress(), decimals)))
 				.get();
 
-		TonUsedWalletAddress usedTonWallet = tonUsedWalletAddressRepository.findAndProjectUnique(
-				qTonUsedWalletAddress.chainId.eq(tonNode.getChainId()).and(qTonUsedWalletAddress.address.eq(sweepRequest.getFromAddress())),
-				qTonUsedWalletAddress, qTonUsedWalletAddress.address, qTonUsedWalletAddress.secretKey);
+		TonUsedAddress usedTonWallet = tonUsedAddressRepository.findAndProjectUnique(
+				qTonUsedTonAddress.chainId.eq(tonNode.getChainId()).and(qTonUsedTonAddress.address.eq(sweepRequest.getFromAddress())),
+				qTonUsedTonAddress, qTonUsedTonAddress.address, qTonUsedTonAddress.privateKey);
 		BigInteger fee = transactionFeeService.estimateSweepFee(feeAccount.getAddress(), usedTonWallet.getAddress(),
-				tonMainAccount.getJettonWalletAddress(), sweepRequest.getJettonMasterAddress());
+				tonMainAccount.getTokenContractAddress(), sweepRequest.getTokenAddress());
 		String txReference = TonUtil.generateSweepTransactionReference();
-		String hash = tonCoreService.transferJettonToMainAccount(usedTonWallet.getAddress(), usedTonWallet.getSecretKey(),
-				sweepRequest.getJettonMasterAddress(), tonMainAccount.getAddress(), feeAccount.getSecretKey(), txReference, fee);
+		String hash = tonCoreService.transferTokenToMainAccount(usedTonWallet.getAddress(), usedTonWallet.getPrivateKey(),
+				sweepRequest.getTokenAddress(), tonMainAccount.getAddress(), feeAccount.getPrivateKey(), txReference, fee);
 		if (StringUtil.nullOrEmpty(hash)) {
 			return null;
 		}
@@ -119,7 +119,7 @@ public class SweepServiceImpl implements SweepService {
 		TonSweepTx tonSweepTx = TonSweepTx.builder()
 				.toAddress(tonMainAccount.getAddress())
 				.fromAddress(sweepRequest.getFromAddress())
-				.jettonMasterAddress(sweepRequest.getJettonMasterAddress())
+				.tokenAddress(sweepRequest.getTokenAddress())
 				.transactionHash(hash)
 				.transactionStatus(OnChainTxStatus.PENDING.getValue())
 				.txReference(txReference)
@@ -134,13 +134,12 @@ public class SweepServiceImpl implements SweepService {
 
 	@Override
 	public SweepResponse createSweepOnChainTx(SweepRequest sweepRequest, String id) {
-		TonJettonResponse jetton = tonJettonService.getTonJettonByAddress(sweepRequest.getJettonMasterAddress());
+		TonTokenResponse jetton = tonTokenService.getTonTokenByAddress(sweepRequest.getTokenAddress());
 		if (Objects.isNull(jetton)) {
-			throw new BadRequestException(Errors.JETTON_ADDRESS_NOT_SUPPORTED, null, null);
+			throw new BadRequestException(Errors.TOKEN_ADDRESS_NOT_SUPPORTED, null, null);
 		}
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
-		if (!tonUsedWalletAddressRepository.exists(
-				qTonUsedWalletAddress.chainId.eq(chainId).and(qTonUsedWalletAddress.address.eq(sweepRequest.getFromAddress())))) {
+		if (!tonUsedAddressRepository.exists(qTonUsedTonAddress.chainId.eq(chainId).and(qTonUsedTonAddress.address.eq(sweepRequest.getFromAddress())))) {
 			throw new BadRequestException(String.format(Errors.NOT_ELIGIBLE_FOR_SWEEP, sweepRequest.getFromAddress()), null, null);
 		}
 		String hash = initiateSweepOnChainTx(sweepRequest, id, jetton.getDecimals());
@@ -153,7 +152,7 @@ public class SweepServiceImpl implements SweepService {
 		Predicate queryPredicate = new BooleanBuilder(qTonSweepTx.id.eq(sweepTx.getId()));
 		long updateCount = tonSweepTxRepository.updateFields(queryPredicate, qTonSweepTx, fieldWithValue);
 		if (updateCount < 0) {
-			LOG.error(String.format(Errors.CONFIRM_ON_CHAIN_TX_UPDATE_FAIL, sweepTx.getToAddress(), sweepTx.getJettonMasterAddress(),
+			LOG.error(String.format(Errors.CONFIRM_ON_CHAIN_TX_UPDATE_FAIL, sweepTx.getToAddress(), sweepTx.getTokenAddress(),
 					sweepTx.getTransactionHash()));
 		}
 	}

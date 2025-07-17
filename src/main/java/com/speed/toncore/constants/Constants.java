@@ -49,7 +49,7 @@ public class Constants {
 	@UtilityClass
 	public class CacheNames {
 
-		public final String JETTON_RESPONSE = "jettonResponse";
+		public final String TOKEN_RESPONSE = "tokenResponse";
 		public final String RECEIVE_ADDRESSES = "receiveAddresses";
 		public final String SEND_ADDRESSES = "sendAddresses";
 	}
@@ -57,31 +57,31 @@ public class Constants {
 	@UtilityClass
 	public static class Events {
 
-		public final String ADD_TON_JETTON = "addTonJetton";
+		public final String ADD_TON_TOKEN = "addTonToken";
 		public final String CREATE_FEE_ACCOUNT = "createFeeAccount";
 		public final String CREATE_MAIN_ACCOUNT = "createMainAccount";
 		public final String CREATE_TON_LISTENER = "createTonListener";
-		public final String CREATE_TON_WALLET_ADDRESSES = "createTonWalletAddresses";
+		public final String CREATE_TON_ADDRESSES = "createTonWalletAddresses";
 		public final String DEPLOY_FEE_ACCOUNT = "deployFeeAccount";
 		public final String DEPLOY_MAIN_ACCOUNT = "deployMainAccount";
 		public final String ESTIMATE_TRANSACTION_FEE = "estimateTransactionFee";
-		public final String GET_ALL_JETTONS = "getAllJettons";
+		public final String GET_ALL_TOKENS = "getAllTokens";
 		public final String GET_FEE_ACCOUNTS = "getFeeAccounts";
-		public final String GET_JETTON = "getJetton";
-		public final String GET_JETTON_BALANCE = "getJettonBalance";
-		public final String GET_JETTON_BY_SYMBOL = "getJettonBySymbol";
-		public final String GET_MAIN_ACCOUNT = "getMainAccount";
+		public final String GET_TOKEN = "getToken";
+		public final String GET_TOKEN_BALANCE = "getTokenBalance";
+		public final String GET_TOKEN_BY_SYMBOL = "getTokenBySymbol";
+		public final String GET_MAIN_ACCOUNTS = "getMainAccounts";
 		public final String GET_TON_BALANCE = "getTonBalance";
-		public final String GET_TON_WALLET_ADDRESS = "getTonWalletAddress";
-		public final String JETTON_TRANSACTION_FEE = "JettonTransactionFee";
+		public final String GET_TON_ADDRESS = "getTonWalletAddress";
+		public final String TOKEN_TRANSFER_FEE = "tokenTransferFee";
 		public final String REMOVE_FEE_ACCOUNT = "removeFeeAccount";
 		public final String REMOVE_MAIN_ACCOUNT = "removeMainAccount";
-		public final String REMOVE_TON_JETTON = "removeTonJetton";
+		public final String REMOVE_TON_TOKEN = "removeTonToken";
 		public final String REMOVE_TON_LISTENER = "removeTonListener";
-		public final String REMOVE_USED_TON_WALLET_ADDRESS = "removeUsedTonWalletAddress";
-		public final String SWEEP_TRANSACTION_FEE = "SweepTransactionFee";
-		public final String TRANSFER_JETTON = "transferJetton";
-		public final String UPDATE_JETTON_WALLET = "updateJettonWallet";
+		public final String REMOVE_USED_TON_ADDRESS = "removeUsedTonWalletAddress";
+		public final String SWEEP_FEE = "SweepTransactionFee";
+		public final String TRANSFER_TOKEN = "transferToken";
+		public final String UPDATE_CONTRACT_ADDRESS = "updateContractAddress";
 		public final String UPDATE_LOGICAL_TIME = "updateLogicalTime";
 		public final String UPDATE_TON_LISTENER_STATUS = "updateTonListenerStatus";
 	}

@@ -6,5 +6,5 @@ public interface BalanceService {
 
 	BalanceResponse getTonBalance(String address);
 
-	BalanceResponse getJettonBalance(String jettonMasterAddress, String ownerAddress);
+	BalanceResponse getTokenBalance(String tokenAddress, String ownerAddress);
 }

@@ -77,7 +77,7 @@ public class WithdrawProcessHelper {
 	public void processWithdraw(WithdrawRequest withdrawRequest, String accountId, String withdrawId) {
 		WithdrawResponse response;
 		try {
-			response = withdrawService.transferJetton(withdrawRequest);
+			response = withdrawService.transferToken(withdrawRequest);
 		} catch (Exception ex) {
 			LOG.error(Errors.ERROR_PROCESSING_WITHDRAW, ex);
 			String errorMsg = ex.getMessage();

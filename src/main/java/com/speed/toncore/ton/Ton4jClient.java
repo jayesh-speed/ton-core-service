@@ -1,7 +1,7 @@
 package com.speed.toncore.ton;
 
 import com.speed.javacommon.util.RequestIdGenerator;
-import com.speed.toncore.accounts.service.TonWalletService;
+import com.speed.toncore.accounts.service.TonAddressService;
 import com.speed.toncore.aws.SecretManagerService;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
@@ -24,7 +24,7 @@ public class Ton4jClient {
 	private final TonNodePool tonNodePool;
 	private final SecretManagerService secretManagerService;
 	private final ListenerServiceImpl listenerService;
-	private final TonWalletService tonWalletService;
+	private final TonAddressService tonAddressService;
 	private final TonConfigParam tonConfigParam;
 
 	public void setupTonNodes() {
@@ -33,8 +33,8 @@ public class Ton4jClient {
 			initContext(chainId);
 			TonNode tonNode = setupNode(chainId);
 			tonNodePool.addTonNodeAndChainId(chainId, tonNode);
-			Set<String> receivingAddresses = tonWalletService.fetchReceiveAddresses(chainId);
-			Set<String> sendingAddresses = tonWalletService.fetchSendAddresses(chainId);
+			Set<String> receivingAddresses = tonAddressService.fetchReceiveAddresses(chainId);
+			Set<String> sendingAddresses = tonAddressService.fetchSendAddresses(chainId);
 			tonConfigParam.initConfigParam(chainId);
 			listenerService.bootUpTonListeners(true);
 		});

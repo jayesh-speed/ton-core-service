@@ -22,8 +22,8 @@ public class FeeEstimationRequest {
 	@JsonDeserialize(using = TonAddressDeserializer.class)
 	private String toAddress;
 
-	@JsonProperty(JsonKeys.JETTON_MASTER_ADDRESS)
-	@NotBlank(message = JsonKeys.JETTON_MASTER_ADDRESS + ValidationMessages.NOT_BLANK)
+	@JsonProperty(JsonKeys.TOKEN_ADDRESS)
+	@NotBlank(message = JsonKeys.TOKEN_ADDRESS + ValidationMessages.NOT_BLANK)
 	@JsonDeserialize(using = TonAddressDeserializer.class)
-	private String jettonMasterAddress;
+	private String tokenAddress;
 }

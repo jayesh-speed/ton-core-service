@@ -12,17 +12,17 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = TableNames.TON_JETTONS)
-public class TonJetton extends IdentityJpaDomain {
+@Table(name = TableNames.TON_TOKENS)
+public class TonToken extends IdentityJpaDomain {
 
-	@Column(name = DbFields.JETTON_MASTER_ADDRESS, nullable = false, columnDefinition = "VARCHAR(80)")
-	private String jettonMasterAddress;
+	@Column(name = DbFields.TOKEN_ADDRESS, nullable = false, columnDefinition = "VARCHAR(80)")
+	private String tokenAddress;
 
-	@Column(name = DbFields.JETTON_NAME, nullable = false, columnDefinition = "VARCHAR(30)")
-	private String jettonName;
+	@Column(name = DbFields.TOKEN_NAME, nullable = false, columnDefinition = "VARCHAR(30)")
+	private String tokenName;
 
-	@Column(name = DbFields.JETTON_SYMBOL, nullable = false, columnDefinition = "VARCHAR(30)")
-	private String jettonSymbol;
+	@Column(name = DbFields.TOKEN_SYMBOL, nullable = false, columnDefinition = "VARCHAR(30)")
+	private String tokenSymbol;
 
 	@Column(name = DbFields.MAIN_NET, columnDefinition = "TINYINT(1)")
 	private boolean mainNet;

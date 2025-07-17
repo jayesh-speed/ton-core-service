@@ -27,26 +27,23 @@ public class TonMainAccount extends IdentityJpaDomain {
 	@Column(name = DbFields.PUBLIC_KEY, columnDefinition = "VARCHAR(255)")
 	private String publicKey;
 
-	@Column(name = DbFields.SECRET_KEY, nullable = false, columnDefinition = "VARCHAR(255)")
-	private String secretKey;
+	@Column(name = DbFields.PRIVATE_KEY, nullable = false, columnDefinition = "VARCHAR(255)")
+	private String privateKey;
 
 	@Column(name = DbFields.DEPLOYMENT_TX_HASH, columnDefinition = "VARCHAR(80)")
 	private String deploymentTxHash;
 
-	@Column(name = DbFields.WALLET_ID, nullable = false, columnDefinition = "UNSIGNED INT")
-	private Long walletId;
-
-	@Column(name = DbFields.WALLET_TYPE, nullable = false, columnDefinition = "VARCHAR(30)")
-	private String walletType;
+	@Column(name = DbFields.ADDRESS_TYPE, nullable = false, columnDefinition = "VARCHAR(30)")
+	private String addressType;
 
 	@Column(name = DbFields.TON_BALANCE, nullable = false, columnDefinition = "DECIMAL(19,9)")
 	private BigDecimal tonBalance;
 
-	@Column(name = DbFields.JETTON_MASTER_ADDRESS, nullable = false, columnDefinition = "VARCHAR(80)")
-	private String jettonMasterAddress;
+	@Column(name = DbFields.TOKEN_ADDRESS, nullable = false, columnDefinition = "VARCHAR(80)")
+	private String tokenAddress;
 
-	@Column(name = DbFields.JETTON_WALLET_ADDRESS, columnDefinition = "VARCHAR(80)")
-	private String jettonWalletAddress;
+	@Column(name = DbFields.TOKEN_CONTRACT_ADDRESS, columnDefinition = "VARCHAR(80)")
+	private String tokenContractAddress;
 
 	@Column(name = DbFields.CHAIN_ID, nullable = false, columnDefinition = "TINYINT UNSIGNED")
 	private Integer chainId;

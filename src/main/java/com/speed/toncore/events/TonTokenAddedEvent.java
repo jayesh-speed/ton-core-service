@@ -5,5 +5,5 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TonJettonAddedEvent extends BaseEvent {
+public class TonTokenAddedEvent extends BaseEvent {
 }

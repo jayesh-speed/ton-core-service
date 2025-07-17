@@ -19,9 +19,9 @@ public class JsonKeys {
 	public final String GAS_UNIT_V3 = "gas_unit_v3";
 	public final String IN_MSG = "in_msg";
 	public final String IS_MAIN_NET = "is_main_net";
-	public final String JETTON_MASTER_ADDRESS = "jetton_master_address";
-	public final String JETTON_NAME = "jetton_name";
-	public final String JETTON_SYMBOL = "jetton_symbol";
+	public final String TOKEN_ADDRESS = "token_address";
+	public final String TOKEN_NAME = "token_name";
+	public final String TOKEN_SYMBOL = "token_symbol";
 	public final String LOCAL_BALANCE = "local_balance";
 	public final String NO_OF_BITS = "no_of_bits";
 	public final String NO_OF_BITS_V3 = "no_of_bits_v3";

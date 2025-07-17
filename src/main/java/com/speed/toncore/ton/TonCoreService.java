@@ -8,8 +8,8 @@ import com.speed.javacommon.util.StringUtil;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
-import com.speed.toncore.jettons.response.TonJettonResponse;
 import com.speed.toncore.pojo.JettonWalletDto;
+import com.speed.toncore.tokens.response.TonTokenResponse;
 import com.speed.toncore.util.LogKeys;
 import com.speed.toncore.util.LogMessages;
 import com.speed.toncore.util.SecurityManagerUtil;
@@ -35,17 +35,22 @@ import org.ton.ton4j.smartcontract.utils.MsgUtils;
 import org.ton.ton4j.smartcontract.wallet.v3.WalletV3R2;
 import org.ton.ton4j.smartcontract.wallet.v5.WalletV5;
 import org.ton.ton4j.tlb.ExternalMessageInInfo;
+import org.ton.ton4j.tlb.InternalMessageInfoRelaxed;
 import org.ton.ton4j.tlb.Message;
+import org.ton.ton4j.tlb.MessageRelaxed;
 import org.ton.ton4j.tlb.MsgAddressIntStd;
 import org.ton.ton4j.utils.Utils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static java.util.Objects.isNull;
 
 @Component
 @Slf4j
@@ -83,12 +88,19 @@ public class TonCoreService {
 		return rawBalance.divide(BigDecimal.valueOf(Constants.ONE_BILLION), 9, RoundingMode.HALF_DOWN);
 	}
 
-	public BigDecimal fetchJettonBalance(String jettonMasterAddress, String ownerAddress, int decimals) {
-		return Optional.ofNullable(tonCoreServiceHelper.getJettonWallet(ownerAddress, jettonMasterAddress).getJettonWallets())
+	public BigDecimal fetchTokenBalance(String tokenAddress, String ownerAddress, int decimals) {
+		return Optional.ofNullable(tonCoreServiceHelper.getJettonWallet(ownerAddress, tokenAddress).getJettonWallets())
 				.flatMap(wallets -> wallets.stream().findFirst())
 				.filter(jettonWallet -> !Objects.equals(jettonWallet.getBalance(), BigInteger.ZERO))
 				.map(jettonWallet -> new BigDecimal(jettonWallet.getBalance()).divide(BigDecimal.TEN.pow(decimals), 9, RoundingMode.HALF_DOWN))
 				.orElse(BigDecimal.ZERO);
+	}
+
+	public String getTokenContractAddress(String ownerAddress, String tokenAddress) {
+		return Optional.ofNullable(tonCoreServiceHelper.getJettonWallet(ownerAddress, tokenAddress).getJettonWallets())
+				.flatMap(wallets -> wallets.stream().findFirst())
+				.map(JettonWalletDto.JettonWallet::getAddress)
+				.orElse(null);
 	}
 
 	public boolean isDeployed(String address) {
@@ -96,15 +108,15 @@ public class TonCoreService {
 	}
 
 	@Retryable(retryFor = RetryException.class, backoff = @Backoff(delay = 2000), maxAttempts = 5)
-	public String transferJettons(String fromAddress, String toAddress, TonJettonResponse jetton, BigDecimal value, String encryptedKey,
-			String jettonWalletAddress, String txReference, BigInteger estimatedTransactionFee) {
+	public String transferTokens(String fromAddress, String toAddress, TonTokenResponse token, BigDecimal value, String encryptedKey,
+			String tokenContractAddress, String txReference, BigInteger transactionFee) {
 		try {
 			TonNode tonNode = tonNodePool.getTonNodeByChainId();
-			BigDecimal scaled = value.setScale(jetton.getDecimals(), RoundingMode.HALF_DOWN);
-			BigInteger amountToTransfer = scaled.multiply(BigDecimal.valueOf(Math.pow(10, jetton.getDecimals()))).toBigInteger();
-			String privateKey = getDecryptedKey(encryptedKey, tonNode.getEncryptionAlgo(), tonNode.getEncryptionKey());
+			BigDecimal scaled = value.setScale(token.getDecimals(), RoundingMode.HALF_DOWN);
+			BigInteger amountToTransfer = scaled.multiply(BigDecimal.valueOf(Math.pow(10, token.getDecimals()))).toBigInteger();
+			String privateKey = getDecryptedKey(encryptedKey, tonNode);
 			if (StringUtil.nullOrEmpty(privateKey)) {
-				LogHolder logHolder = prepareJettonTransferFailLogHolder(fromAddress, toAddress, jetton.getJettonMasterAddress(), value);
+				LogHolder logHolder = prepareTokenTransferFailLogHolder(fromAddress, toAddress, token.getTokenAddress(), value);
 				LOG.error(Markers.appendEntries(logHolder.getAttributes()), null);
 				throw new InternalServerErrorException(Errors.PRIVATE_KEY_NOT_DECRYPTED);
 			}
@@ -116,21 +128,21 @@ public class TonCoreService {
 					.walletId(tonNode.getWalletId())
 					.queryId(queryId)
 					.body(mainAccount.createBulkTransfer(Collections.singletonList(Destination.builder()
-							.address(jettonWalletAddress)
-							.amount(estimatedTransactionFee)
+							.address(tokenContractAddress)
+							.amount(transactionFee)
 							.bounce(true)
 							.body(JettonWallet.createTransferBody(queryId, amountToTransfer, Address.of(toAddress), mainAccountAddress, null,
 									BigInteger.ONE, forwardPayload))
 							.build()), BigInteger.valueOf(queryId)))
 					.sendMode(SendMode.PAY_GAS_SEPARATELY_AND_IGNORE_ERRORS)
 					.build();
-			String bocMessage = createJettonTransferBocMessage(mainAccountAddress, mainAccount, config);
+			String bocMessage = createTokenTransferBocMessage(mainAccountAddress, mainAccount, config);
 			try {
 				return tonCoreServiceHelper.sendMessageWithReturnHash(bocMessage);
 			} catch (RuntimeException e) {
-				LogHolder logHolder = prepareJettonTransferFailLogHolder(fromAddress, toAddress, jetton.getJettonMasterAddress(), value);
+				LogHolder logHolder = prepareTokenTransferFailLogHolder(fromAddress, toAddress, token.getTokenAddress(), value);
 				LOG.error(Markers.appendEntries(logHolder.getAttributes()), null, e);
-				if (shouldRetryJettonSend(e.getMessage().toLowerCase())) {
+				if (shouldRetryTokenSend(e.getMessage().toLowerCase())) {
 					throw new RetryException(String.format(Errors.ERROR_ON_CHAIN_RAW_TX, tonNode.getChainId()));
 				}
 				throw new InternalServerErrorException(String.format(Errors.ERROR_ON_CHAIN_RAW_TX, tonNode.getChainId()));
@@ -138,18 +150,18 @@ public class TonCoreService {
 		} catch (RetryException | InternalServerErrorException ex) {
 			throw ex;
 		} catch (Exception ex) {
-			LogHolder logHolder = prepareJettonTransferFailLogHolder(fromAddress, toAddress, jetton.getJettonMasterAddress(), value);
+			LogHolder logHolder = prepareTokenTransferFailLogHolder(fromAddress, toAddress, token.getTokenAddress(), value);
 			LOG.error(Markers.appendEntries(logHolder.getAttributes()), null, ex);
-			throw new InternalServerErrorException(String.format(Errors.ERROR_JETTON_TRANSFER, jetton.getJettonMasterAddress(), fromAddress, toAddress));
+			throw new InternalServerErrorException(String.format(Errors.ERROR_TOKEN_TRANSFER, token.getTokenAddress(), fromAddress, toAddress));
 		}
 	}
 
-	private boolean shouldRetryJettonSend(String message) {
+	private boolean shouldRetryTokenSend(String message) {
 		return message.contains(Errors.TonIndexer.EXIT_CODE_33) || message.contains(Errors.TonIndexer.TOO_MANY_EXTERNAL_MESSAGE) ||
 				message.contains(Errors.TonIndexer.UNPACK_ACCOUNT_STATE);
 	}
 
-	private String createJettonTransferBocMessage(Address ownAddress, HighloadWalletV3 wallet, HighloadV3Config config) {
+	private String createTokenTransferBocMessage(Address ownAddress, HighloadWalletV3 wallet, HighloadV3Config config) {
 		Cell body = wallet.createTransferMessage(config);
 		TweetNaclFast.Signature.KeyPair keyPair = wallet.getKeyPair();
 		Message externalMessage = Message.builder()
@@ -164,18 +176,79 @@ public class TonCoreService {
 		return externalMessage.toCell().toBase64();
 	}
 
+	public String deployFeeAccount(String encryptedKey) {
+		TonNode tonNode = tonNodePool.getTonNodeByChainId();
+		String privateKey = getDecryptedKey(encryptedKey, tonNode);
+		if (StringUtil.nullOrEmpty(privateKey)) {
+			throw new InternalServerErrorException(String.format(Errors.PRIVATE_KEY_NOT_DECRYPTED));
+		}
+		TweetNaclFast.Signature.KeyPair keyPair = getKeyPair(privateKey);
+		WalletV3R2 feeAccountWallet = WalletV3R2.builder().walletId(tonNode.getWalletId()).keyPair(keyPair).build();
+		String deploymentTransactionMessage = feeAccountWallet.prepareDeployMsg().toCell().toBase64();
+		try {
+			return tonCoreServiceHelper.sendMessageWithReturnHash(deploymentTransactionMessage);
+		} catch (RuntimeException e) {
+			LOG.error(e.getMessage(), e);
+			throw new InternalServerErrorException(
+					String.format(Errors.ERROR_DEPLOY_FEE_ACCOUNT, feeAccountWallet.getAddress().toRaw(), tonNode.getChainId()));
+		}
+	}
+
+	public String deployMainAccount(String encryptedKey) {
+		TonNode tonNode = tonNodePool.getTonNodeByChainId();
+		String privateKey = getDecryptedKey(encryptedKey, tonNode);
+		if (StringUtil.nullOrEmpty(privateKey)) {
+			throw new InternalServerErrorException(String.format(Errors.PRIVATE_KEY_NOT_DECRYPTED));
+		}
+		TweetNaclFast.Signature.KeyPair keyPair = getKeyPair(privateKey);
+		HighloadWalletV3 mainAccountWallet = HighloadWalletV3.builder().walletId(tonNode.getWalletId()).keyPair(keyPair).build();
+		HighloadV3Config config = HighloadV3Config.builder().walletId(tonNode.getWalletId()).queryId(HighloadQueryId.fromSeqno(0).getQueryId()).build();
+		String deployMainAccountMessage = createDeployMainAccountMessage(config, mainAccountWallet);
+		try {
+			return tonCoreServiceHelper.sendMessageWithReturnHash(deployMainAccountMessage);
+		} catch (RuntimeException e) {
+			LOG.error(e.getMessage(), e);
+			throw new InternalServerErrorException(
+					String.format(Errors.ERROR_DEPLOY_MAIN_ACCOUNT, mainAccountWallet.getAddress().toRaw(), tonNode.getChainId()));
+		}
+	}
+
+	private String createDeployMainAccountMessage(HighloadV3Config config, HighloadWalletV3 wallet) {
+		Address ownAddress = wallet.getAddress();
+		if (isNull(config.getBody())) {
+			config.setBody(MessageRelaxed.builder()
+					.info(InternalMessageInfoRelaxed.builder()
+							.dstAddr(MsgAddressIntStd.builder().workchainId(ownAddress.wc).address(ownAddress.toBigInteger()).build())
+							.createdAt((config.getCreatedAt() == 0) ? Instant.now().getEpochSecond() - 60 : config.getCreatedAt())
+							.build())
+					.build()
+					.toCell());
+		}
+		Cell innerMsg = wallet.createTransferMessage(config);
+		TweetNaclFast.Signature.KeyPair keyPair = wallet.getKeyPair();
+		Message externalMessage = Message.builder()
+				.info(ExternalMessageInInfo.builder()
+						.dstAddr(MsgAddressIntStd.builder().workchainId(ownAddress.wc).address(ownAddress.toBigInteger()).build())
+						.build())
+				.init(wallet.getStateInit())
+				.body(CellBuilder.beginCell()
+						.storeBytes(Utils.signData(keyPair.getPublicKey(), keyPair.getSecretKey(), innerMsg.hash()))
+						.storeRef(innerMsg)
+						.endCell())
+				.build();
+		return externalMessage.toCell().toBase64();
+	}
+
 	@Retryable(retryFor = RetryException.class, backoff = @Backoff(delay = 2000), maxAttempts = 5)
-	public String transferJettonToMainAccount(String spenderRawAddress, String encryptedKey, String jettonMasterAddress, String mainAccountAddress,
+	public String transferTokenToMainAccount(String spenderRawAddress, String encryptedKey, String tokenAddress, String mainAccountAddress,
 			String feeAccountEncryptedKey, String txReference, BigInteger fee) {
 		try {
 			TonNode tonNode = tonNodePool.getTonNodeByChainId();
-			String encryptionAlgo = tonNode.getEncryptionAlgo();
-			byte[] encryptionKey = tonNode.getEncryptionKey();
-			String feeAccountPrivateKey = getDecryptedKey(feeAccountEncryptedKey, encryptionAlgo, encryptionKey);
-			String spenderAccountPrivateKey = getDecryptedKey(encryptedKey, encryptionAlgo, encryptionKey);
+			String feeAccountPrivateKey = getDecryptedKey(feeAccountEncryptedKey, tonNode);
+			String spenderAccountPrivateKey = getDecryptedKey(encryptedKey, tonNode);
 
 			if (StringUtil.nullOrEmpty(feeAccountPrivateKey) || StringUtil.nullOrEmpty(spenderAccountPrivateKey)) {
-				LogHolder logHolder = prepareSweepFailLogHolder(spenderRawAddress, mainAccountAddress, jettonMasterAddress);
+				LogHolder logHolder = prepareSweepFailLogHolder(spenderRawAddress, mainAccountAddress, tokenAddress);
 				LOG.error(Markers.appendEntries(logHolder.getAttributes()), null);
 				throw new InternalServerErrorException(String.format(Errors.PRIVATE_KEY_NOT_DECRYPTED));
 			}
@@ -183,49 +256,42 @@ public class TonCoreService {
 			TweetNaclFast.Signature.KeyPair feeAccountKeyPair = getKeyPair(feeAccountPrivateKey);
 			TweetNaclFast.Signature.KeyPair spenderAccountKeyPair = getKeyPair(spenderAccountPrivateKey);
 			WalletV3R2 feeWalletContract = WalletV3R2.builder().walletId(tonNode.getWalletId()).keyPair(feeAccountKeyPair).build();
-			WalletV5 spenderWalletContract = WalletV5.builder()
-					.walletId(tonNode.getWalletId())
-					.keyPair(spenderAccountKeyPair)
-					.isSigAuthAllowed(true)
-					.build();
+			WalletV5 spenderAccount = WalletV5.builder().walletId(tonNode.getWalletId()).keyPair(spenderAccountKeyPair).isSigAuthAllowed(true).build();
 
-			Address spenderAccountAddress = spenderWalletContract.getAddress();
+			Address spenderAddress = spenderAccount.getAddress();
 			Address feeAccountAddress = feeWalletContract.getAddress();
 			String feeAccountRawAddress = feeAccountAddress.toRaw();
-			LOG.info(LogMessages.Info.WAITING_FOR_BALANCE_UPDATE, spenderRawAddress);
-			Thread.sleep(3000);
-			List<JettonWalletDto.JettonWallet> jettonWallets = tonCoreServiceHelper.getJettonWallet(spenderRawAddress, jettonMasterAddress)
-					.getJettonWallets();
+			List<JettonWalletDto.JettonWallet> jettonWallets = tonCoreServiceHelper.getJettonWallet(spenderRawAddress, tokenAddress).getJettonWallets();
 			if (CollectionUtil.nullOrEmpty(jettonWallets)) {
-				throw new RetryException(String.format(Errors.RETRYING_TO_FETCH_JETTON_WALLET, spenderAccountAddress, jettonMasterAddress));
+				throw new RetryException(String.format(Errors.RETRYING_TO_FETCH_TOKEN_CONTRACT, spenderAddress, tokenAddress));
 			}
 			JettonWalletDto.JettonWallet jettonWallet = jettonWallets.getFirst();
 			if (jettonWallet.getBalance().compareTo(BigInteger.ZERO) == 0) {
-				LOG.warn(String.format(LogMessages.Warn.ZERO_ACCOUNT_BALANCE, spenderRawAddress, jettonMasterAddress));
+				LOG.warn(String.format(LogMessages.Warn.ZERO_ACCOUNT_BALANCE, spenderRawAddress, tokenAddress));
 				return null;
 			}
 			boolean isDeployed = tonCoreServiceHelper.isDeployed(spenderRawAddress);
 			int seqNumber = tonCoreServiceHelper.getSeqNo(feeAccountRawAddress);
-			WalletV5Config spenderConfig = createSweepJettonTransferConfig(isDeployed, spenderWalletContract, Address.of(mainAccountAddress),
-					feeAccountAddress, tonNode, jettonWallet.getAddress(), jettonWallet.getBalance(), txReference);
+			WalletV5Config spenderConfig = createSweepTokenTransferConfig(isDeployed, spenderAccount, Address.of(mainAccountAddress), feeAccountAddress,
+					tonNode, jettonWallet.getAddress(), jettonWallet.getBalance(), txReference);
 			WalletV3Config config = WalletV3Config.builder()
 					.seqno(seqNumber)
-					.destination(spenderAccountAddress)
+					.destination(spenderAddress)
 					.walletId(tonNode.getWalletId())
 					.sendMode(SendMode.PAY_GAS_SEPARATELY_AND_IGNORE_ERRORS)
 					.bounce(true)
 					.amount(fee)
-					.body(spenderWalletContract.createInternalSignedBody(spenderConfig))
+					.body(spenderAccount.createInternalSignedBody(spenderConfig))
 					.build();
 			if (!isDeployed) {
-				config.setStateInit(spenderWalletContract.getStateInit());
+				config.setStateInit(spenderAccount.getStateInit());
 			}
 			String message = feeWalletContract.prepareExternalMsg(config).toCell().toBase64();
 			String hash;
 			try {
 				hash = tonCoreServiceHelper.sendMessageWithReturnHash(message);
 			} catch (RuntimeException e) {
-				LogHolder logHolder = prepareSweepFailLogHolder(spenderRawAddress, mainAccountAddress, jettonMasterAddress);
+				LogHolder logHolder = prepareSweepFailLogHolder(spenderRawAddress, mainAccountAddress, tokenAddress);
 				LOG.error(Markers.appendEntries(logHolder.getAttributes()), null);
 				if (e.getMessage().contains(Errors.TonIndexer.UNPACK_ACCOUNT_STATE) || e.getMessage().contains(Errors.TonIndexer.EXIT_CODE_33)) {
 					throw new RetryException(String.format(Errors.ERROR_FUND_TRANSFER_TO_MAIN_ACCOUNT, spenderRawAddress), e);
@@ -237,25 +303,25 @@ public class TonCoreService {
 		} catch (RetryException | InternalServerErrorException ex) {
 			throw ex;
 		} catch (Exception ex) {
-			LogHolder logHolder = prepareSweepFailLogHolder(spenderRawAddress, mainAccountAddress, jettonMasterAddress);
+			LogHolder logHolder = prepareSweepFailLogHolder(spenderRawAddress, mainAccountAddress, tokenAddress);
 			LOG.error(Markers.appendEntries(logHolder.getAttributes()), null);
 			throw new InternalServerErrorException(String.format(Errors.ERROR_ON_SWEEP_TRANSACTION, ExecutionContextUtil.getContext().getChainId()), ex);
 		}
 	}
 
-	private WalletV5Config createSweepJettonTransferConfig(boolean isDeployed, WalletV5 spenderWalletContract, Address mainAccountAddress,
-			Address feeAccountAddress, TonNode tonNode, String spenderJettonWalletAddress, BigInteger balance, String txReference) {
+	private WalletV5Config createSweepTokenTransferConfig(boolean isDeployed, WalletV5 spenderAccount, Address mainAccountAddress,
+			Address feeAccountAddress, TonNode tonNode, String spenderTokenContractAddress, BigInteger balance, String txReference) {
 		int spenderSeqNo = 0;
 		if (isDeployed) {
-			spenderSeqNo = tonCoreServiceHelper.getSeqNo(spenderWalletContract.getAddress().toRaw());
+			spenderSeqNo = tonCoreServiceHelper.getSeqNo(spenderAccount.getAddress().toRaw());
 		}
 		Cell forwardPayload = MsgUtils.createTextMessageBody(txReference);
 		return WalletV5Config.builder()
 				.walletId(tonNode.getWalletId())
 				.seqno(spenderSeqNo)
-				.body(spenderWalletContract.createBulkTransfer(Collections.singletonList(Destination.builder()
+				.body(spenderAccount.createBulkTransfer(Collections.singletonList(Destination.builder()
 						.bounce(true)
-						.address(spenderJettonWalletAddress)
+						.address(spenderTokenContractAddress)
 						.sendMode(SendMode.CARRY_ALL_REMAINING_BALANCE)
 						.body(JettonWallet.createTransferBody(generateUniqueQueryId(), balance, mainAccountAddress, feeAccountAddress, null,
 								BigInteger.ONE, forwardPayload))
@@ -263,34 +329,30 @@ public class TonCoreService {
 				.build();
 	}
 
-	private String getDecryptedKey(String encryptedKey, String encryptionAlgo, byte[] encryptionKey) {
-		return SecurityManagerUtil.decrypt(encryptionAlgo, encryptedKey, encryptionKey);
+	private String getDecryptedKey(String encryptedKey, TonNode tonNode) {
+		return SecurityManagerUtil.decrypt(tonNode.getEncryptionAlgo(), encryptedKey, tonNode.getEncryptionKey());
 	}
 
 	private TweetNaclFast.Signature.KeyPair getKeyPair(String privateKey) {
 		return TweetNaclFast.Signature.keyPair_fromSecretKey(Utils.hexToSignedBytes(privateKey));
 	}
 
-	private LogHolder prepareJettonTransferFailLogHolder(String fromAddress, String toAddress, String jettonAddress, BigDecimal value) {
+	private LogHolder prepareTokenTransferFailLogHolder(String fromAddress, String toAddress, String tokenAddress, BigDecimal value) {
 		LogHolder logHolder = new LogHolder();
 		logHolder.put(LogKeys.FROM_ADDRESS, fromAddress);
 		logHolder.put(LogKeys.TO_ADDRESS, toAddress);
-		logHolder.put(LogKeys.JETTON_ADDRESS, jettonAddress);
+		logHolder.put(LogKeys.TOKEN_ADDRESS, tokenAddress);
 		logHolder.put(LogKeys.CHAIN_ID, ExecutionContextUtil.getContext().getChainId());
 		logHolder.put(LogKeys.VALUE, value);
 		return logHolder;
 	}
 
-	private LogHolder prepareSweepFailLogHolder(String spenderAddress, String mainAccountAddress, String jettonAddress) {
+	private LogHolder prepareSweepFailLogHolder(String spenderAddress, String mainAccountAddress, String tokenAddress) {
 		LogHolder logHolder = new LogHolder();
 		logHolder.put(LogKeys.SPENDER_ADDRESS, spenderAddress);
 		logHolder.put(LogKeys.MAIN_ACCOUNT_ADDRESS, mainAccountAddress);
-		logHolder.put(LogKeys.JETTON_ADDRESS, jettonAddress);
+		logHolder.put(LogKeys.TOKEN_ADDRESS, tokenAddress);
 		logHolder.put(LogKeys.CHAIN_ID, ExecutionContextUtil.getContext().getChainId());
 		return logHolder;
-	}
-
-	public String sendMessageWithReturnHash(String message) {
-		return tonCoreServiceHelper.sendMessageWithReturnHash(message);
 	}
 }

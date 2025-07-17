@@ -119,7 +119,7 @@ public class TonCoreServiceHelper {
 		params.add(JsonKeys.QueryParameters.JETTON_MASTER_ADDRESS, jettonMasterAddress);
 		params.add(JsonKeys.QueryParameters.EXCLUDE_ZERO_BALANCE, Boolean.FALSE.toString());
 		Map<String, Object> response = restClient.executeAPICall(HttpMethod.GET,
-				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_JETTON_WALLET), params,
+				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.GET_TOKEN_CONTRACT), params,
 				getHeaders(tonNode.getApiKey(), false));
 		return parseResponse(response, JettonWalletDto.class);
 	}

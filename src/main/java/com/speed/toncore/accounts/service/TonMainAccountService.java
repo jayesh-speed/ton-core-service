@@ -8,17 +8,16 @@ import java.util.List;
 
 public interface TonMainAccountService {
 
-	TonAccountResponse createMainAccount(String jettonMasterAddress);
+	TonAccountResponse createMainAccount(String tokenAddress);
 
 	void deleteMainAccount(String address);
 
-	void addMainAccountJettonWallet(String address);
+	void addMainAccountContractAddress(String address);
 
 	DeployedAccountResponse deployMainAccount(String address);
 
-	List<TonAccountResponse> getMainAccounts(String jettonMasterAddress);
+	List<TonAccountResponse> getMainAccounts(String tokenAddress);
 
-	List<TonMainAccount> getMainAccountInternal(String jettonMasterAddress);
+	List<TonMainAccount> getMainAccountInternal(String tokenAddress);
 
-	void publishMainAccountCreateEvent();
 }

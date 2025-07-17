@@ -1,8 +1,8 @@
 package com.speed.toncore.accounts.controller;
 
-import com.speed.toncore.accounts.request.TonWalletRequest;
+import com.speed.toncore.accounts.request.TonAddressRequest;
 import com.speed.toncore.accounts.response.TonAccountResponse;
-import com.speed.toncore.accounts.service.TonWalletService;
+import com.speed.toncore.accounts.service.TonAddressService;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Endpoints;
 import com.speed.toncore.constants.LogKeys;
@@ -24,27 +24,27 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class TonAccountController {
 
-	private final TonWalletService tonWalletService;
+	private final TonAddressService tonAddressService;
 
-	@GetMapping(Endpoints.GET_TON_WALLET_ADDRESS)
-	public ResponseEntity<TonAccountResponse> getNewWalletAddress() {
-		MDC.put(LogKeys.EVENT_NAME, Constants.Events.GET_TON_WALLET_ADDRESS);
-		TonAccountResponse usedWalletAddress = tonWalletService.getNewWalletAddress();
-		tonWalletService.checkAddressAvailabilityAndCreate();
-		return ResponseEntity.ok(usedWalletAddress);
+	@GetMapping(Endpoints.GET_TON_ADDRESS)
+	public ResponseEntity<TonAccountResponse> getNewTonAddress() {
+		MDC.put(LogKeys.EVENT_NAME, Constants.Events.GET_TON_ADDRESS);
+		TonAccountResponse usedTonAddress = tonAddressService.getNewTonAddress();
+		tonAddressService.checkAddressAvailabilityAndCreate();
+		return ResponseEntity.ok(usedTonAddress);
 	}
 
-	@PostMapping(Endpoints.CREATE_TON_WALLET_ADDRESSES)
-	public ResponseEntity<Void> createTonAddresses(@RequestBody @Valid TonWalletRequest tonWalletRequest) {
-		MDC.put(LogKeys.EVENT_NAME, Constants.Events.CREATE_TON_WALLET_ADDRESSES);
-		tonWalletService.createPoolOfTonWalletAddresses(tonWalletRequest);
+	@PostMapping(Endpoints.CREATE_TON_ADDRESSES)
+	public ResponseEntity<Void> createTonAddresses(@RequestBody @Valid TonAddressRequest tonAddressRequest) {
+		MDC.put(LogKeys.EVENT_NAME, Constants.Events.CREATE_TON_ADDRESSES);
+		tonAddressService.createPoolOfTonAddresses(tonAddressRequest);
 		return ResponseEntity.ok().build();
 	}
 
-	@PutMapping(Endpoints.REMOVE_USED_TON_WALLET_ADDRESS)
-	public ResponseEntity<Void> removeUsedTonWalletAddress(@PathVariable @NotBlank String address) {
-		MDC.put(LogKeys.EVENT_NAME, Constants.Events.REMOVE_USED_TON_WALLET_ADDRESS);
-		tonWalletService.removeUsedTonWalletAddress(address);
+	@PutMapping(Endpoints.REMOVE_USED_TON_ADDRESS)
+	public ResponseEntity<Void> removeUsedTonAddress(@PathVariable @NotBlank String address) {
+		MDC.put(LogKeys.EVENT_NAME, Constants.Events.REMOVE_USED_TON_ADDRESS);
+		tonAddressService.removeUsedTonAddress(address);
 		return ResponseEntity.ok().build();
 	}
 }

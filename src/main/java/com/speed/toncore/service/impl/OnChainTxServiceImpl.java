@@ -43,7 +43,7 @@ public class OnChainTxServiceImpl implements OnChainTxService {
 	public long getLatestLt(String jettonMasterAddress) {
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
 		BooleanBuilder predicate = new BooleanBuilder(qTonOnChainTx.chainId.eq(chainId)).and(qTonOnChainTx.logicalTime.isNotNull())
-				.and(qTonOnChainTx.jettonMasterAddress.eq(jettonMasterAddress));
+				.and(qTonOnChainTx.tokenAddress.eq(jettonMasterAddress));
 		TonOnChainTx lastOnChainTransaction = onChainTxRepository.getMaxLogicalTimeByPredicate(predicate);
 		if (Objects.isNull(lastOnChainTransaction)) {
 			return Objects.equals(chainId, Constants.MAIN_NET_CHAIN_ID) ? 58148306000003L : 0L;
@@ -89,7 +89,7 @@ public class OnChainTxServiceImpl implements OnChainTxService {
 		String txReference = TonUtil.deserializeTransactionReference(transfer.getForwardPayload());
 		Predicate queryPredicate = new BooleanBuilder(qTonOnChainTx.txReference.eq(txReference));
 		TonOnChainTx onChainTx = onChainTxRepository.findAndProjectUnique(queryPredicate, qTonOnChainTx, qTonOnChainTx.id, qTonOnChainTx.transactionHash,
-				qTonOnChainTx.toAddress, qTonOnChainTx.jettonMasterAddress);
+				qTonOnChainTx.toAddress, qTonOnChainTx.tokenAddress);
 		if (Objects.nonNull(onChainTx)) {
 			Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(7);
 			fieldWithValue.put(qTonOnChainTx.transactionHash, transfer.getTransactionHash());
@@ -120,7 +120,7 @@ public class OnChainTxServiceImpl implements OnChainTxService {
 		Predicate queryPredicate = new BooleanBuilder(qTonOnChainTx.id.eq(onChainTx.getId()));
 		long updateCount = onChainTxRepository.updateFields(queryPredicate, qTonOnChainTx, fieldWithValue);
 		if (updateCount == 0) {
-			LOG.error(String.format(Errors.CONFIRM_ON_CHAIN_TX_UPDATE_FAIL, onChainTx.getToAddress(), onChainTx.getJettonMasterAddress(),
+			LOG.error(String.format(Errors.CONFIRM_ON_CHAIN_TX_UPDATE_FAIL, onChainTx.getToAddress(), onChainTx.getTokenAddress(),
 					onChainTx.getTransactionHash()));
 		}
 	}

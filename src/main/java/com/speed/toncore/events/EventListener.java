@@ -1,6 +1,6 @@
 package com.speed.toncore.events;
 
-import com.speed.toncore.accounts.service.TonWalletService;
+import com.speed.toncore.accounts.service.TonAddressService;
 import com.speed.toncore.domain.model.TonListener;
 import com.speed.toncore.enums.TonListenerStatus;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
@@ -20,16 +20,16 @@ import java.util.Set;
 public class EventListener {
 
 	private final TonListenerService listenerService;
-	private final TonWalletService tonWalletService;
+	private final TonAddressService tonAddressService;
 
 	@org.springframework.context.event.EventListener
-	public void handleEoaAddressCreatedEvent(TonAddressCreatedEvent tonAddressCreatedEvent) {
+	public void handleTonAddressCreatedEvent(TonAddressCreatedEvent tonAddressCreatedEvent) {
 		TonListener listener = getListenerAndUpdateToRunning();
 		if (Objects.nonNull(listener)) {
 			Integer chainId = ExecutionContextUtil.getContext().getChainId();
 			listenerService.stopAndDisposeListener(listener);
-			tonWalletService.clearReceiveAddressesCache(chainId);
-			Set<String> receivingAddresses = tonWalletService.fetchReceiveAddresses(chainId);
+			tonAddressService.clearReceiveAddressesCache(chainId);
+			Set<String> receivingAddresses = tonAddressService.fetchReceiveAddresses(chainId);
 			listenerService.subscribeListener(listener);
 		}
 	}
@@ -40,8 +40,8 @@ public class EventListener {
 		if (Objects.nonNull(listener)) {
 			Integer chainId = ExecutionContextUtil.getContext().getChainId();
 			listenerService.stopAndDisposeListener(listener);
-			tonWalletService.clearSendAddressesCache(chainId);
-			Set<String> sendAddresses = tonWalletService.fetchSendAddresses(chainId);
+			tonAddressService.clearSendAddressesCache(chainId);
+			Set<String> sendAddresses = tonAddressService.fetchSendAddresses(chainId);
 			listenerService.subscribeListener(listener);
 		}
 	}
@@ -53,7 +53,7 @@ public class EventListener {
 	}
 
 	@org.springframework.context.event.EventListener
-	public void handleJettonAddedEvent(TonJettonAddedEvent jettonAddedEvent) {
+	public void handleTokenAddedEvent(TonTokenAddedEvent tokenAddedEvent) {
 		TonListener listener = getListenerAndUpdateToRunning();
 		if (Objects.nonNull(listener)) {
 			listenerService.stopAndDisposeListener(listener);
@@ -63,6 +63,9 @@ public class EventListener {
 
 	private TonListener getListenerAndUpdateToRunning() {
 		TonListener listener = listenerService.getListener();
+		if (Objects.isNull(listener)) {
+			return null;
+		}
 		boolean equals = listener.getStatus().equals(TonListenerStatus.IDLE.name());
 		if (equals) {
 			long count = listenerService.updateListenerStatus(listener, TonListenerStatus.RUNNING.name());

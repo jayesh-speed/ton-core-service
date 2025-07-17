@@ -1,19 +1,19 @@
 package com.speed.toncore.accounts.service;
 
-import com.speed.toncore.accounts.request.TonWalletRequest;
+import com.speed.toncore.accounts.request.TonAddressRequest;
 import com.speed.toncore.accounts.response.TonAccountResponse;
 
 import java.util.Set;
 
-public interface TonWalletService {
+public interface TonAddressService {
 
-	void createPoolOfTonWalletAddresses(TonWalletRequest tonWalletRequest);
+	void createPoolOfTonAddresses(TonAddressRequest tonAddressRequest);
 
-	TonAccountResponse getNewWalletAddress();
+	TonAccountResponse getNewTonAddress();
 
 	void checkAddressAvailabilityAndCreate();
 
-	void removeUsedTonWalletAddress(String address);
+	void removeUsedTonAddress(String address);
 
 	Set<String> fetchReceiveAddresses(Integer chainId);
 

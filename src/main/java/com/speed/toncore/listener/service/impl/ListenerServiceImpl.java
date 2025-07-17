@@ -4,7 +4,7 @@ import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.speed.javacommon.exceptions.BadRequestException;
 import com.speed.javacommon.util.DateTimeUtil;
-import com.speed.toncore.accounts.service.TonWalletService;
+import com.speed.toncore.accounts.service.TonAddressService;
 import com.speed.toncore.chainstack.JettonTransferFilter;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Endpoints;
@@ -14,8 +14,8 @@ import com.speed.toncore.domain.model.TonListener;
 import com.speed.toncore.enums.TonListenerStatus;
 import com.speed.toncore.enums.TonTransactionType;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
-import com.speed.toncore.jettons.response.TonJettonResponse;
-import com.speed.toncore.jettons.service.TonJettonService;
+import com.speed.toncore.tokens.response.TonTokenResponse;
+import com.speed.toncore.tokens.service.TonTokenService;
 import com.speed.toncore.listener.service.TonListenerService;
 import com.speed.toncore.pojo.JettonTransferDto;
 import com.speed.toncore.repository.TonListenerRepository;
@@ -46,11 +46,11 @@ public class ListenerServiceImpl implements TonListenerService {
 
 	private final TonListenerRepository tonListenerRepository;
 	private final TonListenerHelper tonListenerHelper;
-	private final TonJettonService tonJettonService;
+	private final TonTokenService tonTokenService;
 	private final OnChainTxService onChainTxService;
 	private final TonNodePool tonNodePool;
 	private final Map<TonListener, JettonTransferFilter> tonChainListenerMap = new ConcurrentHashMap<>();
-	private final TonWalletService tonWalletService;
+	private final TonAddressService tonAddressService;
 	private final OkHttpClient okHttpClient;
 
 	@Override
@@ -71,12 +71,12 @@ public class ListenerServiceImpl implements TonListenerService {
 	@Override
 	public void subscribeListener(TonListener idleListener) {
 		try {
-			List<String> jettonMasterAddresses = tonJettonService.getAllJettons().stream().map(TonJettonResponse::getJettonMasterAddress).toList();
+			List<String> jettonMasterAddresses = tonTokenService.getAllTokens().stream().map(TonTokenResponse::getTokenAddress).toList();
 			TonNode tonNode = tonNodePool.getTonNodeByChainId();
 			JettonTransferFilter filter = runAndGetJettonListener(jettonMasterAddresses, tonNode, idleListener);
 			tonChainListenerMap.put(idleListener, filter);
 		} catch (Exception ex) {
-			LOG.error(Errors.ERROR_SUBSCRIBE_JETTON_LISTENER, ex);
+			LOG.error(Errors.ERROR_SUBSCRIBE_TOKEN_LISTENER, ex);
 			stopAndDisposeListener(idleListener);
 			tonListenerHelper.updateListenerToIdle(idleListener);
 		}
@@ -96,8 +96,8 @@ public class ListenerServiceImpl implements TonListenerService {
 		JettonTransferFilter jettonFilter = JettonTransferFilter.builder()
 				.httpClient(okHttpClient)
 				.pollingInterval(tonNode.isMainNet() ? Constants.MAIN_NET_POLLING_INTERVAL : Constants.TEST_NET_POLLING_INTERVAL)
-				.jettonMasters(jettonMasters)
-				.apiUrl(tonNode.getListenerBaseUrl() + Endpoints.TonIndexer.GET_JETTON_TRANSFERS)
+				.tokenAddresses(jettonMasters)
+				.apiUrl(tonNode.getListenerBaseUrl() + Endpoints.TonIndexer.GET_TOKEN_TRANSFERS)
 				.apiKey(tonNode.getListenerApiKey())
 				.build();
 		jettonFilter.start().subscribe(transfer -> verifyAndUpdateOnChainTx(transfer, tonNode.getChainId()), error -> {
@@ -111,11 +111,11 @@ public class ListenerServiceImpl implements TonListenerService {
 	}
 
 	private void verifyAndUpdateOnChainTx(JettonTransferDto transfer, Integer chainId) {
-		Set<String> toAddresses = tonWalletService.fetchReceiveAddresses(chainId);
+		Set<String> toAddresses = tonAddressService.fetchReceiveAddresses(chainId);
 		if (toAddresses.contains(transfer.getDestination())) {
 			tonListenerHelper.updateOnChainTransaction(transfer, TonTransactionType.RECEIVE.name(), chainId);
 		}
-		Set<String> fromAddresses = tonWalletService.fetchSendAddresses(chainId);
+		Set<String> fromAddresses = tonAddressService.fetchSendAddresses(chainId);
 		if (fromAddresses.contains(transfer.getSource())) {
 			tonListenerHelper.updateOnChainTransaction(transfer, TonTransactionType.SEND.name(), chainId);
 		}

@@ -24,8 +24,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class TonSweepTx extends IdentityJpaDomain {
 
-	@Column(name = DbFields.JETTON_MASTER_ADDRESS, nullable = false, columnDefinition = "VARCHAR(80)")
-	private String jettonMasterAddress;
+	@Column(name = DbFields.TOKEN_ADDRESS, nullable = false, columnDefinition = "VARCHAR(80)")
+	private String tokenAddress;
 
 	@Column(name = DbFields.FROM_ADDRESS, nullable = false, columnDefinition = "VARCHAR(80)")
 	private String fromAddress;

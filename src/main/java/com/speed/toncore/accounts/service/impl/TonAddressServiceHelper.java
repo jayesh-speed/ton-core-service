@@ -1,13 +1,14 @@
 package com.speed.toncore.accounts.service.impl;
 
-import com.speed.toncore.accounts.request.TonWalletRequest;
+import com.speed.toncore.accounts.request.TonAddressRequest;
 import com.speed.toncore.constants.Errors;
-import com.speed.toncore.domain.model.TonWalletAddress;
+import com.speed.toncore.domain.model.TonAddress;
 import com.speed.toncore.events.TonAddressCreatedEvent;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
-import com.speed.toncore.repository.TonWalletAddressRepository;
+import com.speed.toncore.repository.TonAddressRepository;
 import com.speed.toncore.ton.TonNode;
 import com.speed.toncore.ton.TonNodePool;
+import com.speed.toncore.util.LogMessages;
 import com.speed.toncore.util.SecurityManagerUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,37 +27,37 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class TonWalletServiceHelper {
+public class TonAddressServiceHelper {
 
 	private final AtomicBoolean createInProgress = new AtomicBoolean(false);
 	private final TonNodePool tonNodePool;
-	private final TonWalletAddressRepository tonWalletAddressRepository;
+	private final TonAddressRepository tonAddressRepository;
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public TonWalletAddress fetchWalletAddress() {
+	public TonAddress fetchTonAddress() {
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
-		TonWalletAddress walletAddress = tonWalletAddressRepository.findFirstByChainIdOrderByIdAsc(chainId);
-		tonWalletAddressRepository.delete(walletAddress);
-		return walletAddress;
+		TonAddress tonAddress = tonAddressRepository.findFirstByChainIdOrderByIdAsc(chainId);
+		tonAddressRepository.delete(tonAddress);
+		return tonAddress;
 	}
 
 	@Async
-	public void createPoolOfWalletAddresses(TonWalletRequest tonWalletRequest) {
+	public void createPoolOfTonAddresses(TonAddressRequest tonAddressRequest) {
 		if (createInProgress.get()) {
-			LOG.warn(Errors.WARN_CREATE_IN_PROGRESS);
+			LOG.warn(LogMessages.Warn.WARN_CREATE_IN_PROGRESS);
 			return;
 		}
 		synchronized (this) {
 			if (createInProgress.get()) {
-				LOG.warn(Errors.WARN_CREATE_IN_PROGRESS);
+				LOG.warn(LogMessages.Warn.WARN_CREATE_IN_PROGRESS);
 				return;
 			}
 			createInProgress.getAndSet(true);
 		}
 		try {
-			List<TonWalletAddress> tonAddresses = new ArrayList<>();
-			int tonAddressesCount = tonWalletRequest.getCount();
+			List<TonAddress> tonAddresses = new ArrayList<>();
+			int tonAddressesCount = tonAddressRequest.getCount();
 			TonNode tonNode = tonNodePool.getTonNodeByChainId();
 			String encryptionAlgo = tonNode.getEncryptionAlgo();
 			byte[] encryptionKey = tonNode.getEncryptionKey();
@@ -68,20 +69,18 @@ public class TonWalletServiceHelper {
 						.build();
 				String encryptedPriKey = SecurityManagerUtil.encrypt(encryptionAlgo, Utils.bytesToHex(wallet.getKeyPair().getSecretKey()),
 						encryptionKey);
-				TonWalletAddress walletAddress = TonWalletAddress.builder()
+				TonAddress walletAddress = TonAddress.builder()
 						.address(wallet.getAddress().toRaw())
-						.secretKey(encryptedPriKey)
+						.privateKey(encryptedPriKey)
 						.publicKey(Utils.bytesToHex(wallet.getKeyPair().getPublicKey()))
-						.walletType(wallet.getName())
-						.walletId(tonNode.getWalletId())
+						.addressType(wallet.getName())
 						.chainId(tonNode.getChainId())
 						.mainNet(tonNode.isMainNet())
 						.build();
 				tonAddresses.add(walletAddress);
 			}
-			tonWalletAddressRepository.saveAll(tonAddresses);
-			TonAddressCreatedEvent addressCreatedEvent = new TonAddressCreatedEvent(); // Update the cache and refresh the receive addresses
-			eventPublisher.publishEvent(addressCreatedEvent);
+			tonAddressRepository.saveAll(tonAddresses);
+			eventPublisher.publishEvent(new TonAddressCreatedEvent()); // Update the cache and refresh the receive addresses
 		} catch (Exception e) {
 			LOG.error(String.format(Errors.ERROR_WHILE_CREATING_WALLETS, e.getMessage()), e);
 		} finally {

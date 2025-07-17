@@ -8,9 +8,9 @@ import java.math.BigInteger;
 
 public interface TransactionFeeService {
 
-	BigDecimal getJettonTransactionFee(String traceId);
+	BigDecimal getTokenTransferFee(String traceId);
 
-	BigDecimal getSweepTransactionFee(String traceId);
+	BigDecimal getSweepFee(String traceId);
 
 	EstimateFeeResponse estimateTransactionFee(FeeEstimationRequest request);
 

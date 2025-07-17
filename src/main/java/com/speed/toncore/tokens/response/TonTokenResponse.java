@@ -1,4 +1,4 @@
-package com.speed.toncore.jettons.response;
+package com.speed.toncore.tokens.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.speed.toncore.constants.JsonKeys;
@@ -7,16 +7,16 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TonJettonResponse {
+public class TonTokenResponse {
 
-	@JsonProperty(JsonKeys.JETTON_MASTER_ADDRESS)
-	private String jettonMasterAddress;
+	@JsonProperty(JsonKeys.TOKEN_ADDRESS)
+	private String tokenAddress;
 
-	@JsonProperty(JsonKeys.JETTON_NAME)
-	private String jettonName;
+	@JsonProperty(JsonKeys.TOKEN_NAME)
+	private String tokenName;
 
-	@JsonProperty(JsonKeys.JETTON_SYMBOL)
-	private String jettonSymbol;
+	@JsonProperty(JsonKeys.TOKEN_SYMBOL)
+	private String tokenSymbol;
 
 	@JsonProperty(JsonKeys.NO_OF_CELL)
 	private Integer noOfCell;

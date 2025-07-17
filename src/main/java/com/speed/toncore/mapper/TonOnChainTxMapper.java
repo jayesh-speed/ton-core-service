@@ -28,7 +28,7 @@ public interface TonOnChainTxMapper {
 	default void updateContextInfoInOnChainTx(@MappingTarget TonOnChainTx onChainTx, JettonTransferDto transferResponse) {
 		onChainTx.setMainNet(ExecutionContextUtil.getContext().isMainNet());
 		onChainTx.setChainId(ExecutionContextUtil.getContext().getChainId());
-		onChainTx.setJettonMasterAddress(transferResponse.getJettonMaster());
+		onChainTx.setTokenAddress(transferResponse.getJettonMaster());
 		onChainTx.setTransactionHash(transferResponse.getTransactionHash());
 		onChainTx.setTimestamp(System.currentTimeMillis());
 		onChainTx.setTransactionDate(DateTimeUtil.convertToLocalDateTime(Date.from(Instant.now())));

@@ -175,7 +175,7 @@ public class WithdrawConsumer {
 		WithdrawRequest withdrawRequest = new WithdrawRequest();
 		withdrawRequest.setToAddress(TonUtil.toRawAddress(afterWithdraw.getWithdrawRequest()));
 		withdrawRequest.setValue(String.valueOf(afterWithdraw.getTargetAmount().divide(new BigDecimal(100))));
-		withdrawRequest.setJettonSymbol(targetCurrency);
+		withdrawRequest.setTokenSymbol(targetCurrency);
 		withdrawRequest.setFromAddress(TonUtil.toRawAddress(afterWithdraw.getPublicKey()));
 		return withdrawRequest;
 	}
@@ -184,7 +184,7 @@ public class WithdrawConsumer {
 		WithdrawRequest withdrawRequest = new WithdrawRequest();
 		withdrawRequest.setToAddress(TonUtil.toRawAddress(afterWithdraw.getWithdrawRequest()));
 		withdrawRequest.setValue(String.valueOf(afterWithdraw.getTargetAmount().divide(new BigDecimal(100))));
-		withdrawRequest.setJettonSymbol(targetCurrency);
+		withdrawRequest.setTokenSymbol(targetCurrency);
 		withdrawRequest.setFromAddress(TonUtil.toRawAddress(afterWithdraw.getPublicKey()));
 		return withdrawRequest;
 	}

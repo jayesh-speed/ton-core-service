@@ -9,9 +9,9 @@ import com.speed.toncore.accounts.service.TonMainAccountService;
 import com.speed.toncore.accounts.service.TransactionFeeService;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.TonMainAccount;
-import com.speed.toncore.jettons.response.TonJettonResponse;
-import com.speed.toncore.jettons.service.TonJettonService;
 import com.speed.toncore.service.OnChainTxService;
+import com.speed.toncore.tokens.response.TonTokenResponse;
+import com.speed.toncore.tokens.service.TonTokenService;
 import com.speed.toncore.ton.TonCoreService;
 import com.speed.toncore.util.TonUtil;
 import com.speed.toncore.withdraw.request.WithdrawRequest;
@@ -33,52 +33,52 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class WithdrawServiceImpl implements WithdrawService {
 
-	private final TonJettonService tonJettonService;
+	private final TonTokenService tonTokenService;
 	private final TonMainAccountService tonMainAccountService;
 	private final TonCoreService tonCoreService;
 	private final OnChainTxService onChainTxService;
 	private final TransactionFeeService transactionFeeService;
 
 	@Override
-	public WithdrawResponse transferJetton(WithdrawRequest withdrawRequest) {
-		if (StringUtil.nullOrEmpty(withdrawRequest.getJettonMasterAddress()) && StringUtil.nullOrEmpty(withdrawRequest.getJettonSymbol())) {
-			throw new BadRequestException(Errors.JETTON_INFO_MISSING, null, null);
+	public WithdrawResponse transferToken(WithdrawRequest withdrawRequest) {
+		if (StringUtil.nullOrEmpty(withdrawRequest.getTokenAddress()) && StringUtil.nullOrEmpty(withdrawRequest.getTokenSymbol())) {
+			throw new BadRequestException(Errors.TOKEN_INFO_MISSING, null, null);
 		}
-		TonJettonResponse jetton = Optional.ofNullable(withdrawRequest.getJettonMasterAddress())
+		TonTokenResponse token = Optional.ofNullable(withdrawRequest.getTokenAddress())
 				.filter(StringUtil::nonNullNonEmpty)
-				.map(tonJettonService::getTonJettonByAddress)
-				.orElseGet(() -> tonJettonService.getTonJettonBySymbol(withdrawRequest.getJettonSymbol()));
+				.map(tonTokenService::getTonTokenByAddress)
+				.orElseGet(() -> tonTokenService.getTonTokenBySymbol(withdrawRequest.getTokenSymbol()));
 
-		if (Objects.isNull(jetton)) {
-			throw new BadRequestException(StringUtil.nonNullNonEmpty(withdrawRequest.getJettonMasterAddress())
-					? Errors.JETTON_ADDRESS_NOT_SUPPORTED
-					: Errors.JETTON_SYMBOL_NOT_SUPPORTED, null, null);
+		if (Objects.isNull(token)) {
+			throw new BadRequestException(StringUtil.nonNullNonEmpty(withdrawRequest.getTokenAddress())
+					? Errors.TOKEN_ADDRESS_NOT_SUPPORTED
+					: Errors.TOKEN_SYMBOL_NOT_SUPPORTED, null, null);
 		}
 
-		withdrawRequest.setJettonMasterAddress(jetton.getJettonMasterAddress());
+		withdrawRequest.setTokenAddress(token.getTokenAddress());
 		BigDecimal value = new BigDecimal(withdrawRequest.getValue());
-		List<TonMainAccount> mainAccountList = tonMainAccountService.getMainAccountInternal(jetton.getJettonMasterAddress());
+		List<TonMainAccount> mainAccountList = tonMainAccountService.getMainAccountInternal(token.getTokenAddress());
 		if (CollectionUtil.nullOrEmpty(mainAccountList)) {
 			throw new InternalServerErrorException(Errors.MAIN_ACCOUNT_NOT_FOUND);
 		}
 		Map.Entry<TonMainAccount, BigDecimal> maxBalanceAccMap = mainAccountList.stream()
-				.map(acc -> Map.entry(acc, tonCoreService.fetchJettonBalance(jetton.getJettonMasterAddress(), acc.getAddress(), jetton.getDecimals())))
+				.map(acc -> Map.entry(acc, tonCoreService.fetchTokenBalance(token.getTokenAddress(), acc.getAddress(), token.getDecimals())))
 				.max(Map.Entry.comparingByValue())
 				.get();
 		BigDecimal tokenBalanceOnAccount = maxBalanceAccMap.getValue();
 		if (tokenBalanceOnAccount.compareTo(value) < 0) {
-			throw new InternalServerErrorException(String.format(Errors.INSUFFICIENT_MAIN_ACC_BALANCE, jetton.getJettonSymbol()));
+			throw new InternalServerErrorException(String.format(Errors.INSUFFICIENT_MAIN_ACC_BALANCE, token.getTokenSymbol()));
 		}
 		TonMainAccount maxBalanceAcc = maxBalanceAccMap.getKey();
 		BigDecimal tonBalanceOnAccount = tonCoreService.fetchTonBalance(maxBalanceAcc.getAddress());
 		if (tonBalanceOnAccount.compareTo(BigDecimal.ZERO) <= 0) {
-			throw new InternalServerErrorException(String.format(Errors.INSUFFICIENT_FEE_BALANCE, jetton.getJettonSymbol()));
+			throw new InternalServerErrorException(String.format(Errors.INSUFFICIENT_FEE_BALANCE, token.getTokenSymbol()));
 		}
 		withdrawRequest.setFromAddress(maxBalanceAcc.getAddress());
 		String txReference = TonUtil.generateTransferTransactionReference();
-		BigInteger estimatedFee = estimateFee(withdrawRequest.getFromAddress(), withdrawRequest.getToAddress(), jetton.getJettonMasterAddress());
-		String transactionHash = tonCoreService.transferJettons(withdrawRequest.getFromAddress(), withdrawRequest.getToAddress(), jetton, value,
-				maxBalanceAcc.getSecretKey(), maxBalanceAcc.getJettonWalletAddress(), txReference, estimatedFee);
+		BigInteger estimatedFee = estimateFee(withdrawRequest.getFromAddress(), withdrawRequest.getToAddress(), token.getTokenAddress());
+		String transactionHash = tonCoreService.transferTokens(withdrawRequest.getFromAddress(), withdrawRequest.getToAddress(), token, value,
+				maxBalanceAcc.getPrivateKey(), maxBalanceAcc.getTokenContractAddress(), txReference, estimatedFee);
 		onChainTxService.createOnChainDebitTx(transactionHash, withdrawRequest, txReference);
 		return WithdrawResponse.builder()
 				.transactionHash(transactionHash)
@@ -94,16 +94,17 @@ public class WithdrawServiceImpl implements WithdrawService {
 		onChainTxService.updateLatestLogicalTime(id, logicalTime);
 	}
 
-	private BigInteger estimateFee(String fromAddress, String toAddress, String jettonMasterAddress) {
-		FeeEstimationRequest feeEstimationRequest = new FeeEstimationRequest();
-		feeEstimationRequest.setFromAddress(fromAddress);
-		feeEstimationRequest.setToAddress(toAddress);
-		feeEstimationRequest.setJettonMasterAddress(jettonMasterAddress);
-		BigDecimal scaledFee = transactionFeeService.estimateTransactionFee(feeEstimationRequest)
-				.getEstimateFee()
-				.multiply(BigDecimal.valueOf(1.15)) // Buffer 15% for fee estimation
-				.setScale(9, RoundingMode.HALF_UP);
+	private BigInteger estimateFee(String fromAddress, String toAddress, String tokenAddress) {
+//		FeeEstimationRequest feeEstimationRequest = new FeeEstimationRequest();
+//		feeEstimationRequest.setFromAddress(fromAddress);
+//		feeEstimationRequest.setToAddress(toAddress);
+//		feeEstimationRequest.setTokenAddress(tokenAddress);
+//		BigDecimal scaledFee = transactionFeeService.estimateTransactionFee(feeEstimationRequest)
+//				.getEstimateFee()
+//				.multiply(BigDecimal.valueOf(1.15)) // Buffer 15% for fee estimation
+//				.setScale(9, RoundingMode.HALF_UP);
 
-		return Utils.toNano(scaledFee);
+//		return Utils.toNano(scaledFee);
+		return Utils.toNano(0.05);
 	}
 }

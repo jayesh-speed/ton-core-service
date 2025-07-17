@@ -4,14 +4,13 @@ import com.speed.javacommon.exceptions.BadRequestException;
 import com.speed.toncore.accounts.response.BalanceResponse;
 import com.speed.toncore.balance.service.BalanceService;
 import com.speed.toncore.constants.Errors;
-import com.speed.toncore.jettons.response.TonJettonResponse;
-import com.speed.toncore.jettons.service.TonJettonService;
+import com.speed.toncore.tokens.response.TonTokenResponse;
+import com.speed.toncore.tokens.service.TonTokenService;
 import com.speed.toncore.ton.TonCoreService;
 import com.speed.toncore.util.TonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.Objects;
 
 @Service
@@ -19,7 +18,7 @@ import java.util.Objects;
 public class BalanceServiceImpl implements BalanceService {
 
 	private final TonCoreService tonCoreService;
-	private final TonJettonService tonJettonService;
+	private final TonTokenService tonTokenService;
 
 	@Override
 	public BalanceResponse getTonBalance(String address) {
@@ -28,14 +27,13 @@ public class BalanceServiceImpl implements BalanceService {
 	}
 
 	@Override
-	public BalanceResponse getJettonBalance(String jettonMasterAddress, String ownerAddress) {
-		jettonMasterAddress = TonUtil.toRawAddress(jettonMasterAddress);
+	public BalanceResponse getTokenBalance(String tokenAddress, String ownerAddress) {
+		tokenAddress = TonUtil.toRawAddress(tokenAddress);
 		ownerAddress = TonUtil.toRawAddress(ownerAddress);
-		TonJettonResponse jetton = tonJettonService.getTonJettonByAddress(jettonMasterAddress);
-		if (Objects.isNull(jetton)) {
-			throw new BadRequestException(Errors.JETTON_ADDRESS_NOT_SUPPORTED, null, null);
+		TonTokenResponse token = tonTokenService.getTonTokenByAddress(tokenAddress);
+		if (Objects.isNull(token)) {
+			throw new BadRequestException(Errors.TOKEN_ADDRESS_NOT_SUPPORTED, null, null);
 		}
-		BigDecimal balance = tonCoreService.fetchJettonBalance(jettonMasterAddress, ownerAddress, jetton.getDecimals());
-		return BalanceResponse.builder().balance(balance).build();
+		return BalanceResponse.builder().balance(tonCoreService.fetchTokenBalance(tokenAddress, ownerAddress, token.getDecimals())).build();
 	}
 }

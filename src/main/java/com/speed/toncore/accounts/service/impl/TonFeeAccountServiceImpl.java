@@ -1,11 +1,9 @@
 package com.speed.toncore.accounts.service.impl;
 
-import com.iwebpp.crypto.TweetNaclFast;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.speed.javacommon.exceptions.BadRequestException;
-import com.speed.javacommon.exceptions.InternalServerErrorException;
 import com.speed.javacommon.util.DateTimeUtil;
 import com.speed.toncore.accounts.response.DeployedAccountResponse;
 import com.speed.toncore.accounts.response.TonAccountResponse;
@@ -56,9 +54,8 @@ public class TonFeeAccountServiceImpl implements TonFeeAccountService {
 		TonFeeAccount tonFeeAccount = TonFeeAccount.builder()
 				.address(feeAccount.getAddress().toRaw())
 				.publicKey(Utils.bytesToHex(feeAccount.getKeyPair().getPublicKey()))
-				.secretKey(encryptedPriKey)
-				.walletId(tonNode.getWalletId())
-				.walletType(feeAccount.getName())
+				.privateKey(encryptedPriKey)
+				.addressType(feeAccount.getName())
 				.chainId(tonNode.getChainId())
 				.tonBalance(BigDecimal.ZERO)
 				.mainNet(tonNode.isMainNet())
@@ -77,10 +74,10 @@ public class TonFeeAccountServiceImpl implements TonFeeAccountService {
 	@Override
 	public DeployedAccountResponse deployFeeAccount(String address) {
 		String rawAddress = TonUtil.toRawAddress(address);
-		TonNode tonNode = tonNodePool.getTonNodeByChainId();
+		Integer chainId = ExecutionContextUtil.getContext().getChainId();
 		Predicate queryPredicate = getFeeAccountQueryPredicate(rawAddress);
 		TonFeeAccount tonFeeAccount = tonFeeAccountRepository.findOne(queryPredicate)
-				.orElseThrow(() -> new BadRequestException(String.format(Errors.FEE_ACCOUNT_NOT_FOUND, rawAddress, tonNode.getChainId()), null, null));
+				.orElseThrow(() -> new BadRequestException(String.format(Errors.FEE_ACCOUNT_NOT_FOUND, rawAddress, chainId), null, null));
 		if (tonCoreService.isDeployed(rawAddress)) {
 			throw new BadRequestException(String.format(Errors.ACCOUNT_ALREADY_DEPLOYED, rawAddress), null, null);
 		}
@@ -88,27 +85,13 @@ public class TonFeeAccountServiceImpl implements TonFeeAccountService {
 		if (accountBalance.compareTo(BigDecimal.ZERO) <= 0) {
 			throw new BadRequestException(String.format(Errors.NOT_ENOUGH_FUNDS_TO_DEPLOY, rawAddress), null, null);
 		}
-		String secretKey = tonFeeAccount.getSecretKey();
-		String encryptionAlgo = tonNode.getEncryptionAlgo();
-		byte[] encryptionKey = tonNode.getEncryptionKey();
-		String decryptedPriKey = SecurityManagerUtil.decrypt(encryptionAlgo, secretKey, encryptionKey);
-		TweetNaclFast.Signature.KeyPair keyPair = TweetNaclFast.Signature.keyPair_fromSecretKey(Utils.hexToSignedBytes(decryptedPriKey));
-		WalletV3R2 feeAccountWallet = WalletV3R2.builder().walletId(tonNode.getWalletId()).keyPair(keyPair).build();
-		String deploymentTransactionMessage = feeAccountWallet.prepareDeployMsg().toCell().toBase64();
-		String hash;
-		try {
-			hash = tonCoreService.sendMessageWithReturnHash(deploymentTransactionMessage);
-		} catch (RuntimeException e) {
-			LOG.error(e.getMessage(), e);
-			throw new InternalServerErrorException(String.format(Errors.ERROR_DEPLOY_FEE_ACCOUNT, rawAddress, tonNode.getChainId()));
-		}
-		Long currentTime = DateTimeUtil.currentEpochMilliSecondsUTC();
+		String hash = tonCoreService.deployFeeAccount(tonFeeAccount.getPrivateKey());
 		Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(2);
 		fieldWithValue.put(qTonFeeAccount.deploymentTxHash, hash);
-		fieldWithValue.put(qTonFeeAccount.modified, currentTime);
+		fieldWithValue.put(qTonFeeAccount.modified, DateTimeUtil.currentEpochMilliSecondsUTC());
 		long count = tonFeeAccountRepository.updateFields(queryPredicate, qTonFeeAccount, fieldWithValue);
 		if (count < 1) {
-			throw new BadRequestException(String.format(Errors.FEE_ACCOUNT_NOT_FOUND, rawAddress, tonNode.getChainId()), null, null);
+			throw new BadRequestException(String.format(Errors.FEE_ACCOUNT_NOT_FOUND, rawAddress, chainId), null, null);
 		}
 		return DeployedAccountResponse.builder().transactionHash(hash).build();
 	}
@@ -125,6 +108,6 @@ public class TonFeeAccountServiceImpl implements TonFeeAccountService {
 		int chainId = ExecutionContextUtil.getContext().getChainId();
 		Predicate queryPredicate = qTonFeeAccount.chainId.eq(chainId);
 		return tonFeeAccountRepository.findAndProject(queryPredicate, qTonFeeAccount, qTonFeeAccount.address, qTonFeeAccount.publicKey,
-				qTonFeeAccount.id, qTonFeeAccount.tonBalance, qTonFeeAccount.secretKey);
+				qTonFeeAccount.id, qTonFeeAccount.tonBalance, qTonFeeAccount.privateKey);
 	}
 }

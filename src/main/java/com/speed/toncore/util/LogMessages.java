@@ -7,24 +7,26 @@ public class LogMessages {
 
 	@UtilityClass
 	public class Warn {
+
 		public final String EMPTY_CONFIG_BYTES = "Config param bytes are empty for config ID: %s and chain ID: %s";
 		public final String LISTENER_ALREADY_RUNNING = "Ton listeners updated to Running status concurrently with another request.\n {}";
 		public final String LISTENER_NOT_FOUND = "Ton listener not found for chainId: {}";
-		public final String WAITING_FOR_TRACE_UPDATE = "Awaiting jetton trace update for traceId: %s";
-		public final String ZERO_ACCOUNT_BALANCE = "Zero account balance for address: %s jetton master address: %s";
+		public final String WAITING_FOR_TRACE_UPDATE = "Awaiting Token trace update for traceId: %s";
+		public final String WARN_CREATE_IN_PROGRESS = "Create request already in progress so not triggering second create flow";
+		public final String ZERO_ACCOUNT_BALANCE = "Zero account balance for address: %s token address: %s";
 	}
 
 	@UtilityClass
 	public class Info {
-		public final String WAITING_FOR_BALANCE_UPDATE = "Awaiting jetton balance update for address: %s";
-		public final String TRANSACTION_HASH = "Transaction hash: %s";
-		public final String ON_CHAIN_TRANSACTION_INFO = "TransactionType: %s  TransactionHash: %s ChainId: %s";
+
 		public final String ON_CHAIN_SWEEP_TRANSFER_INFO = "TransactionHash: %s ChainId: %s";
-		public final String UPDATING_IDLE_LISTENER = "Updating idle listener for chainId: %s";
+		public final String ON_CHAIN_TRANSACTION_INFO = "TransactionType: %s  TransactionHash: %s ChainId: %s";
 		public final String PAYOUT_LIVE_CONSUMER_COMPLETED = "Payout live mode consumer completed processing.";
 		public final String PAYOUT_LIVE_CONSUMER_INVOKED = "%s payout live mode consumer invoked.";
 		public final String PAYOUT_TEST_CONSUMER_COMPLETED = "Payout test mode consumer completed processing.";
 		public final String PAYOUT_TEST_CONSUMER_INVOKED = "%s payout test mode consumer invoked.";
+		public final String TRANSACTION_HASH = "Transaction hash: %s";
+		public final String UPDATING_IDLE_LISTENER = "Updating idle listener for chainId: %s";
 		public final String WITHDRAW_LIVE_CONSUMER_COMPLETED = "Withdraw live mode consumer completed processing.";
 		public final String WITHDRAW_LIVE_CONSUMER_INVOKED = "%s withdraw live mode consumer invoked.";
 		public final String WITHDRAW_TEST_CONSUMER_COMPLETED = "Withdraw test mode consumer completed processing.";
