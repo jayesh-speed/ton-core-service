@@ -6,7 +6,6 @@ import lombok.experimental.UtilityClass;
 public class Errors {
 
 	public final String ACCOUNT_ALREADY_DEPLOYED = "account already deployed for address %s";
-	public final String BLANK_ADDRESS = "Address cannot be blank";
 	public final String CONFIRM_ON_CHAIN_TX_UPDATE_FAIL = "Failed to update confirmed on chain tx for address: %s and token: %s with txHash: %s";
 	public final String CONNECTION_ERROR_WITH_SECRET_MANAGER = "Connection error with secret manager due to: %s";
 	public final String CREDIT_ON_CHAIN_TX_CONSTRAINT_VIOLATION = "Got Constraint violation exception while inserting confirmed credit transaction for address: %s with txHash: %s";
