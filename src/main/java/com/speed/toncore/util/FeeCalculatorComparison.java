@@ -9,12 +9,12 @@ public class FeeCalculatorComparison {
 	private static final int GAS_PRICE = 26_214_400;
 
 	public static void main(String[] args) {
-		int step1Fwd = calculateFwdFee(1, 417);
-		System.out.println("Step 1 Forward Fee: ");
+		int step1Fwd = calculateFwdFee(5,1834);
+		System.out.println("Step 1 Forward Fee: " + step1Fwd);
 	}
 
 	private static int calculateFwdFee(int cell, int bit) {
-		double fee = 5 * LUMP_PRICE + Math.ceil((double) ((long) BIT_PRICE * bit + CELL_PRICE * cell) / BIT16);
+		double fee = LUMP_PRICE + Math.ceil((double) ((long) BIT_PRICE * bit + CELL_PRICE * cell) / BIT16);
 		return (int) fee;
 	}
 

@@ -10,11 +10,11 @@ import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.TonMainAccount;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
-import com.speed.toncore.tokens.response.TonTokenResponse;
-import com.speed.toncore.tokens.service.TonTokenService;
 import com.speed.toncore.pojo.TraceDto;
 import com.speed.toncore.schedular.ConfigParam;
 import com.speed.toncore.schedular.TonConfigParam;
+import com.speed.toncore.tokens.response.TonTokenResponse;
+import com.speed.toncore.tokens.service.TonTokenService;
 import com.speed.toncore.ton.TonCoreService;
 import com.speed.toncore.ton.TonCoreServiceHelper;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class TransactionFeeServiceImpl implements TransactionFeeService {
 
-	private static final int BIT16 = 1 << 16;   // 2^16, used for fee calculations
+	private static final int BIT16 = 65536;   // 2^16, used for fee calculations
 	private final TonCoreServiceHelper tonCoreServiceHelper;
 	private final TonMainAccountService tonMainAccountService;
 	private final TonTokenService tonTokenService;
@@ -120,35 +120,34 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 		}
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
 		long storageFeeMainAccount;
-		long storageFeeSenderJettonWallet;
-		long storageFeeRecipientJettonWallet = 0;
-		long deploymentFee = 0;
+		long storageFeeSenderTokenContract;
+		long storageFeeRecipientTokenContract = 0;
+		long reservedStorage = 0;
 		String fromAddress = request.getFromAddress();
 		String toAddress = request.getToAddress();
-		String jettonMasterAddress = request.getTokenAddress();
+		String tokenAddress = request.getTokenAddress();
 		try {
 			if (StringUtil.nullOrEmpty(fromAddress)) {
-				TonMainAccount mainAccount = tonMainAccountService.getMainAccountInternal(jettonMasterAddress).getFirst();
+				TonMainAccount mainAccount = tonMainAccountService.getMainAccountInternal(tokenAddress).getFirst();
 				storageFeeMainAccount = getStorageFee(mainAccount.getAddress());
-				storageFeeSenderJettonWallet = getStorageFee(mainAccount.getTokenContractAddress());
+				storageFeeSenderTokenContract = getStorageFee(mainAccount.getTokenContractAddress());
 			} else {
 				storageFeeMainAccount = getStorageFee(fromAddress);
-				String senderJettonWalletAddress = tonCoreService.getTokenContractAddress(fromAddress, jettonMasterAddress);
-				storageFeeSenderJettonWallet = getStorageFee(senderJettonWalletAddress);
+				String senderTokenContractAddress = tonCoreService.getTokenContractAddress(fromAddress, tokenAddress);
+				storageFeeSenderTokenContract = getStorageFee(senderTokenContractAddress);
 			}
 
-			String recipientJettonWalletAddress = tonCoreService.getTokenContractAddress(toAddress, jettonMasterAddress);
-			if (recipientJettonWalletAddress != null) {
-				storageFeeRecipientJettonWallet = getStorageFee(recipientJettonWalletAddress);
+			String recipientTokenContractAddress = tonCoreService.getTokenContractAddress(toAddress, tokenAddress);
+			if (recipientTokenContractAddress != null) {
+				storageFeeRecipientTokenContract = getStorageFee(recipientTokenContractAddress);
 			} else {
-				deploymentFee = tonToken.getDeploymentCost();
+				reservedStorage = tonToken.getReserveStorageFee();
 			}
 			ConfigParam configParam = TonConfigParam.getConfigByChainId(chainId);
 			int fwdFee = calculateFwdFee(tonToken.getNoOfCell(), tonToken.getNoOfBits(), configParam);
 			int gasFee = calculateGasFee(tonToken.getGasUnit(), configParam);
-			long storageTotal = storageFeeMainAccount + storageFeeSenderJettonWallet + storageFeeRecipientJettonWallet;
-			long reservedStorage = tonToken.getReserveStorageFee();
-			long totalFee = fwdFee + gasFee + storageTotal + reservedStorage + deploymentFee;
+			long storageTotal = storageFeeMainAccount + storageFeeSenderTokenContract + storageFeeRecipientTokenContract;
+			long totalFee = fwdFee + gasFee + storageTotal + reservedStorage;
 
 			return EstimateFeeResponse.builder()
 					.chainId(chainId)
@@ -163,26 +162,25 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 	}
 
 	@Override
-	public BigInteger estimateSweepFee(String feeAccountAddress, String spenderAccountAddress, String mainAccountJettonAddress,
-			String jettonMasterAddress) {
-//		TonTokenResponse tonJetton = tonTokenService.getTonTokenByAddress(jettonMasterAddress);
-//		if (Objects.isNull(tonJetton)) {
-//			throw new InternalServerErrorException(Errors.TOKEN_ADDRESS_NOT_SUPPORTED);
-//		}
-//		long feeAccountStorageFee = getStorageFee(feeAccountAddress);
-//		long mainAccountJettonWalletStorageFee = getStorageFee(mainAccountJettonAddress);
-//		long SpenderJettonWalletStorageFee = getStorageFee(tonCoreService.getTokenContractAddress(spenderAccountAddress, jettonMasterAddress));
-//		long SpenderAccountStorageFee = getStorageFee(spenderAccountAddress);
-//		Integer chainId = ExecutionContextUtil.getContext().getChainId();
-//		ConfigParam configParam = TonConfigParam.getConfigByChainId(chainId);
-//		int fwdFee = calculateFwdFee(tonJetton.getNoOfCellV3(), tonJetton.getNoOfBitsV3(), configParam);
-//		int gasFee = calculateGasFee(tonJetton.getGasUnitV3(), configParam);
-//		long reservedStorage = tonJetton.getReserveStorageFee();
-//		long totalFee =
-//				fwdFee + gasFee + feeAccountStorageFee + mainAccountJettonWalletStorageFee + SpenderJettonWalletStorageFee + SpenderAccountStorageFee +
-//						reservedStorage;
-//		return new BigInteger(String.valueOf((long) (totalFee * 1.15))); // Adding 15% buffer to the fee
-		return BigInteger.valueOf(50000000L);
+	public BigInteger estimateSweepFee(String feeAccountAddress, String spenderAccountAddress, String mainAccountTokenContractAddress,
+			String tokenAddress) {
+		TonTokenResponse token = tonTokenService.getTonTokenByAddress(tokenAddress);
+		if (Objects.isNull(token)) {
+			throw new InternalServerErrorException(Errors.TOKEN_ADDRESS_NOT_SUPPORTED);
+		}
+		long feeAccountStorageFee = getStorageFee(feeAccountAddress);
+		long mainAccountTokenContractStorageFee = getStorageFee(mainAccountTokenContractAddress);
+		long spenderTokenContractStorageFee = getStorageFee(tonCoreService.getTokenContractAddress(spenderAccountAddress, tokenAddress));
+		long spenderAccountStorageFee = getStorageFee(spenderAccountAddress);
+		Integer chainId = ExecutionContextUtil.getContext().getChainId();
+		ConfigParam configParam = TonConfigParam.getConfigByChainId(chainId);
+		int fwdFee = calculateFwdFee(token.getNoOfCellV3(), token.getNoOfBitsV3(), configParam);
+		int gasFee = calculateGasFee(token.getGasUnitV3(), configParam);
+		long reservedStorage = token.getReserveStorageFee();
+		long totalFee =
+				fwdFee + gasFee + feeAccountStorageFee + mainAccountTokenContractStorageFee + spenderTokenContractStorageFee + spenderAccountStorageFee +
+						reservedStorage;
+		return new BigInteger(String.valueOf((long) (totalFee * 1.20))); // Adding 20% buffer to the fee
 	}
 
 	private long getStorageFee(String address) {

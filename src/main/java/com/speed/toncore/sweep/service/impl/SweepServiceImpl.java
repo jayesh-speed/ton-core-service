@@ -68,15 +68,14 @@ public class SweepServiceImpl implements SweepService {
 		String txReference = TonUtil.deserializeTransactionReference(transfer.getForwardPayload());
 		Predicate queryPredicate = qTonSweepTx.chainId.eq(chainId).and(qTonSweepTx.txReference.eq(txReference));
 		TonSweepTx sweepTx = tonSweepTxRepository.findAndProjectUnique(queryPredicate, qTonSweepTx, qTonSweepTx.id);
-		TonTokenResponse jettonResponse = tonTokenService.getTonTokenByAddress(transfer.getJettonMaster());
+		TonTokenResponse token = tonTokenService.getTonTokenByAddress(transfer.getJettonMaster());
 		BigDecimal transactionFee = transactionFeeService.getSweepFee(transfer.getTraceId());
 		if (Objects.nonNull(sweepTx)) {
 			Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(9);
 			fieldWithValue.put(qTonSweepTx.transactionHash, transfer.getTransactionHash());
 			fieldWithValue.put(qTonSweepTx.traceId, transfer.getTraceId());
 			fieldWithValue.put(qTonSweepTx.amount,
-					new BigDecimal(transfer.getAmount()).divide(BigDecimal.TEN.pow(jettonResponse.getDecimals()), jettonResponse.getDecimals(),
-							RoundingMode.HALF_DOWN));
+					new BigDecimal(transfer.getAmount()).divide(BigDecimal.TEN.pow(token.getDecimals()), token.getDecimals(), RoundingMode.HALF_DOWN));
 			fieldWithValue.put(qTonSweepTx.transactionFee, transactionFee);
 			fieldWithValue.put(qTonSweepTx.confirmationTimestamp, transfer.getTransactionNow());
 			fieldWithValue.put(qTonSweepTx.transactionStatus, OnChainTxStatus.CONFIRMED.getValue());
@@ -134,15 +133,15 @@ public class SweepServiceImpl implements SweepService {
 
 	@Override
 	public SweepResponse createSweepOnChainTx(SweepRequest sweepRequest, String id) {
-		TonTokenResponse jetton = tonTokenService.getTonTokenByAddress(sweepRequest.getTokenAddress());
-		if (Objects.isNull(jetton)) {
+		TonTokenResponse token = tonTokenService.getTonTokenByAddress(sweepRequest.getTokenAddress());
+		if (Objects.isNull(token)) {
 			throw new BadRequestException(Errors.TOKEN_ADDRESS_NOT_SUPPORTED, null, null);
 		}
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
 		if (!tonUsedAddressRepository.exists(qTonUsedTonAddress.chainId.eq(chainId).and(qTonUsedTonAddress.address.eq(sweepRequest.getFromAddress())))) {
 			throw new BadRequestException(String.format(Errors.NOT_ELIGIBLE_FOR_SWEEP, sweepRequest.getFromAddress()), null, null);
 		}
-		String hash = initiateSweepOnChainTx(sweepRequest, id, jetton.getDecimals());
+		String hash = initiateSweepOnChainTx(sweepRequest, id, token.getDecimals());
 		return SweepResponse.builder().transactionHash(hash).build();
 	}
 

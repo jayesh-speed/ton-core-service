@@ -69,9 +69,9 @@ public class TonTokenServiceImpl implements TonTokenService {
 
 	@Override
 	@Cacheable(value = Constants.CacheNames.TOKEN_RESPONSE, keyGenerator = Constants.CACHE_KEY_GENERATOR)
-	public TonTokenResponse getTonTokenBySymbol(String jettonSymbol) {
+	public TonTokenResponse getTonTokenBySymbol(String tokenSymbol) {
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
-		Predicate queryPredicate = new BooleanBuilder(qTonToken.chainId.eq(chainId)).and(qTonToken.tokenSymbol.eq(jettonSymbol));
+		Predicate queryPredicate = new BooleanBuilder(qTonToken.chainId.eq(chainId)).and(qTonToken.tokenSymbol.eq(tokenSymbol));
 		TonToken tonToken = tonTokenRepository.findAndProjectUnique(queryPredicate, qTonToken, qTonToken.id, qTonToken.chainId, qTonToken.tokenAddress,
 				qTonToken.tokenName, qTonToken.tokenSymbol, qTonToken.decimals, qTonToken.noOfCell, qTonToken.noOfBits, qTonToken.gasUnit,
 				qTonToken.deploymentCost, qTonToken.reserveStorageFee, qTonToken.noOfCellV3, qTonToken.noOfBitsV3, qTonToken.gasUnitV3);

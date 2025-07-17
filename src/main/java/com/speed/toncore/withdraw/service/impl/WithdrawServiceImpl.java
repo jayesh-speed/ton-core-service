@@ -95,16 +95,15 @@ public class WithdrawServiceImpl implements WithdrawService {
 	}
 
 	private BigInteger estimateFee(String fromAddress, String toAddress, String tokenAddress) {
-//		FeeEstimationRequest feeEstimationRequest = new FeeEstimationRequest();
-//		feeEstimationRequest.setFromAddress(fromAddress);
-//		feeEstimationRequest.setToAddress(toAddress);
-//		feeEstimationRequest.setTokenAddress(tokenAddress);
-//		BigDecimal scaledFee = transactionFeeService.estimateTransactionFee(feeEstimationRequest)
-//				.getEstimateFee()
-//				.multiply(BigDecimal.valueOf(1.15)) // Buffer 15% for fee estimation
-//				.setScale(9, RoundingMode.HALF_UP);
+		FeeEstimationRequest feeEstimationRequest = new FeeEstimationRequest();
+		feeEstimationRequest.setFromAddress(fromAddress);
+		feeEstimationRequest.setToAddress(toAddress);
+		feeEstimationRequest.setTokenAddress(tokenAddress);
+		BigDecimal scaledFee = transactionFeeService.estimateTransactionFee(feeEstimationRequest)
+				.getEstimateFee()
+				.multiply(BigDecimal.valueOf(1.2)) // Buffer 20% for fee estimation
+				.setScale(9, RoundingMode.HALF_UP);
 
-//		return Utils.toNano(scaledFee);
-		return Utils.toNano(0.05);
+		return Utils.toNano(scaledFee);
 	}
 }

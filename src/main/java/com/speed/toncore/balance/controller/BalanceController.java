@@ -28,7 +28,7 @@ public class BalanceController {
 	}
 
 	@GetMapping(Endpoints.GET_TOKEN_BALANCE)
-	public ResponseEntity<BalanceResponse> getJettonBalance(@PathVariable @NotBlank String tokenAddress, @PathVariable @NotBlank String ownerAddress) {
+	public ResponseEntity<BalanceResponse> getTokenBalance(@PathVariable @NotBlank String tokenAddress, @PathVariable @NotBlank String ownerAddress) {
 		MDC.put(LogKeys.EVENT_NAME, Constants.Events.GET_TOKEN_BALANCE);
 		return ResponseEntity.ok(balanceService.getTokenBalance(tokenAddress, ownerAddress));
 	}

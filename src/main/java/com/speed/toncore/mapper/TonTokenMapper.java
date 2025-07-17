@@ -12,7 +12,7 @@ public interface TonTokenMapper {
 
 	TonTokenMapper INSTANCE = Mappers.getMapper(TonTokenMapper.class);
 
-	TonToken mapTokenRequestToModal(TonTokenRequest jettonRequest);
+	TonToken mapTokenRequestToModal(TonTokenRequest tokenRequest);
 
 	TonTokenResponse mapModalToTokenResponse(TonToken tonToken);
 }

@@ -12,14 +12,14 @@ import com.speed.toncore.domain.model.TonListener;
 import com.speed.toncore.enums.TonListenerStatus;
 import com.speed.toncore.enums.TonTransactionType;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
-import com.speed.toncore.tokens.response.TonTokenResponse;
-import com.speed.toncore.tokens.service.TonTokenService;
 import com.speed.toncore.pojo.JettonTransferDto;
 import com.speed.toncore.repository.TonListenerRepository;
 import com.speed.toncore.service.OnChainTxService;
 import com.speed.toncore.service.WithdrawProcessHelper;
 import com.speed.toncore.sweep.request.SweepRequest;
 import com.speed.toncore.sweep.service.SweepService;
+import com.speed.toncore.tokens.response.TonTokenResponse;
+import com.speed.toncore.tokens.service.TonTokenService;
 import com.speed.toncore.util.LogMessages;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -94,14 +94,14 @@ public class TonListenerHelper {
 	public void updateOnChainTransaction(JettonTransferDto transfer, String transactionType, Integer chainId) {
 		LOG.info(String.format(LogMessages.Info.ON_CHAIN_TRANSACTION_INFO, transactionType, transfer.getTransactionHash(), chainId));
 		setContext(chainId);
-		TonTokenResponse jettonResponse = tonTokenService.getTonTokenByAddress(transfer.getJettonMaster());
+		TonTokenResponse tokenResponse = tonTokenService.getTonTokenByAddress(transfer.getJettonMaster());
 		if (transactionType.equals(TonTransactionType.RECEIVE.name())) {
-			updateReceivedOnChainTx(transfer, jettonResponse.getDecimals());
+			updateReceivedOnChainTx(transfer, tokenResponse.getDecimals());
 			return;
 		}
 		BigDecimal fees = transactionFeeService.getTokenTransferFee(transfer.getTraceId());
 		withdrawProcessHelper.markWithdrawProcessPaid(transfer, fees);
-		onChainTxService.updateConfirmedDebitOnChainTx(transfer, jettonResponse.getDecimals(), fees);
+		onChainTxService.updateConfirmedDebitOnChainTx(transfer, tokenResponse.getDecimals(), fees);
 	}
 
 	@Async

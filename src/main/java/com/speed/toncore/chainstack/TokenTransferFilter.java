@@ -29,7 +29,7 @@ import java.util.Objects;
 
 @Slf4j
 @Builder
-public class JettonTransferFilter {
+public class TokenTransferFilter {
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private static final int PAGE_LIMIT = 1000;

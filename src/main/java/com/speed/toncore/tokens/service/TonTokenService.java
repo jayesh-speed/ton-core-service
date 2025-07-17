@@ -13,7 +13,7 @@ public interface TonTokenService {
 
 	List<TonTokenResponse> getAllTokens();
 
-	TonTokenResponse getTonTokenBySymbol(String jettonSymbol);
+	TonTokenResponse getTonTokenBySymbol(String tokenSymbol);
 
-	TonTokenResponse getTonTokenByAddress(String jettonAddress);
+	TonTokenResponse getTonTokenByAddress(String tokenAddress);
 }

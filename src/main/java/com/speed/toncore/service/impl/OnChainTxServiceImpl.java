@@ -40,10 +40,10 @@ public class OnChainTxServiceImpl implements OnChainTxService {
 	private final OnChainTxRepository onChainTxRepository;
 
 	@Override
-	public long getLatestLt(String jettonMasterAddress) {
+	public long getLatestLt(String tokenAddress) {
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
 		BooleanBuilder predicate = new BooleanBuilder(qTonOnChainTx.chainId.eq(chainId)).and(qTonOnChainTx.logicalTime.isNotNull())
-				.and(qTonOnChainTx.tokenAddress.eq(jettonMasterAddress));
+				.and(qTonOnChainTx.tokenAddress.eq(tokenAddress));
 		TonOnChainTx lastOnChainTransaction = onChainTxRepository.getMaxLogicalTimeByPredicate(predicate);
 		if (Objects.isNull(lastOnChainTransaction)) {
 			return Objects.equals(chainId, Constants.MAIN_NET_CHAIN_ID) ? 58148306000003L : 0L;
@@ -72,11 +72,11 @@ public class OnChainTxServiceImpl implements OnChainTxService {
 	}
 
 	@Override
-	public void createConfirmedCreditOnChainTx(JettonTransferDto transfer, int jettonDecimals) {
+	public void createConfirmedCreditOnChainTx(JettonTransferDto transfer, int decimals) {
 		TonOnChainTx onChainTx = TonOnChainTxMapper.INSTANCE.mapTransferToOnChainTx(transfer);
 		onChainTx.setTransactionType(TonOnChainTxType.CREDIT.name());
 		onChainTx.setTransactionStatus(OnChainTxStatus.CONFIRMED.getValue());
-		onChainTx.setAmount(onChainTx.getAmount().divide(BigDecimal.TEN.pow(jettonDecimals), jettonDecimals, RoundingMode.HALF_DOWN));
+		onChainTx.setAmount(onChainTx.getAmount().divide(BigDecimal.TEN.pow(decimals), decimals, RoundingMode.HALF_DOWN));
 		try {
 			onChainTxRepository.save(onChainTx);
 		} catch (DataIntegrityViolationException | ConstraintViolationException e) {
@@ -85,7 +85,7 @@ public class OnChainTxServiceImpl implements OnChainTxService {
 	}
 
 	@Override
-	public void updateConfirmedDebitOnChainTx(JettonTransferDto transfer, int jettonDecimals, BigDecimal fees) {
+	public void updateConfirmedDebitOnChainTx(JettonTransferDto transfer, int decimals, BigDecimal fees) {
 		String txReference = TonUtil.deserializeTransactionReference(transfer.getForwardPayload());
 		Predicate queryPredicate = new BooleanBuilder(qTonOnChainTx.txReference.eq(txReference));
 		TonOnChainTx onChainTx = onChainTxRepository.findAndProjectUnique(queryPredicate, qTonOnChainTx, qTonOnChainTx.id, qTonOnChainTx.transactionHash,
@@ -102,7 +102,7 @@ public class OnChainTxServiceImpl implements OnChainTxService {
 			return;
 		}
 		onChainTx = TonOnChainTxMapper.INSTANCE.mapTransferToOnChainTx(transfer);
-		onChainTx.setAmount(new BigDecimal(transfer.getAmount()).divide(BigDecimal.TEN.pow(jettonDecimals), jettonDecimals, RoundingMode.HALF_DOWN));
+		onChainTx.setAmount(new BigDecimal(transfer.getAmount()).divide(BigDecimal.TEN.pow(decimals), decimals, RoundingMode.HALF_DOWN));
 		onChainTx.setTransactionFee(fees);
 		onChainTx.setTxReference(txReference);
 		onChainTx.setTransactionType(TonOnChainTxType.DEBIT.name());

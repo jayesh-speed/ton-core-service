@@ -14,5 +14,5 @@ public interface TransactionFeeService {
 
 	EstimateFeeResponse estimateTransactionFee(FeeEstimationRequest request);
 
-	BigInteger estimateSweepFee(String feeAccountAddress, String spenderAccountAddress, String mainAccountJettonAddress, String jettonMasterAddress);
+	BigInteger estimateSweepFee(String feeAccountAddress, String spenderAccountAddress, String mainAccountTokenContractAddress, String tokenAddress);
 }

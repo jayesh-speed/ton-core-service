@@ -7,13 +7,13 @@ import java.math.BigDecimal;
 
 public interface OnChainTxService {
 
-	long getLatestLt(String jettonAddress);
+	long getLatestLt(String tokenAddress);
 
 	void createOnChainDebitTx(String transactionHash, WithdrawRequest withdrawRequest, String identifier);
 
-	void createConfirmedCreditOnChainTx(JettonTransferDto transfer, int jettonDecimals);
+	void createConfirmedCreditOnChainTx(JettonTransferDto transfer, int decimals);
 
-	void updateConfirmedDebitOnChainTx(JettonTransferDto transfer, int tokenDecimals, BigDecimal fees);
+	void updateConfirmedDebitOnChainTx(JettonTransferDto transfer, int decimals, BigDecimal fees);
 
 	void updateLatestLogicalTime(String id, Long logicalTime);
 }

@@ -5,7 +5,7 @@ import com.querydsl.core.types.Predicate;
 import com.speed.javacommon.exceptions.BadRequestException;
 import com.speed.javacommon.util.DateTimeUtil;
 import com.speed.toncore.accounts.service.TonAddressService;
-import com.speed.toncore.chainstack.JettonTransferFilter;
+import com.speed.toncore.chainstack.TokenTransferFilter;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Endpoints;
 import com.speed.toncore.constants.Errors;
@@ -14,12 +14,12 @@ import com.speed.toncore.domain.model.TonListener;
 import com.speed.toncore.enums.TonListenerStatus;
 import com.speed.toncore.enums.TonTransactionType;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
-import com.speed.toncore.tokens.response.TonTokenResponse;
-import com.speed.toncore.tokens.service.TonTokenService;
 import com.speed.toncore.listener.service.TonListenerService;
 import com.speed.toncore.pojo.JettonTransferDto;
 import com.speed.toncore.repository.TonListenerRepository;
 import com.speed.toncore.service.OnChainTxService;
+import com.speed.toncore.tokens.response.TonTokenResponse;
+import com.speed.toncore.tokens.service.TonTokenService;
 import com.speed.toncore.ton.TonNode;
 import com.speed.toncore.ton.TonNodePool;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +49,7 @@ public class ListenerServiceImpl implements TonListenerService {
 	private final TonTokenService tonTokenService;
 	private final OnChainTxService onChainTxService;
 	private final TonNodePool tonNodePool;
-	private final Map<TonListener, JettonTransferFilter> tonChainListenerMap = new ConcurrentHashMap<>();
+	private final Map<TonListener, TokenTransferFilter> tonChainListenerMap = new ConcurrentHashMap<>();
 	private final TonAddressService tonAddressService;
 	private final OkHttpClient okHttpClient;
 
@@ -71,9 +71,9 @@ public class ListenerServiceImpl implements TonListenerService {
 	@Override
 	public void subscribeListener(TonListener idleListener) {
 		try {
-			List<String> jettonMasterAddresses = tonTokenService.getAllTokens().stream().map(TonTokenResponse::getTokenAddress).toList();
+			List<String> tokenAddresses = tonTokenService.getAllTokens().stream().map(TonTokenResponse::getTokenAddress).toList();
 			TonNode tonNode = tonNodePool.getTonNodeByChainId();
-			JettonTransferFilter filter = runAndGetJettonListener(jettonMasterAddresses, tonNode, idleListener);
+			TokenTransferFilter filter = runAndGetTokenListener(tokenAddresses, tonNode, idleListener);
 			tonChainListenerMap.put(idleListener, filter);
 		} catch (Exception ex) {
 			LOG.error(Errors.ERROR_SUBSCRIBE_TOKEN_LISTENER, ex);
@@ -89,25 +89,24 @@ public class ListenerServiceImpl implements TonListenerService {
 		}
 	}
 
-	private JettonTransferFilter runAndGetJettonListener(List<String> jettonMasterAddresses, TonNode tonNode, TonListener listener) {
-		List<MutablePair<String, Long>> jettonMasters = new ArrayList<>();
-		jettonMasterAddresses.forEach(
-				jettonMasterAddress -> jettonMasters.add(MutablePair.of(jettonMasterAddress, onChainTxService.getLatestLt(jettonMasterAddress))));
-		JettonTransferFilter jettonFilter = JettonTransferFilter.builder()
+	private TokenTransferFilter runAndGetTokenListener(List<String> tokenAddresses, TonNode tonNode, TonListener listener) {
+		List<MutablePair<String, Long>> tokenLTimePair = new ArrayList<>();
+		tokenAddresses.forEach(tokenAddress -> tokenLTimePair.add(MutablePair.of(tokenAddress, onChainTxService.getLatestLt(tokenAddress))));
+		TokenTransferFilter tokenFilter = TokenTransferFilter.builder()
 				.httpClient(okHttpClient)
 				.pollingInterval(tonNode.isMainNet() ? Constants.MAIN_NET_POLLING_INTERVAL : Constants.TEST_NET_POLLING_INTERVAL)
-				.tokenAddresses(jettonMasters)
+				.tokenAddresses(tokenLTimePair)
 				.apiUrl(tonNode.getListenerBaseUrl() + Endpoints.TonIndexer.GET_TOKEN_TRANSFERS)
 				.apiKey(tonNode.getListenerApiKey())
 				.build();
-		jettonFilter.start().subscribe(transfer -> verifyAndUpdateOnChainTx(transfer, tonNode.getChainId()), error -> {
+		tokenFilter.start().subscribe(transfer -> verifyAndUpdateOnChainTx(transfer, tonNode.getChainId()), error -> {
 			if (tonChainListenerMap.containsKey(listener)) {
 				tonChainListenerMap.get(listener).stop();
 			}
 			tonListenerHelper.updateListenerToIdle(listener);
 			LOG.error(String.format(Errors.ERROR_SUBSCRIBING_ONCHAIN_TRANSACTION, listener.getId()), error);
 		});
-		return jettonFilter;
+		return tokenFilter;
 	}
 
 	private void verifyAndUpdateOnChainTx(JettonTransferDto transfer, Integer chainId) {
