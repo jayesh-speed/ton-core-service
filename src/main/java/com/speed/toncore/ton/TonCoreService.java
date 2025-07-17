@@ -176,69 +176,6 @@ public class TonCoreService {
 		return externalMessage.toCell().toBase64();
 	}
 
-	public String deployFeeAccount(String encryptedKey) {
-		TonNode tonNode = tonNodePool.getTonNodeByChainId();
-		String privateKey = getDecryptedKey(encryptedKey, tonNode);
-		if (StringUtil.nullOrEmpty(privateKey)) {
-			throw new InternalServerErrorException(String.format(Errors.PRIVATE_KEY_NOT_DECRYPTED));
-		}
-		TweetNaclFast.Signature.KeyPair keyPair = getKeyPair(privateKey);
-		WalletV3R2 feeAccountWallet = WalletV3R2.builder().walletId(tonNode.getWalletId()).keyPair(keyPair).build();
-		String deploymentTransactionMessage = feeAccountWallet.prepareDeployMsg().toCell().toBase64();
-		try {
-			return tonCoreServiceHelper.sendMessageWithReturnHash(deploymentTransactionMessage);
-		} catch (RuntimeException e) {
-			LOG.error(e.getMessage(), e);
-			throw new InternalServerErrorException(
-					String.format(Errors.ERROR_DEPLOY_FEE_ACCOUNT, feeAccountWallet.getAddress().toRaw(), tonNode.getChainId()));
-		}
-	}
-
-	public String deployMainAccount(String encryptedKey) {
-		TonNode tonNode = tonNodePool.getTonNodeByChainId();
-		String privateKey = getDecryptedKey(encryptedKey, tonNode);
-		if (StringUtil.nullOrEmpty(privateKey)) {
-			throw new InternalServerErrorException(String.format(Errors.PRIVATE_KEY_NOT_DECRYPTED));
-		}
-		TweetNaclFast.Signature.KeyPair keyPair = getKeyPair(privateKey);
-		HighloadWalletV3 mainAccountWallet = HighloadWalletV3.builder().walletId(tonNode.getWalletId()).keyPair(keyPair).build();
-		HighloadV3Config config = HighloadV3Config.builder().walletId(tonNode.getWalletId()).queryId(HighloadQueryId.fromSeqno(0).getQueryId()).build();
-		String deployMainAccountMessage = createDeployMainAccountMessage(config, mainAccountWallet);
-		try {
-			return tonCoreServiceHelper.sendMessageWithReturnHash(deployMainAccountMessage);
-		} catch (RuntimeException e) {
-			LOG.error(e.getMessage(), e);
-			throw new InternalServerErrorException(
-					String.format(Errors.ERROR_DEPLOY_MAIN_ACCOUNT, mainAccountWallet.getAddress().toRaw(), tonNode.getChainId()));
-		}
-	}
-
-	private String createDeployMainAccountMessage(HighloadV3Config config, HighloadWalletV3 wallet) {
-		Address ownAddress = wallet.getAddress();
-		if (isNull(config.getBody())) {
-			config.setBody(MessageRelaxed.builder()
-					.info(InternalMessageInfoRelaxed.builder()
-							.dstAddr(MsgAddressIntStd.builder().workchainId(ownAddress.wc).address(ownAddress.toBigInteger()).build())
-							.createdAt((config.getCreatedAt() == 0) ? Instant.now().getEpochSecond() - 60 : config.getCreatedAt())
-							.build())
-					.build()
-					.toCell());
-		}
-		Cell innerMsg = wallet.createTransferMessage(config);
-		TweetNaclFast.Signature.KeyPair keyPair = wallet.getKeyPair();
-		Message externalMessage = Message.builder()
-				.info(ExternalMessageInInfo.builder()
-						.dstAddr(MsgAddressIntStd.builder().workchainId(ownAddress.wc).address(ownAddress.toBigInteger()).build())
-						.build())
-				.init(wallet.getStateInit())
-				.body(CellBuilder.beginCell()
-						.storeBytes(Utils.signData(keyPair.getPublicKey(), keyPair.getSecretKey(), innerMsg.hash()))
-						.storeRef(innerMsg)
-						.endCell())
-				.build();
-		return externalMessage.toCell().toBase64();
-	}
-
 	@Retryable(retryFor = RetryException.class, backoff = @Backoff(delay = 2000), maxAttempts = 5)
 	public String transferTokenToMainAccount(String spenderRawAddress, String encryptedKey, String tokenAddress, String mainAccountAddress,
 			String feeAccountEncryptedKey, String txReference, BigInteger fee) {
@@ -327,6 +264,69 @@ public class TonCoreService {
 								BigInteger.ONE, forwardPayload))
 						.build())).toCell())
 				.build();
+	}
+
+	public String deployFeeAccount(String encryptedKey) {
+		TonNode tonNode = tonNodePool.getTonNodeByChainId();
+		String privateKey = getDecryptedKey(encryptedKey, tonNode);
+		if (StringUtil.nullOrEmpty(privateKey)) {
+			throw new InternalServerErrorException(String.format(Errors.PRIVATE_KEY_NOT_DECRYPTED));
+		}
+		TweetNaclFast.Signature.KeyPair keyPair = getKeyPair(privateKey);
+		WalletV3R2 feeAccountWallet = WalletV3R2.builder().walletId(tonNode.getWalletId()).keyPair(keyPair).build();
+		String deploymentTransactionMessage = feeAccountWallet.prepareDeployMsg().toCell().toBase64();
+		try {
+			return tonCoreServiceHelper.sendMessageWithReturnHash(deploymentTransactionMessage);
+		} catch (RuntimeException e) {
+			LOG.error(e.getMessage(), e);
+			throw new InternalServerErrorException(
+					String.format(Errors.ERROR_DEPLOY_FEE_ACCOUNT, feeAccountWallet.getAddress().toRaw(), tonNode.getChainId()));
+		}
+	}
+
+	public String deployMainAccount(String encryptedKey) {
+		TonNode tonNode = tonNodePool.getTonNodeByChainId();
+		String privateKey = getDecryptedKey(encryptedKey, tonNode);
+		if (StringUtil.nullOrEmpty(privateKey)) {
+			throw new InternalServerErrorException(String.format(Errors.PRIVATE_KEY_NOT_DECRYPTED));
+		}
+		TweetNaclFast.Signature.KeyPair keyPair = getKeyPair(privateKey);
+		HighloadWalletV3 mainAccountWallet = HighloadWalletV3.builder().walletId(tonNode.getWalletId()).keyPair(keyPair).build();
+		HighloadV3Config config = HighloadV3Config.builder().walletId(tonNode.getWalletId()).queryId(HighloadQueryId.fromSeqno(0).getQueryId()).build();
+		String deployMainAccountMessage = createDeployMainAccountMessage(config, mainAccountWallet);
+		try {
+			return tonCoreServiceHelper.sendMessageWithReturnHash(deployMainAccountMessage);
+		} catch (RuntimeException e) {
+			LOG.error(e.getMessage(), e);
+			throw new InternalServerErrorException(
+					String.format(Errors.ERROR_DEPLOY_MAIN_ACCOUNT, mainAccountWallet.getAddress().toRaw(), tonNode.getChainId()));
+		}
+	}
+
+	private String createDeployMainAccountMessage(HighloadV3Config config, HighloadWalletV3 wallet) {
+		Address ownAddress = wallet.getAddress();
+		if (isNull(config.getBody())) {
+			config.setBody(MessageRelaxed.builder()
+					.info(InternalMessageInfoRelaxed.builder()
+							.dstAddr(MsgAddressIntStd.builder().workchainId(ownAddress.wc).address(ownAddress.toBigInteger()).build())
+							.createdAt((config.getCreatedAt() == 0) ? Instant.now().getEpochSecond() - 60 : config.getCreatedAt())
+							.build())
+					.build()
+					.toCell());
+		}
+		Cell innerMsg = wallet.createTransferMessage(config);
+		TweetNaclFast.Signature.KeyPair keyPair = wallet.getKeyPair();
+		Message externalMessage = Message.builder()
+				.info(ExternalMessageInInfo.builder()
+						.dstAddr(MsgAddressIntStd.builder().workchainId(ownAddress.wc).address(ownAddress.toBigInteger()).build())
+						.build())
+				.init(wallet.getStateInit())
+				.body(CellBuilder.beginCell()
+						.storeBytes(Utils.signData(keyPair.getPublicKey(), keyPair.getSecretKey(), innerMsg.hash()))
+						.storeRef(innerMsg)
+						.endCell())
+				.build();
+		return externalMessage.toCell().toBase64();
 	}
 
 	private String getDecryptedKey(String encryptedKey, TonNode tonNode) {
