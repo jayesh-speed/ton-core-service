@@ -69,7 +69,7 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 	}
 
 	@Override
-	public void addMainAccountContractAddress(String address) {
+	public void updateMainAccountContractAddress(String address) {
 		String rawAddress = TonUtil.toRawAddress(address);
 		TonNode tonNode = tonNodePool.getTonNodeByChainId();
 		Predicate queryPredicate = new BooleanBuilder(qTonMainAccount.address.eq(rawAddress)).and(qTonMainAccount.chainId.eq(tonNode.getChainId()));

@@ -4,6 +4,7 @@ import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.speed.javacommon.util.DateTimeUtil;
 import com.speed.javacommon.util.RequestIdGenerator;
+import com.speed.toncore.accounts.service.TonMainAccountService;
 import com.speed.toncore.accounts.service.TransactionFeeService;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Errors;
@@ -46,6 +47,7 @@ public class TonListenerHelper {
 	private final WithdrawProcessHelper withdrawProcessHelper;
 	private final SweepService sweepService;
 	private final TransactionFeeService transactionFeeService;
+	private final TonMainAccountService tonMainAccountService;
 
 	@Transactional
 	public TonListener fetchListenerAndUpdateToRunning() {
@@ -109,6 +111,12 @@ public class TonListenerHelper {
 		LOG.info(String.format(LogMessages.Info.ON_CHAIN_SWEEP_TRANSFER_INFO, transfer.getTransactionHash(), chainId));
 		setContext(chainId);
 		sweepService.updateConfirmedSweepOnChainTx(transfer, chainId);
+	}
+
+	@Async
+	public void updateTokenContractAddress(String address, Integer chainId) {
+		setContext(chainId);
+		tonMainAccountService.updateMainAccountContractAddress(address);
 	}
 
 	private void setContext(Integer chainId) {

@@ -81,7 +81,6 @@ public class Constants {
 		public final String REMOVE_USED_TON_ADDRESS = "removeUsedTonWalletAddress";
 		public final String SWEEP_FEE = "SweepTransactionFee";
 		public final String TRANSFER_TOKEN = "transferToken";
-		public final String UPDATE_CONTRACT_ADDRESS = "updateContractAddress";
 		public final String UPDATE_LOGICAL_TIME = "updateLogicalTime";
 		public final String UPDATE_TON_LISTENER_STATUS = "updateTonListenerStatus";
 	}

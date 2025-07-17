@@ -119,7 +119,11 @@ public class ListenerServiceImpl implements TonListenerService {
 			tonListenerHelper.updateOnChainTransaction(transfer, TonTransactionType.SEND.name(), chainId);
 		}
 		if (fromAddresses.contains(transfer.getDestination())) {
-			tonListenerHelper.updateOnChainSweepTransaction(transfer, chainId);
+			if (toAddresses.contains(transfer.getSource())) {
+				tonListenerHelper.updateOnChainSweepTransaction(transfer, chainId);
+				return;
+			}
+			tonListenerHelper.updateTokenContractAddress(transfer.getDestination(), chainId);
 		}
 	}
 

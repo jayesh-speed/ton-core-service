@@ -30,7 +30,6 @@ public class Endpoints {
 	public final String REMOVE_USED_TON_ADDRESS = "/account/ton-wallet-address/remove/{address}";
 	public final String SWEEP_FEE = "/transaction-fee/sweep";
 	public final String TRANSFER_TOKEN = "/payment/send-token";
-	public final String UPDATE_CONTRACT_ADDRESS = "/account/ton-main/update/{address}";
 	public final String UPDATE_LOGICAL_TIME = "/payment/logical-time/update/{id}/{logicalTime}";
 	public final String UPDATE_TON_LISTENER = "/ton-listener/update/{id}";
 

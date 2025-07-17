@@ -12,7 +12,7 @@ public interface TonMainAccountService {
 
 	void deleteMainAccount(String address);
 
-	void addMainAccountContractAddress(String address);
+	void updateMainAccountContractAddress(String address);
 
 	DeployedAccountResponse deployMainAccount(String address);
 
