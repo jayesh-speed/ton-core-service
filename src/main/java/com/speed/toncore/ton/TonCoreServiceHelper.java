@@ -16,6 +16,7 @@ import com.speed.toncore.pojo.AccountStatusDto;
 import com.speed.toncore.pojo.FeeDto;
 import com.speed.toncore.pojo.JettonWalletDto;
 import com.speed.toncore.pojo.SendTransactionDto;
+import com.speed.toncore.pojo.StatusDto;
 import com.speed.toncore.pojo.TonConfigParamDto;
 import com.speed.toncore.pojo.TraceDto;
 import com.speed.toncore.pojo.WalletInformationDto;
@@ -35,6 +36,7 @@ import org.springframework.util.MultiValueMap;
 import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -97,6 +99,19 @@ public class TonCoreServiceHelper {
 				getHeaders(tonNode.getApiKey(), false));
 		AccountStatusDto accountStatusDto = parseResponse(response, AccountStatusDto.class);
 		return accountStatusDto.getResult().equalsIgnoreCase(Constants.ACTIVE);
+	}
+
+	@Retryable(retryFor = RetryException.class, backoff = @Backoff(delay = 2000, multiplier = 2, random = true, maxDelay = 8000), maxAttempts = 5)
+	public Boolean getAccountStatus(String address) {
+		TonNode tonNode = tonNodePool.getTonNodeByChainId();
+		Map<String, String> requestBody = new HashMap<>();
+		requestBody.put(JsonKeys.TonIndexer.ADDRESS, address);
+		requestBody.put(JsonKeys.TonIndexer.METHOD, JsonKeys.TonIndexer.GET_STATUS);
+		Map<String, Object> response = restClient.executeAPICall(HttpMethod.POST,
+				String.format(URL_TEMPLATE, tonNode.getBaseUrl(), Endpoints.TonIndexer.RUN_GET_METHOD), null, getHeaders(tonNode.getApiKey(), false),
+				requestBody);
+		StatusDto accountStatus = parseResponse(response, StatusDto.class);
+		return accountStatus.getStack().getFirst().getValue().equalsIgnoreCase(Constants.UNLOCKED);
 	}
 
 	@Retryable(retryFor = RetryException.class, backoff = @Backoff(delay = 2000, multiplier = 2, random = true, maxDelay = 8000), maxAttempts = 5)

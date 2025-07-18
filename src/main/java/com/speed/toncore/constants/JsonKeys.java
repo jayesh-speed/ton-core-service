@@ -85,6 +85,7 @@ public class JsonKeys {
 		public final String FORWARD_PAYLOAD = "forward_payload";
 		public final String FORWARD_TON_AMOUNT = "forward_ton_amount";
 		public final String GAS_FEE = "gas_fee";
+		public final String GET_STATUS = "get_status";
 		public final String IN_FWD_FEE = "in_fwd_fee";
 		public final String JETTON = "jetton";
 		public final String JETTON_MASTER = "jetton_master";
@@ -94,6 +95,7 @@ public class JsonKeys {
 		public final String LAST_TRANSACTION_LT = "last_transaction_lt";
 		public final String MESSAGE_HASH = "message_hash";
 		public final String MESSAGE_HASH_NORM = "message_hash_norm";
+		public final String METHOD = "method";
 		public final String OK = "ok";
 		public final String OWNER = "owner";
 		public final String QUERY_ID = "query_id";
@@ -103,6 +105,7 @@ public class JsonKeys {
 		public final String SOURCE = "source";
 		public final String SOURCE_FEES = "source_fees";
 		public final String SOURCE_WALLET = "source_wallet";
+		public final String STACK = "stack";
 		public final String STATUS = "status";
 		public final String STORAGE_FEE = "storage_fee";
 		public final String TRACE_ID = "trace_id";
@@ -110,7 +113,9 @@ public class JsonKeys {
 		public final String TRANSACTION_HASH = "transaction_hash";
 		public final String TRANSACTION_LT = "transaction_lt";
 		public final String TRANSACTION_NOW = "transaction_now";
+		public final String TYPE = "type";
 		public final String USER_FRIENDLY = "user_friendly";
+		public final String VALUE = "value";
 		public final String WALLET_ID = "wallet_id";
 		public final String WALLET_TYPE = "wallet_type";
 	}

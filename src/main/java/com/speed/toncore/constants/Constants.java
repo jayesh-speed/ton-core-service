@@ -25,6 +25,7 @@ public class Constants {
 	public final String PROCESSED_BY_TON = "ton";
 	public final String REQUEST_ID = "speed-request";
 	public final String TON_WITHDRAW_METHOD = "ton";
+	public final String UNLOCKED = "0x0";
 	public final String USDT_CURRENCY_SYMBOL = "USDT";
 	public final String USER_ID = "user_id";
 	public final String WALLET = "wallet";

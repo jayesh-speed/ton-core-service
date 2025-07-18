@@ -357,6 +357,6 @@ public class TonCoreService {
 	}
 
 	public boolean isActive(String address) {
-		return true;
+		return tonCoreServiceHelper.getAccountStatus(address);
 	}
 }

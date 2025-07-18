@@ -39,11 +39,12 @@ public class Endpoints {
 		public final String GET_ACCOUNT_STATE = "/api/v2/getAddressState";
 		public final String GET_CONFIG_PARAM = "/api/v2/getConfigParam";
 		public final String GET_ESTIMATE_FEES = "/api/v3/estimateFee";
-		public final String GET_TOKEN_TRANSFERS = "/api/v3/jetton/transfers";
 		public final String GET_TOKEN_CONTRACT = "/api/v3/jetton/wallets";
+		public final String GET_TOKEN_TRANSFERS = "/api/v3/jetton/transfers";
 		public final String GET_TON_BALANCE = "/api/v2/getAddressBalance";
 		public final String GET_TRACE_BY_TRACE_ID = "/api/v3/traces";
 		public final String GET_WALLET_INFORMATION = "/api/v3/walletInformation";
+		public final String RUN_GET_METHOD = "/api/v3/runGetMethod";
 		public final String SEND_MESSAGE_WITH_RETURN_DATA = "/api/v3/message";
 	}
 }
