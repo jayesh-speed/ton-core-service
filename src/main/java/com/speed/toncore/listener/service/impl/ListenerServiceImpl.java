@@ -5,7 +5,7 @@ import com.querydsl.core.types.Predicate;
 import com.speed.javacommon.exceptions.BadRequestException;
 import com.speed.javacommon.util.DateTimeUtil;
 import com.speed.toncore.accounts.service.TonAddressService;
-import com.speed.toncore.chainstack.TokenTransferFilter;
+import com.speed.toncore.listener.TokenTransferFilter;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Endpoints;
 import com.speed.toncore.constants.Errors;
