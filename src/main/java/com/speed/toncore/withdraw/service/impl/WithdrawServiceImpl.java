@@ -2,13 +2,14 @@ package com.speed.toncore.withdraw.service.impl;
 
 import com.speed.javacommon.exceptions.BadRequestException;
 import com.speed.javacommon.exceptions.InternalServerErrorException;
-import com.speed.javacommon.util.CollectionUtil;
 import com.speed.javacommon.util.StringUtil;
 import com.speed.toncore.accounts.request.FeeEstimationRequest;
 import com.speed.toncore.accounts.service.TonMainAccountService;
 import com.speed.toncore.accounts.service.TransactionFeeService;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.TonMainAccount;
+import com.speed.toncore.enums.BalancePreference;
+import com.speed.toncore.interceptor.ExecutionContextUtil;
 import com.speed.toncore.service.OnChainTxService;
 import com.speed.toncore.tokens.response.TonTokenResponse;
 import com.speed.toncore.tokens.service.TonTokenService;
@@ -24,8 +25,6 @@ import org.ton.ton4j.utils.Utils;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -57,28 +56,20 @@ public class WithdrawServiceImpl implements WithdrawService {
 
 		withdrawRequest.setTokenAddress(token.getTokenAddress());
 		BigDecimal value = new BigDecimal(withdrawRequest.getValue());
-		List<TonMainAccount> mainAccountList = tonMainAccountService.getMainAccountInternal(token.getTokenAddress());
-		if (CollectionUtil.nullOrEmpty(mainAccountList)) {
-			throw new InternalServerErrorException(Errors.MAIN_ACCOUNT_NOT_FOUND);
-		}
-		Map.Entry<TonMainAccount, BigDecimal> maxBalanceAccMap = mainAccountList.stream()
-				.map(acc -> Map.entry(acc, tonCoreService.fetchTokenBalance(token.getTokenAddress(), acc.getAddress(), token.getDecimals())))
-				.max(Map.Entry.comparingByValue())
-				.get();
-		BigDecimal tokenBalanceOnAccount = maxBalanceAccMap.getValue();
+		TonMainAccount mainAccount = selectTonMainAccount(token.getTokenAddress());
+		BigDecimal tokenBalanceOnAccount = tonCoreService.fetchTokenBalance(token.getTokenAddress(), mainAccount.getAddress(), token.getDecimals());
 		if (tokenBalanceOnAccount.compareTo(value) < 0) {
 			throw new InternalServerErrorException(String.format(Errors.INSUFFICIENT_MAIN_ACC_BALANCE, token.getTokenSymbol()));
 		}
-		TonMainAccount maxBalanceAcc = maxBalanceAccMap.getKey();
-		BigDecimal tonBalanceOnAccount = tonCoreService.fetchTonBalance(maxBalanceAcc.getAddress());
+		BigDecimal tonBalanceOnAccount = tonCoreService.fetchTonBalance(mainAccount.getAddress());
 		if (tonBalanceOnAccount.compareTo(BigDecimal.ZERO) <= 0) {
 			throw new InternalServerErrorException(String.format(Errors.INSUFFICIENT_FEE_BALANCE, token.getTokenSymbol()));
 		}
-		withdrawRequest.setFromAddress(maxBalanceAcc.getAddress());
+		withdrawRequest.setFromAddress(mainAccount.getAddress());
 		String txReference = TonUtil.generateTransferTransactionReference();
 		BigInteger estimatedFee = estimateFee(withdrawRequest.getFromAddress(), withdrawRequest.getToAddress(), token.getTokenAddress());
 		String transactionHash = tonCoreService.transferTokens(withdrawRequest.getFromAddress(), withdrawRequest.getToAddress(), token, value,
-				maxBalanceAcc.getPrivateKey(), maxBalanceAcc.getTokenContractAddress(), txReference, estimatedFee);
+				mainAccount.getPrivateKey(), mainAccount.getTokenContractAddress(), txReference, estimatedFee);
 		onChainTxService.createOnChainDebitTx(transactionHash, withdrawRequest, txReference);
 		return WithdrawResponse.builder()
 				.transactionHash(transactionHash)
@@ -87,6 +78,22 @@ public class WithdrawServiceImpl implements WithdrawService {
 				.toAddress(withdrawRequest.getToAddress())
 				.value(withdrawRequest.getValue())
 				.build();
+	}
+
+	private TonMainAccount selectTonMainAccount(String tokenAddress) {
+		TonMainAccount mainAccount;
+		do {
+			mainAccount = tonMainAccountService.getMainAccountInternal(tokenAddress, BalancePreference.MAX_BALANCE);
+			if (Objects.isNull(mainAccount)) {
+				throw new InternalServerErrorException(
+						String.format(Errors.VALID_ACCOUNT_NOT_FOUND, tokenAddress, ExecutionContextUtil.getContext().getChainId()));
+			}
+			if (tonCoreService.isActive(mainAccount.getTokenContractAddress())) {
+				return mainAccount;
+			} else {
+				tonMainAccountService.updateAccountStatusInActive(mainAccount.getAddress());
+			}
+		} while (true);
 	}
 
 	@Override

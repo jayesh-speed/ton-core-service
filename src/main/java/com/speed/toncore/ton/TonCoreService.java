@@ -355,4 +355,8 @@ public class TonCoreService {
 		logHolder.put(LogKeys.CHAIN_ID, ExecutionContextUtil.getContext().getChainId());
 		return logHolder;
 	}
+
+	public boolean isActive(String address) {
+		return true;
+	}
 }

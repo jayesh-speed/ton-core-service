@@ -10,7 +10,7 @@ public interface TonListenerService {
 
 	void deleteListenerById(String id);
 
-	long updateListenerStatus(TonListener listener, String status);
+	void updateListenerStatus(TonListener listener, String status);
 
 	TonListener getListenerById(String id);
 

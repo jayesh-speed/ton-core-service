@@ -6,7 +6,7 @@ import com.speed.toncore.sweep.response.SweepResponse;
 
 public interface SweepService {
 
-	void updateConfirmedSweepOnChainTx(JettonTransferDto transfer, Integer chainId);
+	void updateConfirmedSweepOnChainTx(JettonTransferDto transfer, Integer chainId, int decimal);
 
 	String initiateSweepOnChainTx(SweepRequest sweepRequest, String id,int decimals);
 

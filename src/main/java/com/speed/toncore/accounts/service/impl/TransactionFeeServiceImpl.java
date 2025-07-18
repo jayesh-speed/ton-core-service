@@ -9,6 +9,7 @@ import com.speed.toncore.accounts.service.TransactionFeeService;
 import com.speed.toncore.constants.Constants;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.TonMainAccount;
+import com.speed.toncore.enums.BalancePreference;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
 import com.speed.toncore.pojo.TraceDto;
 import com.speed.toncore.schedular.ConfigParam;
@@ -128,7 +129,7 @@ public class TransactionFeeServiceImpl implements TransactionFeeService {
 		String tokenAddress = request.getTokenAddress();
 		try {
 			if (StringUtil.nullOrEmpty(fromAddress)) {
-				TonMainAccount mainAccount = tonMainAccountService.getMainAccountInternal(tokenAddress).getFirst();
+				TonMainAccount mainAccount = tonMainAccountService.getMainAccountInternal(tokenAddress, BalancePreference.MAX_BALANCE);
 				storageFeeMainAccount = getStorageFee(mainAccount.getAddress());
 				storageFeeSenderTokenContract = getStorageFee(mainAccount.getTokenContractAddress());
 			} else {

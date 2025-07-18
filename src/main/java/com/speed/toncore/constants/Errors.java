@@ -61,6 +61,7 @@ public class Errors {
 	public final String TOKEN_INFO_MISSING = "Missing token address and token symbol in transfer request";
 	public final String TOKEN_SYMBOL_NOT_SUPPORTED = "Provided token symbol is not supported. Please provide a valid token symbol.";
 	public final String UNSUPPORTED_MEDIA_TYPE = "%s media type is not supported. Supported media types are %s";
+	public final String VALID_ACCOUNT_NOT_FOUND = "No valid TON main account found for token: %s on chain ID: %s. All accounts are inactive or empty.";
 	public final String WITHDRAW_PROCESS_EXIST = "Withdraw process already exists with withdraw id %s and account id %s";
 
 	@UtilityClass

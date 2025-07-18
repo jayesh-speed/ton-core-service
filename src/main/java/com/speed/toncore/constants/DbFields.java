@@ -20,6 +20,7 @@ public class DbFields {
 	public final String GAS_UNIT = "gas_unit";
 	public final String GAS_UNIT_V3 = "gas_unit_v3";
 	public final String ID = "id";
+	public final String IS_ACTIVE = "is_active";
 	public final String LOGICAL_TIME = "logical_time";
 	public final String MAIN_NET = "main_net";
 	public final String NO_OF_BITS = "no_of_bits";
@@ -40,6 +41,7 @@ public class DbFields {
 	public final String TOKEN_CONTRACT_ADDRESS = "token_contract_address";
 	public final String TOKEN_NAME = "token_name";
 	public final String TOKEN_SYMBOL = "token_symbol";
+	public final String TOKEN_BALANCE = "token_balance";
 	public final String TON_BALANCE = "ton_balance";
 	public final String TO_ADDRESS = "to_address";
 	public final String TRACE_ID = "trace_id";

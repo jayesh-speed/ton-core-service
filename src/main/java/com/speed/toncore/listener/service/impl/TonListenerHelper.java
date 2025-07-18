@@ -104,19 +104,22 @@ public class TonListenerHelper {
 		BigDecimal fees = transactionFeeService.getTokenTransferFee(transfer.getTraceId());
 		withdrawProcessHelper.markWithdrawProcessPaid(transfer, fees);
 		onChainTxService.updateConfirmedDebitOnChainTx(transfer, tokenResponse.getDecimals(), fees);
+		tonMainAccountService.updateMainAccountBalance(transfer.getSource(), transfer.getJettonMaster(), tokenResponse.getDecimals());
 	}
 
 	@Async
 	public void updateOnChainSweepTransaction(JettonTransferDto transfer, Integer chainId) {
 		LOG.info(String.format(LogMessages.Info.ON_CHAIN_SWEEP_TRANSFER_INFO, transfer.getTransactionHash(), chainId));
 		setContext(chainId);
-		sweepService.updateConfirmedSweepOnChainTx(transfer, chainId);
+		TonTokenResponse token = tonTokenService.getTonTokenByAddress(transfer.getJettonMaster());
+		tonMainAccountService.updateMainAccountBalance(transfer.getDestination(), transfer.getJettonMaster(), token.getDecimals());
+		sweepService.updateConfirmedSweepOnChainTx(transfer, chainId, token.getDecimals());
 	}
 
 	@Async
-	public void updateTokenContractAddress(String address, Integer chainId) {
+	public void updateTokenContractAddress(String address, String tokenAddress, Integer chainId) {
 		setContext(chainId);
-		tonMainAccountService.updateMainAccountContractAddress(address);
+		tonMainAccountService.updateMainAccountContractAddress(address, tokenAddress);
 	}
 
 	private void setContext(Integer chainId) {

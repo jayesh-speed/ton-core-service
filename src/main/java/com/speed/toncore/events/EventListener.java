@@ -5,6 +5,7 @@ import com.speed.toncore.domain.model.TonListener;
 import com.speed.toncore.enums.TonListenerStatus;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
 import com.speed.toncore.listener.service.TonListenerService;
+import com.speed.toncore.listener.service.impl.TonListenerHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.ContextClosedEvent;
@@ -21,10 +22,11 @@ public class EventListener {
 
 	private final TonListenerService listenerService;
 	private final TonAddressService tonAddressService;
+	private final TonListenerHelper tonListenerHelper;
 
 	@org.springframework.context.event.EventListener
 	public void handleTonAddressCreatedEvent(TonAddressCreatedEvent tonAddressCreatedEvent) {
-		TonListener listener = getListenerAndUpdateToRunning();
+		TonListener listener = tonListenerHelper.fetchListenerAndUpdateToRunning();
 		if (Objects.nonNull(listener)) {
 			Integer chainId = ExecutionContextUtil.getContext().getChainId();
 			listenerService.stopAndDisposeListener(listener);
@@ -36,7 +38,7 @@ public class EventListener {
 
 	@org.springframework.context.event.EventListener
 	public void handleMainAccountCreatedEvent(MainAccountCreateEvent mainAccountCreateEvent) {
-		TonListener listener = getListenerAndUpdateToRunning();
+		TonListener listener = tonListenerHelper.fetchListenerAndUpdateToRunning();
 		if (Objects.nonNull(listener)) {
 			Integer chainId = ExecutionContextUtil.getContext().getChainId();
 			listenerService.stopAndDisposeListener(listener);
@@ -54,25 +56,10 @@ public class EventListener {
 
 	@org.springframework.context.event.EventListener
 	public void handleTokenAddedEvent(TonTokenAddedEvent tokenAddedEvent) {
-		TonListener listener = getListenerAndUpdateToRunning();
+		TonListener listener = tonListenerHelper.fetchListenerAndUpdateToRunning();
 		if (Objects.nonNull(listener)) {
 			listenerService.stopAndDisposeListener(listener);
 			listenerService.subscribeListener(listener);
 		}
-	}
-
-	private TonListener getListenerAndUpdateToRunning() {
-		TonListener listener = listenerService.getListener();
-		if (Objects.isNull(listener)) {
-			return null;
-		}
-		boolean equals = listener.getStatus().equals(TonListenerStatus.IDLE.name());
-		if (equals) {
-			long count = listenerService.updateListenerStatus(listener, TonListenerStatus.RUNNING.name());
-			if (count == 0) {
-				return null;
-			}
-		}
-		return listener;
 	}
 }

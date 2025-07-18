@@ -36,14 +36,17 @@ public class TonMainAccount extends IdentityJpaDomain {
 	@Column(name = DbFields.ADDRESS_TYPE, nullable = false, columnDefinition = "VARCHAR(30)")
 	private String addressType;
 
-	@Column(name = DbFields.TON_BALANCE, nullable = false, columnDefinition = "DECIMAL(19,9)")
-	private BigDecimal tonBalance;
+	@Column(name = DbFields.TOKEN_BALANCE, nullable = false, columnDefinition = "DECIMAL(19,9)")
+	private BigDecimal tokenBalance;
 
 	@Column(name = DbFields.TOKEN_ADDRESS, nullable = false, columnDefinition = "VARCHAR(80)")
 	private String tokenAddress;
 
 	@Column(name = DbFields.TOKEN_CONTRACT_ADDRESS, columnDefinition = "VARCHAR(80)")
 	private String tokenContractAddress;
+
+	@Column(name = DbFields.IS_ACTIVE, nullable = false, columnDefinition = "TINYINT(1)")
+	private Boolean isActive;
 
 	@Column(name = DbFields.CHAIN_ID, nullable = false, columnDefinition = "TINYINT UNSIGNED")
 	private Integer chainId;

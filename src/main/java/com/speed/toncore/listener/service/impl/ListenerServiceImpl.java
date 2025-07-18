@@ -123,7 +123,7 @@ public class ListenerServiceImpl implements TonListenerService {
 				tonListenerHelper.updateOnChainSweepTransaction(transfer, chainId);
 				return;
 			}
-			tonListenerHelper.updateTokenContractAddress(transfer.getDestination(), chainId);
+			tonListenerHelper.updateTokenContractAddress(transfer.getDestination(), transfer.getJettonMaster(), chainId);
 		}
 	}
 
@@ -147,13 +147,13 @@ public class ListenerServiceImpl implements TonListenerService {
 	}
 
 	@Override
-	public long updateListenerStatus(TonListener listener, String status) {
+	public void updateListenerStatus(TonListener listener, String status) {
 		Predicate queryPredicate = qTonListener.id.eq(listener.getId());
 		Long currentTime = DateTimeUtil.currentEpochMilliSecondsUTC();
 		Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(2);
 		fieldWithValue.put(qTonListener.status, status);
 		fieldWithValue.put(qTonListener.modified, currentTime);
-		return tonListenerRepository.updateFields(queryPredicate, qTonListener, fieldWithValue);
+		tonListenerRepository.updateFields(queryPredicate, qTonListener, fieldWithValue);
 	}
 
 	@Override
@@ -164,8 +164,6 @@ public class ListenerServiceImpl implements TonListenerService {
 
 	@Override
 	public TonListener getListener() {
-		Predicate queryPredicate = qTonListener.chainId.eq(ExecutionContextUtil.getContext().getChainId());
-		return tonListenerRepository.findAndProjectUnique(queryPredicate, qTonListener, qTonListener.id, qTonListener.chainId, qTonListener.mainNet,
-				qTonListener.status, qTonListener.created, qTonListener.modified);
+		return tonListenerRepository.findByChainId(ExecutionContextUtil.getContext().getChainId());
 	}
 }

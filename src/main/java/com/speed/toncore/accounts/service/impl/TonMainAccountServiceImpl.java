@@ -12,8 +12,11 @@ import com.speed.toncore.accounts.service.TonMainAccountService;
 import com.speed.toncore.constants.Errors;
 import com.speed.toncore.domain.model.QTonMainAccount;
 import com.speed.toncore.domain.model.TonMainAccount;
+import com.speed.toncore.enums.BalancePreference;
 import com.speed.toncore.interceptor.ExecutionContextUtil;
 import com.speed.toncore.repository.TonMainAccountRepository;
+import com.speed.toncore.tokens.response.TonTokenResponse;
+import com.speed.toncore.tokens.service.TonTokenService;
 import com.speed.toncore.ton.TonCoreService;
 import com.speed.toncore.ton.TonNode;
 import com.speed.toncore.ton.TonNodePool;
@@ -21,7 +24,6 @@ import com.speed.toncore.util.SecurityManagerUtil;
 import com.speed.toncore.util.TonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.ton.ton4j.smartcontract.highload.HighloadWalletV3;
 import org.ton.ton4j.utils.Utils;
@@ -41,7 +43,7 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 	private final TonMainAccountRepository tonMainAccountRepository;
 	private final TonNodePool tonNodePool;
 	private final TonCoreService tonCoreService;
-	private final ApplicationEventPublisher applicationEventPublisher;
+	private final TonTokenService tonTokenService;
 
 	@Override
 	public TonAccountResponse createMainAccount(String tokenAddress) {
@@ -59,7 +61,8 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 				.publicKey(Utils.bytesToHex(mainAccountWallet.getKeyPair().getPublicKey()))
 				.privateKey(encryptedPriKey)
 				.addressType(mainAccountWallet.getName())
-				.tonBalance(BigDecimal.ZERO)
+				.tokenBalance(BigDecimal.ZERO)
+				.isActive(Boolean.FALSE)
 				.tokenAddress(tokenAddress)
 				.chainId(tonNode.getChainId())
 				.mainNet(tonNode.isMainNet())
@@ -69,23 +72,21 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 	}
 
 	@Override
-	public void updateMainAccountContractAddress(String address) {
-		String rawAddress = TonUtil.toRawAddress(address);
-		TonNode tonNode = tonNodePool.getTonNodeByChainId();
-		Predicate queryPredicate = new BooleanBuilder(qTonMainAccount.address.eq(rawAddress)).and(qTonMainAccount.chainId.eq(tonNode.getChainId()));
-		TonMainAccount tonMainAccount = tonMainAccountRepository.findOne(queryPredicate)
-				.orElseThrow(() -> new BadRequestException(String.format(Errors.MAIN_ACCOUNT_NOT_FOUND, rawAddress, tonNode.getChainId()), null, null));
-		String tokenContractAddress = tonCoreService.getTokenContractAddress(tonMainAccount.getAddress(), tonMainAccount.getTokenAddress());
+	public void updateMainAccountContractAddress(String address, String tokenAddress) {
+		Integer chainId = ExecutionContextUtil.getContext().getChainId();
+		String tokenContractAddress = tonCoreService.getTokenContractAddress(address, tokenAddress);
 		if (StringUtil.nullOrEmpty(tokenContractAddress)) {
-			throw new BadRequestException(String.format(Errors.TOKEN_CONTRACT_NOT_FOUND, address, tonMainAccount.getTokenAddress()), null, null);
+			throw new BadRequestException(String.format(Errors.TOKEN_CONTRACT_NOT_FOUND, address, tokenAddress), null, null);
 		}
-		Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(2);
+		TonTokenResponse token = tonTokenService.getTonTokenByAddress(tokenAddress);
+		BigDecimal balance = tonCoreService.fetchTokenBalance(tokenAddress, address, token.getDecimals());
+		Predicate queryPredicate = new BooleanBuilder(qTonMainAccount.address.eq(address)).and(qTonMainAccount.tokenAddress.eq(tokenAddress))
+				.and(qTonMainAccount.chainId.eq(chainId));
+		Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(3);
 		fieldWithValue.put(qTonMainAccount.tokenContractAddress, tokenContractAddress);
+		fieldWithValue.put(qTonMainAccount.tokenBalance, balance);
 		fieldWithValue.put(qTonMainAccount.modified, DateTimeUtil.currentEpochMilliSecondsUTC());
-		long count = tonMainAccountRepository.updateFields(queryPredicate, qTonMainAccount, fieldWithValue);
-		if (count < 1) {
-			throw new BadRequestException(String.format(Errors.MAIN_ACCOUNT_NOT_FOUND, address, tonNode.getChainId()), null, null);
-		}
+		tonMainAccountRepository.updateFields(queryPredicate, qTonMainAccount, fieldWithValue);
 	}
 
 	@Override
@@ -94,6 +95,15 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 		Predicate queryPredicate = new BooleanBuilder(qTonMainAccount.address.eq(address)).and(
 				qTonMainAccount.chainId.eq(ExecutionContextUtil.getContext().getChainId()));
 		tonMainAccountRepository.deleteByPredicate(queryPredicate, qTonMainAccount);
+	}
+
+	@Override
+	public void updateAccountStatusInActive(String address) {
+		Predicate queryPredicate = new BooleanBuilder(qTonMainAccount.address.eq(address));
+		Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(2);
+		fieldWithValue.put(qTonMainAccount.isActive, Boolean.FALSE);
+		fieldWithValue.put(qTonMainAccount.modified, DateTimeUtil.currentEpochMilliSecondsUTC());
+		tonMainAccountRepository.updateFields(queryPredicate, qTonMainAccount, fieldWithValue);
 	}
 
 	@Override
@@ -113,6 +123,7 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 		String hash = tonCoreService.deployMainAccount(tonMainAccount.getPrivateKey());
 		Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(2);
 		fieldWithValue.put(qTonMainAccount.deploymentTxHash, hash);
+		fieldWithValue.put(qTonMainAccount.isActive, Boolean.TRUE);
 		fieldWithValue.put(qTonMainAccount.modified, DateTimeUtil.currentEpochMilliSecondsUTC());
 		long count = tonMainAccountRepository.updateFields(queryPredicate, qTonMainAccount, fieldWithValue);
 		if (count < 1) {
@@ -122,19 +133,35 @@ public class TonMainAccountServiceImpl implements TonMainAccountService {
 	}
 
 	@Override
+	public void updateMainAccountBalance(String address, String tokenAddress, int decimals) {
+		address = TonUtil.toRawAddress(address);
+		BigDecimal balance = tonCoreService.fetchTokenBalance(tokenAddress, address, decimals);
+		Predicate queryPredicate = new BooleanBuilder(qTonMainAccount.address.eq(address).and(qTonMainAccount.tokenAddress.eq(tokenAddress)));
+		Map<Path<?>, Object> fieldWithValue = HashMap.newHashMap(2);
+		fieldWithValue.put(qTonMainAccount.tokenBalance, balance);
+		fieldWithValue.put(qTonMainAccount.modified, DateTimeUtil.currentEpochMilliSecondsUTC());
+		tonMainAccountRepository.updateFields(queryPredicate, qTonMainAccount, fieldWithValue);
+	}
+
+	@Override
 	public List<TonAccountResponse> getMainAccounts(String tokenAddress) {
-		List<TonMainAccount> mainAccounts = getMainAccountInternal(tokenAddress);
+		tokenAddress = TonUtil.toRawAddress(tokenAddress);
+		Integer chainId = ExecutionContextUtil.getContext().getChainId();
+		Predicate queryPredicate = qTonMainAccount.chainId.eq(chainId).and(qTonMainAccount.tokenAddress.eq(tokenAddress));
+		List<TonMainAccount> mainAccounts = tonMainAccountRepository.findAndProject(queryPredicate, qTonMainAccount, qTonMainAccount.address,
+				qTonMainAccount.tokenBalance);
 		return mainAccounts.stream()
-				.map(mainAccount -> TonAccountResponse.builder().address(mainAccount.getAddress()).localBalance(mainAccount.getTonBalance()).build())
+				.map(mainAccount -> TonAccountResponse.builder().address(mainAccount.getAddress()).localBalance(mainAccount.getTokenBalance()).build())
 				.collect(Collectors.toList());
 	}
 
 	@Override
-	public List<TonMainAccount> getMainAccountInternal(String tokenAddress) {
-		tokenAddress = TonUtil.toRawAddress(tokenAddress);
+	public TonMainAccount getMainAccountInternal(String tokenAddress, BalancePreference balancePreference) {
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
-		Predicate queryPredicate = qTonMainAccount.chainId.eq(chainId).and(qTonMainAccount.tokenAddress.eq(tokenAddress));
-		return tonMainAccountRepository.findAndProject(queryPredicate, qTonMainAccount, qTonMainAccount.address, qTonMainAccount.publicKey,
-				qTonMainAccount.id, qTonMainAccount.tonBalance, qTonMainAccount.privateKey, qTonMainAccount.tokenContractAddress);
+		Predicate queryPredicate = qTonMainAccount.chainId.eq(chainId)
+				.and(qTonMainAccount.tokenAddress.eq(tokenAddress))
+				.and(qTonMainAccount.isActive.isTrue());
+		return tonMainAccountRepository.findMainAccountByPredicateAndOrder(queryPredicate,
+				balancePreference.equals(BalancePreference.MAX_BALANCE) ? qTonMainAccount.tokenBalance.desc() : qTonMainAccount.tokenBalance.asc());
 	}
 }

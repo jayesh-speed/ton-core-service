@@ -52,6 +52,7 @@ public class TonTokenServiceImpl implements TonTokenService {
 		Predicate queryPredicate = new BooleanBuilder(qTonToken.tokenAddress.eq(address)).and(
 				qTonToken.chainId.eq(ExecutionContextUtil.getContext().getChainId()));
 		tonTokenRepository.deleteByPredicate(queryPredicate, qTonToken);
+		eventPublisher.publishEvent(new TonTokenAddedEvent());
 	}
 
 	@Override
@@ -68,7 +69,6 @@ public class TonTokenServiceImpl implements TonTokenService {
 	}
 
 	@Override
-	@Cacheable(value = Constants.CacheNames.TOKEN_RESPONSE, keyGenerator = Constants.CACHE_KEY_GENERATOR)
 	public TonTokenResponse getTonTokenBySymbol(String tokenSymbol) {
 		Integer chainId = ExecutionContextUtil.getContext().getChainId();
 		Predicate queryPredicate = new BooleanBuilder(qTonToken.chainId.eq(chainId)).and(qTonToken.tokenSymbol.eq(tokenSymbol));
